@@ -10,10 +10,10 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 ## Day 1 - Domain models + validation + tests
 
 ### Must have
-- [ ] Create `domain/model/TeamState` (health, energy, morale clamped 0-100)
-- [ ] Create `domain/model/ResourceState` (cash, food, computeCredits floor at 0)
-- [ ] Create `domain/model/JourneyState` (currentLocationIndex, distanceToNext)
-- [ ] Create `domain/model/Location` (name, lat, long)
+- [x] Create `domain/model/TeamState` (health, energy, morale clamped 0-100)
+- [x] Create `domain/model/ResourceState` (cash, food, computeCredits floor at 0)
+- [x] Create `domain/model/JourneyState` (currentLocationIndex, distanceToNext)
+- [x] Create `domain/model/Location` (name, lat, long)
 - [ ] Create `domain/model/GameState` (composes TeamState, ResourceState, JourneyState + turn, gameOver, victory)
 - [ ] Create `domain/action/GameAction` enum
 - [ ] Create `domain/event/GameEvent`
@@ -24,9 +24,9 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [ ] Create `domain/port/PersistencePort`
 
 ### Tests
-- [ ] Test TeamState clamping
-- [ ] Test ResourceState floor
-- [ ] Test JourneyState progress logic
+- [x] Test TeamState clamping
+- [x] Test ResourceState floor
+- [x] Test JourneyState progress logic
 
 ---
 
