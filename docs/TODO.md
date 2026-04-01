@@ -14,14 +14,14 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] Create `domain/model/ResourceState` (cash, food, computeCredits floor at 0)
 - [x] Create `domain/model/JourneyState` (currentLocationIndex, distanceToNext)
 - [x] Create `domain/model/Location` (name, lat, long)
-- [ ] Create `domain/model/GameState` (composes TeamState, ResourceState, JourneyState + turn, gameOver, victory)
-- [ ] Create `domain/action/GameAction` enum
-- [ ] Create `domain/event/GameEvent`
-- [ ] Create `domain/event/EventCategory` enum
-- [ ] Create `domain/event/EventOutcome`
-- [ ] Create `domain/port/WeatherPort`
-- [ ] Create `domain/port/DistancePort`
-- [ ] Create `domain/port/PersistencePort`
+- [x] Create `domain/model/GameState` (composes TeamState, ResourceState, JourneyState + turn, gameOver, victory)
+- [x] Create `domain/action/GameAction` enum
+- [x] Create `domain/event/GameEvent`
+- [x] Create `domain/event/EventCategory` enum
+- [x] Create `domain/event/EventOutcome`
+- [x] Create `domain/port/WeatherPort`
+- [x] Create `domain/port/DistancePort`
+- [x] Create `domain/port/PersistencePort`
 
 ### Tests
 - [x] Test TeamState clamping
@@ -33,13 +33,13 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 ## Day 2 - Core game loop
 
 ### Must have
-- [ ] Create `application/ActionHandler`
+- [x] Create `application/ActionHandler`
 - [ ] Create `application/ConditionEvaluator`
 - [ ] Create `application/TurnProcessor`
 - [ ] Create `application/GameEngine`
 
 ### Tests
-- [ ] Test each action produces correct resource changes
+- [x] Test each action produces correct resource changes
 - [ ] Test win condition
 - [ ] Test loss conditions
 - [ ] Test turn flow with known state
