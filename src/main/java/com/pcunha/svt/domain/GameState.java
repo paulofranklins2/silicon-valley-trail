@@ -1,6 +1,7 @@
 package com.pcunha.svt.domain;
 
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 public class GameState {
@@ -9,6 +10,7 @@ public class GameState {
     private JourneyState journeyState;
     private int turn;
     private boolean victory;
+    @Setter
     private boolean gameOver;
 
     public GameState(TeamState teamState, ResourceState resourceState, JourneyState journeyState) {
@@ -28,7 +30,4 @@ public class GameState {
         this.gameOver = true;
     }
 
-    public void setGameOver(boolean gameOver) {
-        this.gameOver = gameOver;
-    }
 }

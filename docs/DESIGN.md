@@ -458,7 +458,7 @@ I'll only use Lombok to cut boilerplate, not to hide logic.
 - `@ToString`, `@EqualsAndHashCode`
 
 **I'll not use:**
-- `@Setter` on domain models. Mutation goes through methods like `changeHealth()` that clamp values. A raw setter would skip that.
+- `@Setter` domain models that have validation (clamping, floors). For example, health must go through changeHealth() to stay between 0-100. Simple flags like gameOver and victory are fine as setters since there's no validation to bypass
 - `@Data` because it includes `@Setter`.
 - `@SneakyThrows`, `@Log`, `@UtilityClass`. These hide things that should be visible.
 
