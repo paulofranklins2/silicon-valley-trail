@@ -38,10 +38,9 @@ public class ActionHandler {
     private void rest(GameState gameState) {
         // + health, + energy, - food, + morale
         gameState.getTeamState().changeHealth(10);
-        gameState.getTeamState().changeMorale(20);
         gameState.getTeamState().changeEnergy(5);
         gameState.getResourceState().changeFood(-1);
-
+        gameState.getTeamState().changeMorale(20);
     }
 
     private void scavenge(GameState gameState) {
