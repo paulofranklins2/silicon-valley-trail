@@ -18,6 +18,7 @@ public class TurnProcessor {
     public void processTurn(GameState gameState, GameAction gameAction) {
         actionHandler.handle(gameState, gameAction);
         GameEvent event = eventProcessor.generateEvent(gameState, null);
+        gameState.setLastAction(gameAction);
         gameState.setLastEvent(event);
         eventProcessor.applyEvent(gameState, event);
         conditionEvaluator.evaluate(gameState);

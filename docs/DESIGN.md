@@ -137,7 +137,7 @@ I split the state into:
 - `TeamState`: health (0-100), energy (0-100), morale (0-100)
 - `ResourceState`: cash, food, compute credits (floor at 0)
 - `JourneyState`: current location, distance to next
-- `GameState`: composes the three above, plus turn number, game-over flag, last event
+- `GameState`: composes the three above, plus turn number, game-over flag, last event, last action, team name
 
 Each one owns its own rules.
 
@@ -146,6 +146,8 @@ Example:
 - no need for checks everywhere else
 
 This keeps bugs contained and logic easier to reason about.
+
+`lastEvent` and `lastAction` are stored so the web layer can show the player what happened on the previous turn. The turn processor sets both before applying the event, so the UI always has the data it needs without extra logic.
 
 ---
 

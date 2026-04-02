@@ -13,6 +13,8 @@ public class GameState {
     private JourneyState journeyState;
     @Setter
     private GameEvent lastEvent;
+    @Setter
+    private GameAction lastAction;
     private int turn;
     private boolean victory;
     @Setter
