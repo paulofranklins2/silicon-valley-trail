@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Silicon Valley Trail', 'game.css')}"></head>
+<body>
+<div class="container">
+
+    <!-- Top bar: title, team, turn -->
+    <div class="top-bar">
+        <span class="top-bar__title">Silicon Valley Trail</span>
+        <span class="top-bar__team" th:text="'Team: ' + ${gameState.teamName}">Team Name</span>
+        <span class="top-bar__turn" th:text="'Turn ' + ${gameState.turn}">Turn 1</span>
+    </div>
+
+    <!-- Location strip -->
+    <div class="location-strip">
+        <div class="location-strip__name" th:text="${gameState.journeyState.currentLocation.name}">San Jose</div>
+        <div class="location-strip__dist"
+             th:text="'Next stop: ' + ${#numbers.formatDecimal(gameState.journeyState.distanceToNextLocation, 1, 1)} + ' km'">
+            10 km
+        </div>
+    </div>
+
+    <!-- Desktop two-column layout wrapper -->
+    <div class="game-body">
+
+        <!-- Left column: stats -->
+        <div class="game-body__stats">
+            <!-- Combined stats panel -->
+            <div class="stats-panel">
+                <div class="stats-panel__section">
+                    <div class="stats-panel__section-label">Team Status</div>
+                    <div class="stats-panel__bars">
+                        <div class="stat-row" data-stat="health">
+                            <span class="stat-row__label">HP</span>
+                            <div class="stat-row__bar">
+                                <div class="stat-row__fill"
+                                     th:classappend="${gameState.teamState.health <= 25 ? 'danger' : (gameState.teamState.health <= 50 ? 'warning' : 'good')}"
+                                     th:style="'width: ' + ${gameState.teamState.health} + '%'"></div>
+                            </div>
+                            <span class="stat-row__val" th:text="${gameState.teamState.health}">100</span>
+                        </div>
+                        <div class="stat-row" data-stat="energy">
+                            <span class="stat-row__label">Energy</span>
+                            <div class="stat-row__bar">
+                                <div class="stat-row__fill"
+                                     th:classappend="${gameState.teamState.energy <= 25 ? 'danger' : (gameState.teamState.energy <= 50 ? 'warning' : 'good')}"
+                                     th:style="'width: ' + ${gameState.teamState.energy} + '%'"></div>
+                            </div>
+                            <span class="stat-row__val" th:text="${gameState.teamState.energy}">100</span>
+                        </div>
+                        <div class="stat-row" data-stat="morale">
+                            <span class="stat-row__label">Morale</span>
+                            <div class="stat-row__bar">
+                                <div class="stat-row__fill"
+                                     th:classappend="${gameState.teamState.morale <= 25 ? 'danger' : (gameState.teamState.morale <= 50 ? 'warning' : 'good')}"
+                                     th:style="'width: ' + ${gameState.teamState.morale} + '%'"></div>
+                            </div>
+                            <span class="stat-row__val" th:text="${gameState.teamState.morale}">100</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-panel__divider"></div>
+                <div class="stats-panel__section">
+                    <div class="stats-panel__section-label">Resources</div>
+                    <div class="stats-panel__resources">
+                        <div class="res-item" data-res="cash">
+                            <span class="res-item__icon">$</span>
+                            <span class="res-item__name">Cash</span>
+                            <div class="res-item__bar-wrap">
+                                <div class="res-item__bar">
+                                    <div class="res-item__fill res-item__fill--cash"></div>
+                                </div>
+                            </div>
+                            <span class="res-item__val cash-val" th:text="${gameState.resourceState.cash}">100</span>
+                        </div>
+                        <div class="res-item" data-res="food">
+                            <span class="res-item__icon res-item__icon--food">F</span>
+                            <span class="res-item__name">Food</span>
+                            <div class="res-item__bar-wrap">
+                                <div class="res-item__bar">
+                                    <div class="res-item__fill res-item__fill--food"></div>
+                                </div>
+                            </div>
+                            <span class="res-item__val food-val" th:text="${gameState.resourceState.food}">10</span>
+                        </div>
+                        <div class="res-item" data-res="compute">
+                            <span class="res-item__icon res-item__icon--compute">C</span>
+                            <span class="res-item__name">Compute</span>
+                            <div class="res-item__bar-wrap">
+                                <div class="res-item__bar">
+                                    <div class="res-item__fill res-item__fill--compute"></div>
+                                </div>
+                            </div>
+                            <span class="res-item__val compute-val" th:text="${gameState.resourceState.computeCredits}">5</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Event story beat (server-rendered for initial load) -->
+            <div class="story-beat" th:if="${gameState.lastAction != null}">
+                <div class="story-beat__action">
+                    <span class="story-beat__action-label" th:text="${gameState.lastAction}">TRAVEL</span>
+                </div>
+                <div class="story-beat__event" th:if="${gameState.lastEvent != null}">
+                    <p class="story-beat__title" th:text="${gameState.lastEvent.title}">Event Title</p>
+                    <p class="story-beat__desc" th:text="${gameState.lastEvent.description}">Event description</p>
+                    <div class="story-beat__impacts">
+                        <span th:classappend="${gameState.lastEvent.healthChange > 0 ? 'positive' : 'negative'}"
+                              th:if="${gameState.lastEvent.healthChange != 0}"
+                              th:text="'Health ' + (${gameState.lastEvent.healthChange > 0} ? '+' : '') + ${gameState.lastEvent.healthChange}">Health</span>
+                        <span th:classappend="${gameState.lastEvent.energyChange > 0 ? 'positive' : 'negative'}"
+                              th:if="${gameState.lastEvent.energyChange != 0}"
+                              th:text="'Energy ' + (${gameState.lastEvent.energyChange > 0} ? '+' : '') + ${gameState.lastEvent.energyChange}">Energy</span>
+                        <span th:classappend="${gameState.lastEvent.moraleChange > 0 ? 'positive' : 'negative'}"
+                              th:if="${gameState.lastEvent.moraleChange != 0}"
+                              th:text="'Morale ' + (${gameState.lastEvent.moraleChange > 0} ? '+' : '') + ${gameState.lastEvent.moraleChange}">Morale</span>
+                        <span th:classappend="${gameState.lastEvent.cashChange > 0 ? 'positive' : 'negative'}"
+                              th:if="${gameState.lastEvent.cashChange != 0}"
+                              th:text="'Cash ' + (${gameState.lastEvent.cashChange > 0} ? '+' : '') + ${gameState.lastEvent.cashChange}">Cash</span>
+                        <span th:classappend="${gameState.lastEvent.foodChange > 0 ? 'positive' : 'negative'}"
+                              th:if="${gameState.lastEvent.foodChange != 0}"
+                              th:text="'Food ' + (${gameState.lastEvent.foodChange > 0} ? '+' : '') + ${gameState.lastEvent.foodChange}">Food</span>
+                        <span th:classappend="${gameState.lastEvent.computeCreditsChange > 0 ? 'positive' : 'negative'}"
+                              th:if="${gameState.lastEvent.computeCreditsChange != 0}"
+                              th:text="'Compute ' + (${gameState.lastEvent.computeCreditsChange > 0} ? '+' : '') + ${gameState.lastEvent.computeCreditsChange}">Compute</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right column: actions -->
+        <div class="game-body__actions">
+            <div class="actions">
+                <div class="actions__grid">
+                    <form action="/action" class="action-card" method="post">
+                        <input name="action" type="hidden" value="TRAVEL">
+                        <button type="submit">
+                            <span class="action-card__name">Travel</span>
+                            <span class="action-card__fx">
+                                <span class="cost">-15 energy</span>
+                                <span class="cost">-1 food</span>
+                                <span class="cost">-1 cpu</span>
+                            </span>
+                        </button>
+                    </form>
+                    <form action="/action" class="action-card" method="post">
+                        <input name="action" type="hidden" value="REST">
+                        <button type="submit">
+                            <span class="action-card__name">Rest</span>
+                            <span class="action-card__fx">
+                                <span class="gain">+10 hp</span>
+                                <span class="gain">+5 energy</span>
+                                <span class="gain">+20 morale</span>
+                                <span class="cost">-1 food</span>
+                            </span>
+                        </button>
+                    </form>
+                    <form action="/action" class="action-card" method="post">
+                        <input name="action" type="hidden" value="SCAVENGE">
+                        <button type="submit">
+                            <span class="action-card__name">Scavenge</span>
+                            <span class="action-card__fx">
+                                <span class="cost">-10 energy</span>
+                                <span class="gain">+2 food</span>
+                                <span class="or-text">or</span>
+                                <span class="gain">+10 cash</span>
+                            </span>
+                        </button>
+                    </form>
+                    <form action="/action" class="action-card" method="post">
+                        <input name="action" type="hidden" value="HACKATHON">
+                        <button type="submit">
+                            <span class="action-card__name">Hackathon</span>
+                            <span class="action-card__fx">
+                                <span class="gain">+10 cpu</span>
+                                <span class="cost">-15 energy</span>
+                                <span class="cost">-5 morale</span>
+                                <span class="cost">-1 food</span>
+                            </span>
+                        </button>
+                    </form>
+                    <form action="/action" class="action-card" method="post">
+                        <input name="action" type="hidden" value="PITCH_VCS">
+                        <button type="submit">
+                            <span class="action-card__name">Pitch VCs</span>
+                            <span class="action-card__fx">
+                                <span class="gain">+50 cash</span>
+                                <span class="or-text">or</span>
+                                <span class="cost">-10 morale</span>
+                            </span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Toast container (positioned fixed, managed by JS) -->
+<div th:replace="~{fragments/toast :: toast-container}"></div>
+
+<script th:src="@{/js/toast.js}"></script>
+<script th:src="@{/js/stats.js}"></script>
+<script th:src="@{/js/actions.js}"></script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Silicon Valley Trail', 'start.css')}"></head>
+<body>
+<div class="container start-page">
+    <h1>Silicon Valley Trail</h1>
+    <div class="pixel-border"></div>
+    <p class="subtitle">From Garage to IPO</p>
+    <p class="description">
+        Name your startup team and begin the treacherous journey
+        from San Jose to San Francisco. Will your team survive the
+        grind, or burn out before Demo Day?
+    </p>
+    <form action="/start" class="start-form" method="post">
+        <input name="teamName" placeholder="Enter team name..." required type="text">
+        <button type="submit">Launch</button>
+    </form>
+</div>
+</body>
+</html>

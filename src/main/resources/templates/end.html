@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head('Silicon Valley Trail - Game Over', 'end.css')}"></head>
+<body>
+<div class="container end-page">
+    <!-- Victory -->
+    <div th:if="${gameState.victory}">
+        <h1 class="victory">You Made It!</h1>
+        <p class="result-message">
+            Your team reached San Francisco in
+            <strong th:text="${gameState.turn}">0</strong> turns.
+            Time to ring that opening bell.
+        </p>
+    </div>
+
+    <!-- Defeat -->
+    <div th:unless="${gameState.victory}">
+        <h1 class="defeat">Game Over</h1>
+        <p class="result-message" th:if="${gameState.teamState.health <= 0}">
+            Your team's health collapsed. The startup dream is over.
+        </p>
+        <p class="result-message" th:if="${gameState.teamState.morale <= 0}">
+            Your team lost all morale and quit. Back to corporate jobs.
+        </p>
+    </div>
+
+    <!-- Final stats -->
+    <div class="final-stats">
+        <h3>Final Report</h3>
+        <div class="stat-line">
+            <span class="label">Team</span>
+            <span class="value" th:text="${gameState.teamName}">Team</span>
+        </div>
+        <div class="stat-line">
+            <span class="label">Turns Survived</span>
+            <span class="value" th:text="${gameState.turn}">0</span>
+        </div>
+        <div class="stat-line">
+            <span class="label">Last Location</span>
+            <span class="value" th:text="${gameState.journeyState.currentLocation.name}">Location</span>
+        </div>
+        <div class="stat-line">
+            <span class="label">Health</span>
+            <span class="value" th:text="${gameState.teamState.health}">0</span>
+        </div>
+        <div class="stat-line">
+            <span class="label">Energy</span>
+            <span class="value" th:text="${gameState.teamState.energy}">0</span>
+        </div>
+        <div class="stat-line">
+            <span class="label">Morale</span>
+            <span class="value" th:text="${gameState.teamState.morale}">0</span>
+        </div>
+        <div class="stat-line">
+            <span class="label">Cash</span>
+            <span class="value" th:text="'$' + ${gameState.resourceState.cash}">$0</span>
+        </div>
+        <div class="stat-line">
+            <span class="label">Food</span>
+            <span class="value" th:text="${gameState.resourceState.food}">0</span>
+        </div>
+        <div class="stat-line">
+            <span class="label">Compute Credits</span>
+            <span class="value" th:text="${gameState.resourceState.computeCredits}">0</span>
+        </div>
+    </div>
+
+    <a href="/">Play Again</a>
+</div>
+</body>
+</html>
