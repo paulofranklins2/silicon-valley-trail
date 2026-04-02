@@ -79,16 +79,15 @@ That maps naturally to a turn-based game.
 
 ### Templates
 
-4 templates:
+3 templates:
 
 | Template | What it shows |
 |---|---|
 | `start.html` | Team name input, begin game |
-| `game.html` | Stats, location, progress, weather, action buttons |
-| `event.html` | What happened after the action, choices if any |
+| `game.html` | Stats, location, progress, weather, action buttons, last turn result and event |
 | `end.html` | Win or lose screen with final stats |
 
-Plain HTML with Thymeleaf attributes. Minimal CSS for layout and colors. No JavaScript needed for core gameplay.
+Plain HTML with Thymeleaf attributes. Turn results and events are shown inline on the game page instead of a separate page, so the player stays on one screen during gameplay.
 
 ---
 
@@ -425,7 +424,6 @@ silicon-valley-trail/
     │       └── templates/
     │           ├── start.html
     │           ├── game.html
-    │           ├── event.html
     │           └── end.html
     └── test/java/com/pcunha/svt/
         ├── domain/
