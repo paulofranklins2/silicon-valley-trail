@@ -13,7 +13,7 @@ class ConditionEvaluatorTest {
         TeamState team = new TeamState(100, 100, 100);
         ResourceState resources = new ResourceState(100, 10, 5);
         JourneyState journey = new JourneyState(List.of(new Location("A", 0, 0), new Location("B", 0, 0)), List.of(20.0));
-        return new GameState(team, resources, journey);
+        return new GameState(team, resources, journey, "Test Team Name");
     }
 
     @Test

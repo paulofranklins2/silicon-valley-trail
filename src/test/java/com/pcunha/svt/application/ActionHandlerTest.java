@@ -23,7 +23,7 @@ class ActionHandlerTest {
                         new Location("B", 0, 0)),
                 List.of(20.0)
         );
-        return new GameState(team, resources, journey);
+        return new GameState(team, resources, journey, "Test Team Name");
     }
 
     @Test
@@ -61,7 +61,7 @@ class ActionHandlerTest {
         );
 
         // health 80, energy 70, morale 60, cash 100, food 10, computeCredit 5
-        GameState gameState = new GameState(team, resources, journey);
+        GameState gameState = new GameState(team, resources, journey, "Test Team Name");
         ActionHandler actionHandler = new ActionHandler(mockRandom);
 
         // health + 10, morale + 20, food - 1, energy + 5

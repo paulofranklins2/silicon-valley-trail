@@ -1,6 +1,7 @@
 package com.pcunha.svt.application;
 
 import com.pcunha.svt.domain.GameAction;
+import com.pcunha.svt.domain.GameEvent;
 import com.pcunha.svt.domain.GameState;
 
 public class TurnProcessor {
@@ -16,7 +17,9 @@ public class TurnProcessor {
 
     public void processTurn(GameState gameState, GameAction gameAction) {
         actionHandler.handle(gameState, gameAction);
-        eventProcessor.applyEvent(gameState, eventProcessor.generateEvent(gameState, null));
+        GameEvent event = eventProcessor.generateEvent(gameState, null);
+        gameState.setLastEvent(event);
+        eventProcessor.applyEvent(gameState, event);
         conditionEvaluator.evaluate(gameState);
         if (!gameState.isGameOver()) {
             gameState.nextTurn();

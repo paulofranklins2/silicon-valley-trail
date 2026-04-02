@@ -30,7 +30,7 @@ public class GameEngine {
 
         JourneyState journeyState = new JourneyState(locations, distances);
 
-        return new GameState(teamState, resourceState, journeyState);
+        return new GameState(teamState, resourceState, journeyState, teamName);
     }
 
     /**

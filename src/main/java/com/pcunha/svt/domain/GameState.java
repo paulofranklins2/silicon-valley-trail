@@ -5,15 +5,19 @@ import lombok.Setter;
 
 @Getter
 public class GameState {
+    private String teamName;
     private TeamState teamState;
     private ResourceState resourceState;
     private JourneyState journeyState;
+    @Setter
+    private GameEvent lastEvent;
     private int turn;
     private boolean victory;
     @Setter
     private boolean gameOver;
 
-    public GameState(TeamState teamState, ResourceState resourceState, JourneyState journeyState) {
+    public GameState(TeamState teamState, ResourceState resourceState, JourneyState journeyState, String teamName) {
+        this.teamName = teamName;
         this.teamState = teamState;
         this.resourceState = resourceState;
         this.journeyState = journeyState;

@@ -22,7 +22,7 @@ class EventProcessorTest {
                         new Location("B", 0, 0)),
                 List.of(20.0)
         );
-        return new GameState(team, resources, journey);
+        return new GameState(team, resources, journey, "Test Team Name");
     }
 
     private GameEvent createGameEvent() {
