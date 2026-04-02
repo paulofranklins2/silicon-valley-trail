@@ -68,18 +68,19 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 ## Day 4 - API integration
 
 ### Weather API
-- [ ] Create `infrastructure/api/OpenMeteoAdapter`
-- [ ] Parse weather response into `WeatherSignal`
-- [ ] Add 3-second timeout
-- [ ] Create `infrastructure/api/MockWeatherAdapter`
-- [ ] Fallback to mock on failure
+- [x] Create `infrastructure/api/OpenMeteoAdapter`
+- [x] Parse weather response into `WeatherSignal`
+- [x] Add 3-second timeout
+- [x] Create `infrastructure/api/MockWeatherAdapter`
+- [x] Fallback to mock on failure
 
 ### Distance API
-- [ ] Create `infrastructure/api/NominatimAdapter`
+- [x] Create `infrastructure/api/HaversineDistanceAdapter`
 - [ ] Fetch real distances between locations at startup
-- [ ] Create `infrastructure/api/MockDistanceAdapter`
+- [x] Create `infrastructure/api/MockDistanceAdapter`
 
 ### Tests
+- [x] Test Haversine returns valid distance
 - [ ] Test fallback triggers on API failure
 - [ ] Test timeout is respected
 - [ ] Test mock returns valid data
