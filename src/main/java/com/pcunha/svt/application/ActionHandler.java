@@ -65,10 +65,13 @@ public class ActionHandler {
     }
 
     private void scavenge(GameState gameState) {
-        // -energy, random chance of +food or +food
+        // -energy, random chance of +food or +cash
         gameState.getTeamState().changeEnergy(SCAVENGE_ENERGY);
-        if (randomChance()) gameState.getResourceState().changeFood(SCAVENGE_FOOD);
-        else gameState.getResourceState().changeCash(SCAVENGE_CASH);
+        if (randomChance()) {
+            gameState.getResourceState().changeFood(SCAVENGE_FOOD);
+        } else {
+            gameState.getResourceState().changeCash(SCAVENGE_CASH);
+        }
     }
 
     private void hackathon(GameState gameState) {
@@ -81,7 +84,10 @@ public class ActionHandler {
 
     private void pitchVcs(GameState gameState) {
         // random change of success +cash, fail -morale
-        if (randomChance()) gameState.getResourceState().changeCash(PITCH_VCS_CASH);
-        else gameState.getTeamState().changeMorale(PITCH_VCS_MORALE);
+        if (randomChance()) {
+            gameState.getResourceState().changeCash(PITCH_VCS_CASH);
+        } else {
+            gameState.getTeamState().changeMorale(PITCH_VCS_MORALE);
+        }
     }
 }
