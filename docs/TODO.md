@@ -34,15 +34,15 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 
 ### Must have
 - [x] Create `application/ActionHandler`
-- [ ] Create `application/ConditionEvaluator`
-- [ ] Create `application/TurnProcessor`
-- [ ] Create `application/GameEngine`
+- [X] Create `application/ConditionEvaluator`
+- [x] Create `application/TurnProcessor`
+- [x] Create `application/GameEngine`
 
 ### Tests
 - [x] Test each action produces correct resource changes
-- [ ] Test win condition
-- [ ] Test loss conditions
-- [ ] Test turn flow with known state
+- [x] Test win condition
+- [x] Test loss conditions
+- [x] Test turn flow with known state
 
 ---
 
