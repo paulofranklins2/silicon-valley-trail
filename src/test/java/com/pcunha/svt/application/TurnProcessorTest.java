@@ -13,6 +13,7 @@ class TurnProcessorTest {
     private final Random mockRandom = Mockito.mock(Random.class);
 
     private GameState createGameState() {
+        Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(1);
         TeamState team = new TeamState(100, 100, 100);
         ResourceState resources = new ResourceState(100, 10, 5);
         JourneyState journey = new JourneyState(
@@ -26,8 +27,10 @@ class TurnProcessorTest {
 
     @Test
     public void travelTurnGoesUpByOne() {
+        Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(1);
+
         GameState gameState = createGameState();
-        TurnProcessor turnProcessor = new TurnProcessor(new ActionHandler(mockRandom), new ConditionEvaluator());
+        TurnProcessor turnProcessor = new TurnProcessor(new ActionHandler(mockRandom), new ConditionEvaluator(), new EventProcessor(mockRandom));
         turnProcessor.processTurn(gameState, GameAction.TRAVEL);
         turnProcessor.processTurn(gameState, GameAction.TRAVEL);
         assertEquals(3, gameState.getTurn());
@@ -35,8 +38,10 @@ class TurnProcessorTest {
 
     @Test
     public void travelTurnCausesGameOver() {
+        Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(1);
+
         GameState gameState = createGameState();
-        TurnProcessor turnProcessor = new TurnProcessor(new ActionHandler(mockRandom), new ConditionEvaluator());
+        TurnProcessor turnProcessor = new TurnProcessor(new ActionHandler(mockRandom), new ConditionEvaluator(), new EventProcessor(mockRandom));
         // team health is set to -100, should cause game over.
         gameState.getTeamState().changeHealth(-100);
         turnProcessor.processTurn(gameState, GameAction.TRAVEL);
@@ -51,9 +56,11 @@ class TurnProcessorTest {
 
     @Test
     public void travelTurnShouldCauseVictory() {
+        Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(1);
+
         // required 20
         GameState gameState = createGameState();
-        TurnProcessor turnProcessor = new TurnProcessor(new ActionHandler(mockRandom), new ConditionEvaluator());
+        TurnProcessor turnProcessor = new TurnProcessor(new ActionHandler(mockRandom), new ConditionEvaluator(), new EventProcessor(mockRandom));
         turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 5
         turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 10
         turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 15

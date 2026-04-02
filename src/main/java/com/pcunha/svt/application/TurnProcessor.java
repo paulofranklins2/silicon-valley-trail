@@ -6,14 +6,17 @@ import com.pcunha.svt.domain.GameState;
 public class TurnProcessor {
     private final ActionHandler actionHandler;
     private final ConditionEvaluator conditionEvaluator;
+    private final EventProcessor eventProcessor;
 
-    public TurnProcessor(ActionHandler actionHandler, ConditionEvaluator conditionEvaluator) {
+    public TurnProcessor(ActionHandler actionHandler, ConditionEvaluator conditionEvaluator, EventProcessor eventProcessor) {
         this.actionHandler = actionHandler;
         this.conditionEvaluator = conditionEvaluator;
+        this.eventProcessor = eventProcessor;
     }
 
     public void processTurn(GameState gameState, GameAction gameAction) {
         actionHandler.handle(gameState, gameAction);
+        eventProcessor.applyEvent(gameState, eventProcessor.generateEvent(gameState, null));
         conditionEvaluator.evaluate(gameState);
         if (!gameState.isGameOver()) {
             gameState.nextTurn();
