@@ -22,7 +22,7 @@ public class JourneyState {
         if (hasReachedDestination()) return;
 
         distanceToNextLocation -= distance;
-        if (distanceToNextLocation <= 0 && hasNextLocation()) {
+        while (distanceToNextLocation <= 0 && hasNextLocation()) {
             // carry unused travel distance to next location
             double leftOver = Math.abs(distanceToNextLocation);
             currentLocationIndex++;
