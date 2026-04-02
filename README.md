@@ -2,7 +2,8 @@
 
 > [Design Document](docs/DESIGN.md) | [TODO](docs/TODO.md)
 
-Turn-based survival game inspired by Oregon Trail, set in the startup world. Guide a team from San Jose to San Francisco, managing resources, surviving events, and making decisions each turn.
+Turn-based survival game inspired by Oregon Trail, set in the startup world. Guide a team from San Jose to San
+Francisco, managing resources, surviving events, and making decisions each turn.
 
 Built with Java 21, Spring Boot, Thymeleaf, and H2.
 
@@ -23,7 +24,7 @@ Then open `http://localhost:8080`.
 - **Backend:** Java 21 + Spring Boot
 - **Frontend:** Thymeleaf (server-rendered HTML)
 - **Database:** H2 (embedded, in-memory)
-- **APIs:** Open-Meteo (weather), Nominatim (distances)
+- **APIs:** Open-Meteo (weather), Haversine formula (distances)
 - **Testing:** JUnit 5, Mockito, AssertJ
 
 ---
