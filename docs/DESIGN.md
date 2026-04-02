@@ -227,19 +227,26 @@ That's what the requirement means by "choices that matter."
 
 ## 9. API Integration
 
-### Decision: Open-Meteo + Nominatim
+### Decision: Open-Meteo + Haversine
 
 - **Weather (Open-Meteo):**
     - no API key needed
     - real weather data for real locations
     - directly affects gameplay (rain to harder travel, heat to morale drop)
 
-- **Distance (Nominatim):**
-    - real distances between locations
-    - affects resource cost per leg
-    - only called once at game start
+- **Distance (Haversine formula):**
 
-Both are free and need no setup. Clone the repo and it works.
+I originally planned to use Nominatim (OpenStreetMap) for real distances between locations. But when I started implementing it, I had two options:
+
+**Option A: OpenSource Route Machine/Nominatim API call** to get real driving distances. This means another HTTP call, another fallback, another timeout to handle, and a dependency on an external service. All for a number that the player never sees directly.
+
+**Option B: Haversine formula** to calculate straight-line distance from coordinates. Pure math, no API call, no network, no fallback needed. Always works.
+
+I went with **Option B**. For a game, the exact driving distance between Mountain View and Palo Alto doesn't matter. What matters is that the legs have different lengths so the player has to plan ahead. Haversine gives me that from the real coordinates I already have, with zero infrastructure complexity.
+
+The `DistancePort` interface still exists, so if I ever need real routing distances, I can swap in an API adapter without changing the game logic.
+
+Both APIs need no setup. Clone the repo and it works.
 
 ---
 
