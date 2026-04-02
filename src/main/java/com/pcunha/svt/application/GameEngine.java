@@ -1,28 +1,46 @@
 package com.pcunha.svt.application;
 
 import com.pcunha.svt.domain.*;
+import com.pcunha.svt.domain.port.DistancePort;
 
+import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Main game class. Sets up new games and runs turns.
+ */
 public class GameEngine {
     private final TurnProcessor turnProcessor;
+    private final DistancePort distancePort;
 
-    public GameEngine(TurnProcessor turnProcessor) {
+    public GameEngine(TurnProcessor turnProcessor, DistancePort distancePort) {
         this.turnProcessor = turnProcessor;
+        this.distancePort = distancePort;
     }
 
+    /**
+     * Sets up a new game with starting stats and real distances between locations.
+     */
     public GameState createNewGame(String teamName) {
         TeamState teamState = new TeamState(100, 100, 100);
         ResourceState resourceState = new ResourceState(100, 5, 5);
-        JourneyState journeyState = new JourneyState(buildLocations(), buildDistance());
+
+        List<Location> locations = buildLocations();
+        List<Double> distances = calculateDistances(locations, distancePort);
+
+        JourneyState journeyState = new JourneyState(locations, distances);
 
         return new GameState(teamState, resourceState, journeyState);
     }
 
+    /**
+     * Runs one turn with the given action.
+     */
     public void processAction(GameState gameState, GameAction gameAction) {
         turnProcessor.processTurn(gameState, gameAction);
     }
 
+    // 10 real locations along the San Jose to San Francisco corridor
     private List<Location> buildLocations() {
         return List.of(
                 new Location("San Jose", 37.3382, -121.8863),
@@ -38,8 +56,13 @@ public class GameEngine {
         );
     }
 
-    private List<Double> buildDistance() {
-        return List.of(8.0, 6.0, 5.0, 6.0, 5.0, 8.0, 5.0, 15.0, 13.0);
+    // gets the distance between each location and the next one
+    private List<Double> calculateDistances(List<Location> locations, DistancePort distancePort) {
+        List<Double> distances = new ArrayList<>();
+        for (int i = 0; i < locations.size() - 1; i++) {
+            distances.add(distancePort.getDistance(locations.get(i), locations.get(i + 1)));
+        }
+        return distances;
     }
 
 }
