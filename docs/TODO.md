@@ -51,14 +51,14 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 ### Must have
 - [x] Create `application/EventProcessor`
 - [x] Add initial event pool across all 5 categories
-- [x] Add at least 2-3 events with player choices
-- [x] Wire weather signal into category weights
-- [x] Wire game state into category weights
+- [ ] Add at least 2-3 events with player choices
+- [ ] Wire weather signal into category weights
+- [ ] Wire game state into category weights
 
 ### Tests
 - [x] Test event deltas apply correctly
-- [x] Test weighted selection with seeded random
-- [X] Test weather signal changes event weighting
+- [ ] Test weighted selection with seeded random
+- [ ] Test weather signal changes event weighting
 
 ### Nice to have
 - [ ] Expand event pool if the game feels repetitive
