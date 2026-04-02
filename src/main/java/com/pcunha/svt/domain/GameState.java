@@ -2,8 +2,10 @@ package com.pcunha.svt.domain;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
+@ToString
 public class GameState {
     private String teamName;
     private TeamState teamState;
