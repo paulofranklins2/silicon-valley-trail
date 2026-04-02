@@ -76,7 +76,7 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 
 ### Distance API
 - [x] Create `infrastructure/api/HaversineDistanceAdapter`
-- [ ] Fetch real distances between locations at startup
+- [x] Wire HaversineDistanceAdapter into GameEngine for real distances at startup
 - [x] Create `infrastructure/api/MockDistanceAdapter`
 
 ### Tests
