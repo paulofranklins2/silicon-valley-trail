@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 @Controller
 public class GameController {
@@ -47,6 +48,14 @@ public class GameController {
             return "redirect:/end";
         }
         return "redirect:/game";
+    }
+
+    @PostMapping("/api/action")
+    @ResponseBody
+    public GameState processActionApi(@RequestParam String action, HttpSession session) {
+        GameState gameState = (GameState) session.getAttribute("gameState");
+        gameEngine.processAction(gameState, GameAction.valueOf(action));
+        return gameState;
     }
 
     @GetMapping("/end")
