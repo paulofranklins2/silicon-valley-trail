@@ -1,0 +1,86 @@
+/*  START PAGE  */
+.start-page {
+    text-align: center;
+    padding-top: 15vh;
+}
+
+.start-page h1 {
+    font-size: 2.8rem;
+    margin-bottom: 8px;
+}
+
+.start-page .subtitle {
+    font-family: var(--font-arcade);
+    font-size: 1rem;
+    color: var(--purple);
+    letter-spacing: 2px;
+    margin-bottom: 32px;
+}
+
+.start-page .description {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 40px;
+    max-width: 440px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.start-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    max-width: 360px;
+    margin: 0 auto;
+}
+
+.start-form button[type="submit"] {
+    font-family: var(--font-arcade);
+    font-size: 1.3rem;
+    background: var(--accent);
+    color: var(--bg-deep);
+    border: none;
+    padding: 14px 40px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+    font-weight: 400;
+}
+
+.start-form button[type="submit"]:hover {
+    background: #00b8d4;
+    box-shadow: 0 0 24px var(--accent-glow);
+    transform: translateY(-1px);
+}
+
+.start-form button[type="submit"]:active {
+    transform: translateY(0);
+}
+
+/* Decorative pixel border on start */
+.start-page .pixel-border {
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--purple));
+    border-radius: 2px;
+    margin: 0 auto 28px;
+}
+
+/*  RESPONSIVE START  */
+@media (max-width: 600px) {
+    .start-page h1 {
+        font-size: 2rem;
+    }
+
+    .start-page {
+        padding-top: 8vh;
+    }
+
+    .start-form {
+        padding: 0 8px;
+    }
+}
