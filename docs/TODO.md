@@ -90,11 +90,11 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 ## Day 5 - Web UI
 
 ### Must have
-- [ ] Create `infrastructure/web/GameController`
-- [ ] GET `/` to show start page
-- [ ] POST `/start` to create game in session
-- [ ] POST `/action` to process turn
-- [ ] GET `/game` to show current state
+- [x] Create `infrastructure/web/GameController`
+- [x] GET `/` to show start page
+- [x] POST `/start` to create game in session
+- [x] POST `/action` to process turn
+- [x] GET `/game` to show current state
 - [ ] Create `templates/start.html`
 - [ ] Create `templates/game.html`
 - [ ] Create `templates/end.html`
