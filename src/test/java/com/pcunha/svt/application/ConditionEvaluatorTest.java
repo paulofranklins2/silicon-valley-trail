@@ -53,7 +53,7 @@ class ConditionEvaluatorTest {
     }
 
     @Test
-    public void gameOverWhenMoralIsZero() {
+    public void gameOverWhenMoraleIsZero() {
         // health 100, energy 100, morale 100, cash 100, food 10, compute credits 5
         ConditionEvaluator evaluator = new ConditionEvaluator();
         GameState gameState = createGameState();
