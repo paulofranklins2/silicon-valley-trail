@@ -57,7 +57,7 @@ class EventProcessorTest {
     @Test
     public void generateEventReturnsValidEvent() {
         GameState gameState = createGameState();
-        WeatherSignal weatherSignal = new WeatherSignal("CLEAR", 20.0);
+        WeatherSignal weatherSignal = new WeatherSignal(WeatherCategory.CLEAR, 20.0);
         Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(0);
         GameEvent gameEvent = new EventProcessor(mockRandom).generateEvent(gameState, weatherSignal);
 

@@ -6,6 +6,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class WeatherSignal {
-    private final String condition;
+    private final WeatherCategory weatherCategory;
     private final double temperature;
 }
