@@ -8,6 +8,27 @@ import java.util.Random;
 public class ActionHandler {
     private final Random random;
     private static final double TRAVEL_DISTANCE = 5.0;
+    // consts travel
+    private static final int TRAVEL_ENERGY = -15;
+    private static final int TRAVEL_FOOD = -1;
+    private static final int TRAVEL_COMPUTE_CREDIT = -1;
+    // consts rest
+    private static final int REST_HEALTH = 10;
+    private static final int REST_ENERGY = 5;
+    private static final int REST_MORALE = 20;
+    private static final int REST_FOOD = -1;
+    // consts scavenge
+    private static final int SCAVENGE_ENERGY = -10;
+    private static final int SCAVENGE_FOOD = 2;
+    private static final int SCAVENGE_CASH = 10;
+    // consts hackathon
+    private static final int HACKATHON_ENERGY = -15;
+    private static final int HACKATHON_MORALE = -5;
+    private static final int HACKATHON_COMPUTE_CREDIT = 10;
+    private static final int HACKATHON_FOOD = -1;
+    // consts pitch vcs
+    private static final int PITCH_VCS_MORALE = -10;
+    private static final int PITCH_VCS_CASH = 50;
 
     public ActionHandler(Random random) {
         this.random = random;
@@ -28,39 +49,39 @@ public class ActionHandler {
     }
 
     private void travel(GameState gameState) {
-        // - distance,  - energy. - food, - computeCredit
+        // -distance,  -energy, -food, -computeCredit
         gameState.getJourneyState().travel(TRAVEL_DISTANCE);
-        gameState.getTeamState().changeEnergy(-15);
-        gameState.getResourceState().changeFood(-1);
-        gameState.getResourceState().changeComputeCredits(-1);
+        gameState.getTeamState().changeEnergy(TRAVEL_ENERGY);
+        gameState.getResourceState().changeFood(TRAVEL_FOOD);
+        gameState.getResourceState().changeComputeCredits(TRAVEL_COMPUTE_CREDIT);
     }
 
     private void rest(GameState gameState) {
-        // + health, + energy, - food, + morale
-        gameState.getTeamState().changeHealth(10);
-        gameState.getTeamState().changeEnergy(5);
-        gameState.getResourceState().changeFood(-1);
-        gameState.getTeamState().changeMorale(20);
+        // +health, +energy, -food, +morale
+        gameState.getTeamState().changeHealth(REST_HEALTH);
+        gameState.getTeamState().changeEnergy(REST_ENERGY);
+        gameState.getResourceState().changeFood(REST_FOOD);
+        gameState.getTeamState().changeMorale(REST_MORALE);
     }
 
     private void scavenge(GameState gameState) {
-        // energy -10, random chance of food (+2) or cash (10)
-        gameState.getTeamState().changeEnergy(-10);
-        if (randomChance()) gameState.getResourceState().changeFood(2);
-        else gameState.getResourceState().changeCash(10);
+        // -energy, random chance of +food or +food
+        gameState.getTeamState().changeEnergy(SCAVENGE_ENERGY);
+        if (randomChance()) gameState.getResourceState().changeFood(SCAVENGE_FOOD);
+        else gameState.getResourceState().changeCash(SCAVENGE_CASH);
     }
 
     private void hackathon(GameState gameState) {
-        // compute credit + 10, energy - 5, morale -5, food -1
-        gameState.getTeamState().changeEnergy(-15);
-        gameState.getTeamState().changeMorale(-5);
-        gameState.getResourceState().changeComputeCredits(10);
-        gameState.getResourceState().changeFood(-1);
+        // +computeCredit, -energy, -morale, -food
+        gameState.getTeamState().changeEnergy(HACKATHON_ENERGY);
+        gameState.getTeamState().changeMorale(HACKATHON_MORALE);
+        gameState.getResourceState().changeComputeCredits(HACKATHON_COMPUTE_CREDIT);
+        gameState.getResourceState().changeFood(HACKATHON_FOOD);
     }
 
     private void pitchVcs(GameState gameState) {
-        // random change off success (get cash 50) fail (loose morale - 10)
-        if (randomChance()) gameState.getResourceState().changeCash(50);
-        else gameState.getTeamState().changeMorale(-10);
+        // random change of success +cash, fail -morale
+        if (randomChance()) gameState.getResourceState().changeCash(PITCH_VCS_CASH);
+        else gameState.getTeamState().changeMorale(PITCH_VCS_MORALE);
     }
 }
