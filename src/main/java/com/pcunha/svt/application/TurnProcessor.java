@@ -3,6 +3,7 @@ package com.pcunha.svt.application;
 import com.pcunha.svt.domain.GameAction;
 import com.pcunha.svt.domain.model.GameEvent;
 import com.pcunha.svt.domain.model.GameState;
+import com.pcunha.svt.domain.port.WeatherPort;
 
 import java.util.Random;
 
@@ -12,12 +13,14 @@ public class TurnProcessor {
     private final EventProcessor eventProcessor;
     private final Random random;
     private final static double EVENT_CHANCE = 0.2;
+    private final WeatherPort weatherPort;
 
-    public TurnProcessor(ActionHandler actionHandler, ConditionEvaluator conditionEvaluator, EventProcessor eventProcessor, Random random) {
+    public TurnProcessor(ActionHandler actionHandler, ConditionEvaluator conditionEvaluator, EventProcessor eventProcessor, Random random, WeatherPort weatherPort) {
         this.actionHandler = actionHandler;
         this.conditionEvaluator = conditionEvaluator;
         this.eventProcessor = eventProcessor;
         this.random = random;
+        this.weatherPort = weatherPort;
     }
 
     public void processTurn(GameState gameState, GameAction gameAction) {
@@ -25,7 +28,7 @@ public class TurnProcessor {
         actionHandler.handle(gameState, gameAction);
 
         if (random.nextDouble() < EVENT_CHANCE) {
-            GameEvent event = eventProcessor.generateEvent(gameState, null);
+            GameEvent event = eventProcessor.generateEvent(gameState, weatherPort.getWeather(gameState.getJourneyState().getCurrentLocation()));
             gameState.setLastEvent(event);
             eventProcessor.applyEvent(gameState, event);
         } else {

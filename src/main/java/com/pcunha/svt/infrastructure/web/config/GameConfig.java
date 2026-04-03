@@ -2,7 +2,10 @@ package com.pcunha.svt.infrastructure.web.config;
 
 import com.pcunha.svt.application.*;
 import com.pcunha.svt.domain.port.DistancePort;
+import com.pcunha.svt.domain.port.WeatherPort;
 import com.pcunha.svt.infrastructure.api.HaversineDistanceAdapter;
+import com.pcunha.svt.infrastructure.api.MockWeatherAdapter;
+import com.pcunha.svt.infrastructure.api.OpenMeteoAdapter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,6 +17,11 @@ public class GameConfig {
     @Bean
     public Random random() {
         return new Random();
+    }
+
+    @Bean
+    public WeatherPort weatherPort(Random random) {
+        return new OpenMeteoAdapter(new MockWeatherAdapter(random));
     }
 
     @Bean
@@ -32,8 +40,8 @@ public class GameConfig {
     }
 
     @Bean
-    public TurnProcessor turnProcessor(ActionHandler actionHandler, ConditionEvaluator conditionEvaluator, EventProcessor eventProcessor, Random random) {
-        return new TurnProcessor(actionHandler, conditionEvaluator, eventProcessor, random);
+    public TurnProcessor turnProcessor(ActionHandler actionHandler, ConditionEvaluator conditionEvaluator, EventProcessor eventProcessor, Random random, WeatherPort weatherPort) {
+        return new TurnProcessor(actionHandler, conditionEvaluator, eventProcessor, random, weatherPort);
     }
 
     @Bean
