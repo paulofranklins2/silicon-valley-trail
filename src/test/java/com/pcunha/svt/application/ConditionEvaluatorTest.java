@@ -114,7 +114,8 @@ class ConditionEvaluatorTest {
         // set food to 0
         gameState.getResourceState().changeFood(-10);
 
-        // evaluate twice (2 turns with no food)
+        // evaluate 3 times: turn that hits 0 increments counter after check,
+        evaluator.evaluate(gameState);
         evaluator.evaluate(gameState);
         evaluator.evaluate(gameState);
 
@@ -146,7 +147,8 @@ class ConditionEvaluatorTest {
         // set cash to 0
         gameState.getResourceState().changeCash(-100);
 
-        // evaluate three times (3 turns with no cash)
+        // evaluate 4 times
+        evaluator.evaluate(gameState);
         evaluator.evaluate(gameState);
         evaluator.evaluate(gameState);
         evaluator.evaluate(gameState);

@@ -11,8 +11,6 @@ public class ConditionEvaluator {
     private static final int CASH_GRACE_TURNS = 3;
 
     public void evaluate(GameState gameState) {
-        updateResourceCounters(gameState);
-
         if (hasWon(gameState)) {
             gameState.setVictory(true);
             return;
@@ -37,7 +35,10 @@ public class ConditionEvaluator {
 
         if (gameState.getTurnWithoutCash() >= CASH_GRACE_TURNS) {
             lose(gameState, LossReason.NO_CASH);
+            return;
         }
+
+        updateResourceCounters(gameState);
     }
 
     private void updateResourceCounters(GameState gameState) {
