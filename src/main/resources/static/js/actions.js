@@ -114,6 +114,11 @@
                     window.GameAnimations.updateTeamStatus(state.teamState);
                 }
 
+                // Update weather display
+                if (window.GameWeather && state.lastWeather) {
+                    window.GameWeather.update(state.lastWeather, state.lastWeatherTemp);
+                }
+
                 // Single combined toast (replaces any existing one)
                 window.GameStats.buildCombinedToast(oldState, state);
             })

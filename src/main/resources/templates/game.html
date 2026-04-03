@@ -10,6 +10,18 @@
         <span class="top-bar__turn" th:text="'Turn ' + ${gameState.turn}">Turn 1</span>
     </div>
 
+    <!-- Weather display -->
+    <div class="weather-display" th:data-weather="${gameState.lastWeather}">
+        <span class="weather-display__icon" id="weather-icon"></span>
+        <span class="weather-display__label" id="weather-label"></span>
+        <span class="weather-display__effects" id="weather-effects"></span>
+    </div>
+
+    <!-- Weather overlay (CSS animations + DOM particles) -->
+    <div class="weather-overlay" id="weather-overlay">
+        <div class="weather-particles" id="weather-particles"></div>
+    </div>
+
     <!-- Journey progress visual -->
     <div class="journey-progress"
          th:data-current-index="${gameState.journeyState.currentLocationIndex}"
@@ -255,6 +267,7 @@
 <script th:src="@{/js/stats.js}"></script>
 <script th:src="@{/js/journey.js}"></script>
 <script th:src="@{/js/animations.js}"></script>
+<script th:src="@{/js/weather.js}"></script>
 <script th:src="@{/js/actions.js}"></script>
 </body>
 </html>

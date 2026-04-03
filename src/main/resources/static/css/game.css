@@ -1,3 +1,340 @@
+/*  WEATHER DISPLAY  */
+.weather-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: var(--font-arcade);
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+.weather-display__icon {
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.weather-display__label {
+    color: var(--text);
+    font-size: 1rem;
+}
+
+.weather-display__effects {
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+}
+
+.weather-effects--positive {
+    color: var(--green);
+    background: var(--green-bg);
+    border: 1px solid var(--green-border);
+}
+
+.weather-effects--negative {
+    color: var(--red);
+    background: var(--red-bg);
+    border: 1px solid var(--red-border);
+}
+
+/*  WEATHER OVERLAY  */
+.weather-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+    overflow: hidden;
+}
+
+.weather-overlay--transitioning {
+    opacity: 0;
+}
+
+.weather-particles {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+/* --- RAIN / STORM PARTICLES (DOM elements) --- */
+.rain-drop {
+    position: absolute;
+    top: -40px;
+    width: 2px;
+    height: 18px;
+    background: linear-gradient(180deg, transparent, rgba(140, 180, 230, 0.6), rgba(140, 180, 230, 0.2));
+    border-radius: 0 0 2px 2px;
+    transform: rotate(8deg);
+    animation: rainDropFall var(--drop-speed, 0.7s) linear infinite;
+    animation-delay: var(--drop-delay, 0s);
+    opacity: var(--drop-opacity, 0.7);
+}
+
+.rain-drop--medium {
+    width: 2.5px;
+    height: 24px;
+    background: linear-gradient(180deg, transparent, rgba(150, 190, 240, 0.7), rgba(150, 190, 240, 0.25));
+    transform: rotate(10deg);
+}
+
+.rain-drop--large {
+    width: 3px;
+    height: 32px;
+    background: linear-gradient(180deg, transparent, rgba(160, 195, 245, 0.8), rgba(160, 195, 245, 0.3));
+    border-radius: 0 0 3px 3px;
+    transform: rotate(12deg);
+}
+
+/* Storm drops: bigger, faster, steeper angle */
+.rain-drop--storm {
+    width: 3px;
+    height: 28px;
+    background: linear-gradient(180deg, transparent, rgba(180, 200, 255, 0.85), rgba(180, 200, 255, 0.35));
+    transform: rotate(15deg);
+}
+
+.rain-drop--storm-heavy {
+    width: 3.5px;
+    height: 36px;
+    background: linear-gradient(180deg, transparent, rgba(190, 210, 255, 0.9), rgba(190, 210, 255, 0.4));
+    border-radius: 0 0 3px 3px;
+    transform: rotate(18deg);
+}
+
+@keyframes rainDropFall {
+    0% { top: -40px; }
+    100% { top: 105vh; }
+}
+
+/* --- CLEAR: pleasant warm glow --- */
+.weather-overlay--clear::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 15%, rgba(255, 220, 100, 0.07) 0%, transparent 65%);
+    animation: clearGlow 4s ease-in-out infinite;
+}
+
+@keyframes clearGlow {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+/* --- RAINY: blue-grey tint + wet panels --- */
+.weather-overlay--rainy::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        180deg,
+        rgba(60, 80, 120, 0.15) 0%,
+        rgba(50, 70, 110, 0.1) 40%,
+        rgba(40, 60, 100, 0.12) 100%
+    );
+}
+
+.weather-overlay--rainy::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(80, 110, 160, 0.06);
+    backdrop-filter: blur(0.3px);
+}
+
+/* Darken panels when rainy */
+.weather-overlay--rainy ~ .game-body .stats-panel,
+.weather-overlay--rainy ~ .game-body .story-beat,
+.weather-overlay--rainy ~ .game-body .team-display {
+    filter: brightness(0.92);
+}
+
+/* --- STORMY: dark overlay + dramatic lightning + screen shake --- */
+.weather-overlay--stormy::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        180deg,
+        rgba(15, 15, 35, 0.35) 0%,
+        rgba(10, 10, 30, 0.25) 50%,
+        rgba(15, 15, 35, 0.3) 100%
+    );
+}
+
+.weather-overlay--stormy::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: transparent;
+    animation: lightningFlash 4s ease-in-out infinite;
+}
+
+@keyframes lightningFlash {
+    0%, 100% { background: transparent; }
+    46% { background: transparent; }
+    47% { background: rgba(200, 220, 255, 0.35); }
+    48% { background: rgba(150, 170, 220, 0.08); }
+    49% { background: rgba(220, 230, 255, 0.45); }
+    50.5% { background: transparent; }
+    70% { background: transparent; }
+    70.5% { background: rgba(190, 210, 255, 0.25); }
+    71% { background: transparent; }
+}
+
+/* Brief screen shake on lightning */
+.weather-overlay--stormy {
+    animation: stormShake 4s ease-in-out infinite;
+}
+
+@keyframes stormShake {
+    0%, 46%, 51%, 69%, 72%, 100% { transform: translate(0, 0); }
+    47% { transform: translate(-2px, 1px); }
+    48% { transform: translate(2px, -1px); }
+    49% { transform: translate(-1px, 2px); }
+    50% { transform: translate(1px, -1px); }
+    70.5% { transform: translate(-1px, 1px); }
+    71% { transform: translate(1px, 0); }
+}
+
+/* Darken panels when stormy */
+.weather-overlay--stormy ~ .game-body .stats-panel,
+.weather-overlay--stormy ~ .game-body .story-beat,
+.weather-overlay--stormy ~ .game-body .team-display {
+    filter: brightness(0.82);
+}
+
+/* --- HEATWAVE: warm vignette + heat shimmer distortion --- */
+.weather-overlay--heatwave::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+        ellipse at center,
+        transparent 40%,
+        rgba(255, 140, 50, 0.06) 70%,
+        rgba(255, 100, 30, 0.10) 100%
+    );
+    animation: heatPulse 4s ease-in-out infinite;
+}
+
+/* Heat shimmer distortion layer */
+.weather-overlay--heatwave::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 4px,
+        rgba(255, 200, 120, 0.03) 4px,
+        rgba(255, 200, 120, 0.03) 8px
+    );
+    animation: heatWave 2.5s ease-in-out infinite;
+}
+
+@keyframes heatPulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+@keyframes heatWave {
+    0% { transform: translateY(0) skewX(0deg); }
+    25% { transform: translateY(-1px) skewX(0.03deg); }
+    50% { transform: translateY(-3px) skewX(-0.03deg); }
+    75% { transform: translateY(-1px) skewX(0.02deg); }
+    100% { transform: translateY(0) skewX(0deg); }
+}
+
+/* Heatwave soft sun glow (top-right corner only) */
+.weather-overlay--heatwave .weather-particles::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -10%;
+    width: 60%;
+    height: 60%;
+    background: radial-gradient(ellipse at center, rgba(255, 200, 100, 0.06) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: sunPulse 5s ease-in-out infinite;
+}
+
+.weather-overlay--heatwave .weather-particles::after {
+    content: '';
+    position: absolute;
+    top: -20%;
+    right: 5%;
+    width: 40%;
+    height: 40%;
+    background: radial-gradient(ellipse at center, rgba(255, 220, 120, 0.04) 0%, transparent 60%);
+    border-radius: 50%;
+    animation: sunPulse 5s ease-in-out infinite;
+    animation-delay: -2.5s;
+}
+
+@keyframes sunPulse {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 0.9; transform: scale(1.05); }
+}
+
+/* Heat haze lines (DOM elements added by JS) */
+.heat-haze-line {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 200, 120, 0.14) 20%,
+        rgba(255, 220, 160, 0.20) 50%,
+        rgba(255, 200, 120, 0.14) 80%,
+        transparent 100%
+    );
+    animation: hazeFloat var(--haze-speed, 3s) ease-in-out infinite;
+    animation-delay: var(--haze-delay, 0s);
+    opacity: 0.8;
+}
+
+@keyframes hazeFloat {
+    0%, 100% { transform: translateX(0) scaleY(1); opacity: 0.5; }
+    50% { transform: translateX(12px) scaleY(2); opacity: 1; }
+}
+
+/*  WEATHER RESPONSIVE  */
+@media (max-width: 600px) {
+    .weather-display {
+        padding: 6px 10px;
+        gap: 6px;
+        font-size: 0.8rem;
+    }
+
+    .weather-display__icon {
+        font-size: 1rem;
+    }
+
+    .weather-display__label {
+        font-size: 0.85rem;
+    }
+
+    .weather-display__effects {
+        font-size: 0.7rem;
+    }
+
+    /* Make rain slightly smaller on mobile but still very visible */
+    .rain-drop { height: 14px; }
+    .rain-drop--medium { height: 20px; }
+    .rain-drop--large { height: 26px; }
+    .rain-drop--storm { height: 22px; }
+    .rain-drop--storm-heavy { height: 30px; }
+}
+
 /*  TOP BAR  */
 .top-bar {
     display: flex;
