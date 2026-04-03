@@ -22,6 +22,7 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] Create `domain/EventCategory` enum
 - [x] Create `domain/ActionOutcome` enum
 - [x] Create `domain/WeatherCategory` enum
+- [x] Create `domain/LossReason` enum
 - [x] Create `domain/port/WeatherPort`
 - [x] Create `domain/port/DistancePort`
 - [x] Create `domain/port/PersistencePort`
@@ -38,7 +39,7 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 
 ### Must have
 - [x] Create `application/ActionHandler`
-- [x] Create `application/ConditionEvaluator`
+- [x] Create `application/ConditionEvaluator` (with grace period loss for food/cash)
 - [x] Create `application/TurnProcessor`
 - [x] Create `application/GameEngine`
 
@@ -46,6 +47,8 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] Test each action produces correct resource changes
 - [x] Test win condition
 - [x] Test loss conditions (health, morale)
+- [x] Test loss conditions (starvation grace period, no cash grace period)
+- [x] Test grace period counter reset when resource recovered
 - [x] Test turn flow with known state
 
 ---
@@ -89,8 +92,12 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 
 ### Tests
 - [x] Test Haversine returns valid distance
-- [ ] Test fallback triggers on API failure
-- [ ] Test mock returns valid data
+- [x] Test OpenMeteo fallback triggers on invalid location
+- [x] Test OpenMeteo returns valid signal for real location
+- [x] Test MockWeatherAdapter returns valid category and temp range
+- [x] Test MockWeatherAdapter deterministic with same seed
+- [x] Test DemoWeatherAdapter cycles through all types and wraps around
+- [x] Test MockDistanceAdapter returns fixed fallback distance
 
 ---
 
@@ -105,7 +112,7 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] POST `/api/action` to process turn via AJAX (returns JSON)
 - [x] POST `/api/choice` to resolve event choices via AJAX
 - [x] GET `/game` to show current state
-- [x] GET `/end` to show victory/defeat
+- [x] GET `/end` to show victory/defeat with loss reason
 - [x] Null session guards on all routes (redirect to / if no game)
 - [x] Create templates (start, game, end) with Thymeleaf fragments
 - [x] Split CSS into modular files (13 files)
@@ -118,6 +125,7 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] Choice modal with outcome tags and current stats display
 - [x] Weather effects UI (rain, storm, heatwave animations + temperature)
 - [x] Kenney game assets (characters, food icons, train)
+- [x] Maven Wrapper (mvnw) for zero-install builds
 
 ---
 
@@ -125,28 +133,28 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 
 ### Gameplay - REQUIRED
 - [x] Wire weather API into actual gameplay (TurnProcessor applies stat effects per weather type)
-- [ ] Add cash/food loss conditions to ConditionEvaluator (requirement: "cash hits zero", resource depletion)
+- [x] Add cash/food loss conditions with grace periods (food: 2 turns, cash: 3 turns)
+- [x] Update end.html to use lossReason field (shows specific message per loss type)
 - [ ] Playtest full game and tune balance (food drain, energy costs, event chance, travel distances)
-- [ ] Verify app runs from scratch with `mvn spring-boot:run`
+- [ ] Verify app runs from scratch with `./mvnw spring-boot:run`
 - [ ] Final cleanup on naming/comments/dead code
 
 ### README - REQUIRED
-- [ ] Quick start from a fresh machine (Java 21 + Maven prerequisites, clone, run)
+- [ ] Quick start from a fresh machine (Java 21, clone, `./mvnw spring-boot:run`)
 - [ ] How to set API keys / how to run with mocks (Open-Meteo needs no key, `game.weather.mode` config)
 - [ ] Brief architecture overview (hexagonal: domain/application/infrastructure)
 - [ ] Dependency list with versions
-- [ ] How to run tests (`mvn test`)
+- [ ] How to run tests (`./mvnw test`)
 - [ ] Example gameplay flow (sample turn sequence)
 - [ ] AI disclosure (how AI was used in development)
 
 ### Documentation - REQUIRED
 - [ ] Record screen capture or provide URL to working app
-- [ ] Finalize DESIGN.md with final state (choices implemented, weather wired in, updated tradeoffs)
+- [x] Update DESIGN.md with final state (loss conditions, choice events, test coverage, project structure)
 - [ ] Add `.env.example` file (even though Open-Meteo needs no key)
 
 ### Nice to have
 - [ ] Weather-conditional events
-- [ ] Grace period loss conditions (food=0 for 2 consecutive turns... game over)
 - [ ] More events to reduce repetition across 10 locations
 - [ ] Weighted event selection (low morale... more team events, low cash... more market events)
 - [ ] H2 persistence (I could maybe implement a ranking system where user can enter their name or just save teamname)
