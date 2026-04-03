@@ -6,6 +6,7 @@ import com.pcunha.svt.domain.port.WeatherPort;
 import com.pcunha.svt.infrastructure.api.HaversineDistanceAdapter;
 import com.pcunha.svt.infrastructure.api.MockWeatherAdapter;
 import com.pcunha.svt.infrastructure.api.OpenMeteoAdapter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,6 +15,9 @@ import java.util.Random;
 @Configuration
 public class GameConfig {
 
+    @Value("${game.weather.use-mock:false}")
+    private boolean useMockWeather;
+
     @Bean
     public Random random() {
         return new Random();
@@ -21,7 +25,11 @@ public class GameConfig {
 
     @Bean
     public WeatherPort weatherPort(Random random) {
-        return new OpenMeteoAdapter(new MockWeatherAdapter(random));
+        MockWeatherAdapter mock = new MockWeatherAdapter(random);
+        if (useMockWeather) {
+            return mock;
+        }
+        return new OpenMeteoAdapter(mock);
     }
 
     @Bean
