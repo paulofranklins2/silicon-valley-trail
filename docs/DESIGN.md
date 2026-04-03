@@ -174,13 +174,15 @@ Currently implemented:
 
 | Condition | What happens |
 |---|---|
-| Health hits 0 | Team collapses, game over |
-| Morale hits 0 | Team quits, game over |
+| Health hits 0 | Team collapses, game over (LossReason.POOR_HEALTH) |
+| Morale hits 0 | Team quits, game over (LossReason.POOR_MORALE) |
+| Food at 0 for 2 turns | Team starves, game over (LossReason.STARVATION) |
+| Cash at 0 for 3 turns | Funding dries up, game over (LossReason.NO_CASH) |
 | Reach San Francisco | Victory |
 
 Victory takes priority. If the team arrives with 0 health, they still win.
 
-With more time I'd add grace period conditions: cash at 0 for 3 turns, food at 0 causing health drain for 2 turns. The architecture supports it (just add counters to GameState and checks to ConditionEvaluator).
+The grace period counters (`turnWithoutFood`, `turnWithoutCash`) are tracked in GameState and reset when the resource is recovered. The `LossReason` enum is set by ConditionEvaluator and displayed on the end screen.
 
 ---
 
@@ -212,11 +214,8 @@ Not every turn triggers an event. There's a 20% chance per turn. I decided this 
 
 The event pool currently uses flat random selection. Weighted selection based on weather and game state is supported by the architecture (the method takes GameState and WeatherSignal as parameters) but not implemented yet. Same for player choice events, the EventOutcome model exists but no events use it yet.
 
-About 30% of events should give the player a choice. Example:
-
-> "A VC offers to fund your startup but wants 40% equity. Accept: +$200 cash, -20 morale. Decline: +10 morale, no cash."
-
-That's what the requirement means by "choices that matter." The EventOutcome model supports this, but the actual choice events and UI flow are the first things I'd add with more time.
+5 choice events are implemented across all categories (weather, team, market, location, tech). Each presents the player with two options that have different stat tradeoffs. The choice modal pauses the game until the player decides. 
+Weighted event selection based on weather and game state is supported but not yet implemented.
 
 ---
 
@@ -339,7 +338,7 @@ Focus:
 Skipped:
 - controller (thin layer, just routing and session)
 - templates (visual, tested by playing the game)
-- API fallback tests (would add with more time)
+- API fallback tests (OpenMeteo fallback on invalid location, mock adapter validation, demo adapter cycling)
 
 Tests are focused on logic, not framework internals.
 
@@ -363,6 +362,10 @@ No need for defensive checks inside the game engine. The boundaries already guar
 ```
 silicon-valley-trail/
 ├── pom.xml
+├── mvnw
+├── mvnw.cmd
+├── .mvn/
+│   └── wrapper/
 ├── .gitignore
 ├── README.md
 ├── docs/
@@ -382,7 +385,8 @@ silicon-valley-trail/
     │   │   │   ├── GameEvent.java
     │   │   │   ├── EventCategory.java
     │   │   │   ├── EventOutcome.java
-    │   │   │   ├── ActionEventResult.java
+    │   │   │   ├── ActionOutcome.java
+    │   │   │   ├── LossReason.java
     │   │   │   ├── WeatherSignal.java
     │   │   │   ├── WeatherCategory.java
     │   │   │   └── port/
@@ -400,7 +404,8 @@ silicon-valley-trail/
     │   │       │   ├── OpenMeteoAdapter.java
     │   │       │   ├── HaversineDistanceAdapter.java
     │   │       │   ├── MockWeatherAdapter.java
-    │   │       │   └── MockDistanceAdapter.java
+    │   │       │   ├── MockDistanceAdapter.java
+    │   │       │   └── DemoWeatherAdapter.java
     │   │       └── web/
     │   │           ├── config/
     │   │           │   └── GameConfig.java
@@ -413,6 +418,14 @@ silicon-valley-trail/
     │       │   │   ├── base.css
     │       │   │   ├── components.css
     │       │   │   ├── game.css
+    │       │   │   ├── game-layout.css
+    │       │   │   ├── actions.css
+    │       │   │   ├── journey.css
+    │       │   │   ├── weather.css
+    │       │   │   ├── choice-modal.css
+    │       │   │   ├── story.css
+    │       │   │   ├── scenes.css
+    │       │   │   ├── animations.css
     │       │   │   ├── start.css
     │       │   │   └── end.css
     │       │   ├── js/
@@ -420,6 +433,7 @@ silicon-valley-trail/
     │       │   │   ├── stats.js
     │       │   │   ├── actions.js
     │       │   │   ├── journey.js
+    │       │   │   ├── weather.js
     │       │   │   └── animations.js
     │       │   └── img/
     │       │       ├── team-member-1..4.png
@@ -445,7 +459,11 @@ silicon-valley-trail/
         │   └── ConditionEvaluatorTest.java
         └── infrastructure/
             └── api/
-                └── HaversineDistanceAdapterTest.java
+                ├── HaversineDistanceAdapterTest.java
+                ├── MockWeatherAdapterTest.java
+                ├── DemoWeatherAdapterTest.java
+                ├── OpenMeteoAdapterTest.java
+                └── MockDistanceAdapterTest.java
 ```
 
 Ports live in the domain because the domain defines what it needs. Adapters live in infrastructure because they deal with external stuff. GameConfig wires all dependencies without Spring annotations on domain classes. GameController is the only place that knows about HTTP or Thymeleaf.
