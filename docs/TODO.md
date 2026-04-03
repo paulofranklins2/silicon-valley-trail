@@ -15,10 +15,13 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] Create `domain/model/JourneyState` (currentLocationIndex, distanceToNext)
 - [x] Create `domain/model/Location` (name, lat, long)
 - [x] Create `domain/model/GameState` (composes TeamState, ResourceState, JourneyState + turn, gameOver, victory)
-- [x] Create `domain/action/GameAction` enum
-- [x] Create `domain/event/GameEvent`
-- [x] Create `domain/event/EventCategory` enum
-- [x] Create `domain/event/EventOutcome`
+- [x] Create `domain/model/GameEvent`
+- [x] Create `domain/model/EventOutcome`
+- [x] Create `domain/model/WeatherSignal`
+- [x] Create `domain/GameAction` enum
+- [x] Create `domain/EventCategory` enum
+- [x] Create `domain/ActionOutcome` enum
+- [x] Create `domain/WeatherCategory` enum
 - [x] Create `domain/port/WeatherPort`
 - [x] Create `domain/port/DistancePort`
 - [x] Create `domain/port/PersistencePort`
@@ -27,6 +30,7 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] Test TeamState clamping
 - [x] Test ResourceState floor
 - [x] Test JourneyState progress logic
+- [x] Test multi-location travel (while loop fix)
 
 ---
 
@@ -34,14 +38,14 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 
 ### Must have
 - [x] Create `application/ActionHandler`
-- [X] Create `application/ConditionEvaluator`
+- [x] Create `application/ConditionEvaluator`
 - [x] Create `application/TurnProcessor`
 - [x] Create `application/GameEngine`
 
 ### Tests
 - [x] Test each action produces correct resource changes
 - [x] Test win condition
-- [x] Test loss conditions
+- [x] Test loss conditions (health, morale)
 - [x] Test turn flow with known state
 
 ---
@@ -50,18 +54,19 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 
 ### Must have
 - [x] Create `application/EventProcessor`
-- [x] Add initial event pool across all 5 categories
-- [ ] Add at least 2-3 events with player choices
-- [ ] Wire weather signal into category weights
-- [ ] Wire game state into category weights
+- [x] Add initial event pool across all 5 categories (15 events)
+- [x] Add random event chance (20% per turn, not every turn)
 
 ### Tests
 - [x] Test event deltas apply correctly
-- [ ] Test weighted selection with seeded random
-- [ ] Test weather signal changes event weighting
+- [x] Test event fires when random is below threshold
+- [x] Test no event when random is above threshold
+- [x] Test action still applies when no event fires
 
-### Nice to have
-- [ ] Expand event pool if the game feels repetitive
+### Not implemented (would add with more time)
+- [ ] Add events with player choices (EventOutcome exists but unused)
+- [ ] Wire weather signal into category weights
+- [ ] Wire game state into category weights
 
 ---
 
@@ -73,16 +78,16 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] Add 3-second timeout
 - [x] Create `infrastructure/api/MockWeatherAdapter`
 - [x] Fallback to mock on failure
+- [x] Create `domain/WeatherCategory` enum
 
-### Distance API
+### Distance
 - [x] Create `infrastructure/api/HaversineDistanceAdapter`
-- [x] Wire HaversineDistanceAdapter into GameEngine for real distances at startup
+- [x] Wire into GameEngine for real distances at startup
 - [x] Create `infrastructure/api/MockDistanceAdapter`
 
 ### Tests
 - [x] Test Haversine returns valid distance
 - [ ] Test fallback triggers on API failure
-- [ ] Test timeout is respected
 - [ ] Test mock returns valid data
 
 ---
@@ -91,43 +96,40 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 
 ### Must have
 - [x] Create `infrastructure/web/GameController`
+- [x] Create `infrastructure/web/GameConfig` (Spring bean wiring)
 - [x] GET `/` to show start page
 - [x] POST `/start` to create game in session
 - [x] POST `/action` to process turn
+- [x] POST `/api/action` to process turn via AJAX (returns JSON)
 - [x] GET `/game` to show current state
-- [ ] Create `templates/start.html`
-- [ ] Create `templates/game.html`
-- [ ] Create `templates/end.html`
-- [ ] Create `static/css/game.css`
+- [x] GET `/end` to show victory/defeat
+- [x] Null session guards on all routes (redirect to / if no game)
+- [x] Create templates (start, game, end) with Thymeleaf fragments
+- [x] Split CSS into modular files (base, components, game, start, end)
+- [x] Split JS into modules (toast, stats, actions, journey, animations)
+- [x] AJAX action processing without page refresh
+- [x] Toast notifications for action feedback
+- [x] Journey map with proportional city dots and animated train
+- [x] Action scenes with character sprite animations
+- [x] Team display with status effects based on stats
+- [x] Kenney game assets (characters, food icons, train)
+
+---
+
+## Day 6 - Polish + documentation
+
+### Must do
+- [ ] Playtest full game and tune balance (food, energy, event chance)
+- [ ] Wire weather API into actual gameplay (currently passes null)
+- [ ] Write README.md (quick start, how to run, architecture, tests)
+- [ ] Record screen capture of a playthrough
+- [ ] Verify app runs from scratch with `mvn spring-boot:run`
+- [ ] Final cleanup on naming/comments/dead code
+- [ ] Update DESIGN.md with final state
 
 ### Nice to have
-- [ ] Create `templates/event.html`
-
----
-
-## Day 6 - Persistence + polish
-
-### Persistence
-- [ ] Create `SavedGame`, `TeamSnapshot`, `ResourceSnapshot`, `JourneySnapshot`
-- [ ] Create `SavedGameRepository`
-- [ ] Create `JpaPersistenceAdapter`
-- [ ] Map domain state to entities and back
-
-### Polish
-- [ ] Play through the full game a few times and tune balance
-- [ ] Add more events if needed
-- [ ] Add edge case tests
-- [ ] Final cleanup on naming/comments/dead code
-
----
-
-## Day 7 - Documentation
-
-- [ ] Write README.md (quick start, how to run, architecture, tests, example gameplay flow)
-- [ ] Finalize DESIGN.md
-- [ ] Record a short playthrough
-- [ ] Verify app runs from scratch with `mvn spring-boot:run`
-
-### If time left
-- [ ] Deploy app (Cloudflare Pages or tunnel)
-- [ ] Expose app externally via VPN/tunnel
+- [ ] Add persistence (H2 save/load)
+- [ ] Add events with player choices
+- [ ] Add weighted event selection
+- [ ] Add grace period loss conditions (cash, food)
+- [ ] Add more events to reduce repetition

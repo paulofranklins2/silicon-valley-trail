@@ -146,7 +146,7 @@ Example:
 
 This keeps bugs contained and logic easier to reason about.
 
-`lastEvent` and `lastAction` are stored so the web layer can show the player what happened on the previous turn. The turn processor sets both before applying the event, so the UI always has the data it needs without extra logic.
+`lastEvent`, `lastAction`, and `lastActionResult` are stored so the web layer can show the player what happened on the previous turn. `lastActionResult` is an enum (`ActionEventResult`) that tracks the random outcome of scavenge (FOOD or CASH) and pitch VCs (PITCH_SUCCESS or PITCH_FAILURE). This way the UI knows exactly what happened without guessing from stat changes.
 
 ---
 
@@ -170,14 +170,17 @@ That's what makes decisions actually matter.
 
 ### Loss Conditions
 
-| Condition | What happens | Grace period |
-|---|---|---|
-| Health hits 0 | Team collapses | Immediate |
-| Cash hits 0 | Can't sustain operations | 3 turns to recover |
-| Food runs out | Starvation, health starts draining | 2 turns then game over |
-| Morale hits 0 | Team quits | Immediate |
+Currently implemented:
 
-Multiple loss conditions force the player to watch more than one number. "I can survive no food for 2 turns if I scavenge now, but my cash is also low..." That kind of tension is what makes it a game.
+| Condition | What happens |
+|---|---|
+| Health hits 0 | Team collapses, game over |
+| Morale hits 0 | Team quits, game over |
+| Reach San Francisco | Victory |
+
+Victory takes priority. If the team arrives with 0 health, they still win.
+
+With more time I'd add grace period conditions: cash at 0 for 3 turns, food at 0 causing health drain for 2 turns. The architecture supports it (just add counters to GameState and checks to ConditionEvaluator).
 
 ---
 
@@ -201,28 +204,19 @@ Each action has a clear role, so nothing overlaps.
 
 ## 8. Event System
 
-### Decision: Category-based + weighted randomness
+### Decision: Category-based pool with random chance
 
-Instead of a flat random pool, events are grouped:
-- weather
-- team
-- market
-- location
-- tech
+Events are grouped into 5 categories (weather, team, market, location, tech) with 3 events each, 15 total.
 
-The weather API affects which category is more likely.
+Not every turn triggers an event. There's a 20% chance per turn. I decided this during development because having an event every single turn felt overwhelming and made the game feel like button clicking. With 20%, events feel like something that actually happened, not background noise.
 
-So:
-- bad weather to more weather events
-- low morale to more team issues
+The event pool currently uses flat random selection. Weighted selection based on weather and game state is supported by the architecture (the method takes GameState and WeatherSignal as parameters) but not implemented yet. Same for player choice events, the EventOutcome model exists but no events use it yet.
 
-This makes the game feel less random and more reactive.
-
-About 30% of events give the player a choice. Example:
+About 30% of events should give the player a choice. Example:
 
 > "A VC offers to fund your startup but wants 40% equity. Accept: +$200 cash, -20 morale. Decline: +10 morale, no cash."
 
-That's what the requirement means by "choices that matter."
+That's what the requirement means by "choices that matter." The EventOutcome model supports this, but the actual choice events and UI flow are the first things I'd add with more time.
 
 ---
 
@@ -281,7 +275,7 @@ The engine doesn't know or care where the data came from.
 
 Each has:
 - real lat/long coordinates (for weather API)
-- distance to next (from Nominatim, or hardcoded fallback)
+- distance to next (calculated with Haversine from real coordinates)
 - possible location-specific events
 
 Real distances matter because they affect resource cost and planning. A long leg costs more, so the player needs to prepare.
@@ -335,16 +329,17 @@ Used:
 - AssertJ
 
 Focus:
-- domain logic (clamping, state transitions)
-- action handling (correct resource changes)
-- event system (weighted selection, event application)
-- win/loss conditions (edge cases at thresholds)
-- API fallback (mock the API to fail, check game still works)
+- domain logic (clamping, state transitions, multi-location travel)
+- action handling (correct resource changes for all 5 actions)
+- event system (event application, generation returns valid events)
+- turn processing (event chance, action applies without event, turn counter)
+- win/loss conditions (health, morale, victory priority)
+- distance calculation (Haversine returns valid km)
 
 Skipped:
-- controller (thin layer, just routing)
-- JPA entities (Hibernate handles that)
+- controller (thin layer, just routing and session)
 - templates (visual, tested by playing the game)
+- API fallback tests (would add with more time)
 
 Tests are focused on logic, not framework internals.
 
@@ -368,28 +363,28 @@ No need for defensive checks inside the game engine. The boundaries already guar
 ```
 silicon-valley-trail/
 ├── pom.xml
-├── .env.example
 ├── .gitignore
 ├── README.md
 ├── docs/
-│   └── DESIGN.md
+│   ├── DESIGN.md
+│   └── TODO.md
 └── src/
     ├── main/
     │   ├── java/com/pcunha/svt/
     │   │   ├── SiliconValleyTrailApplication.java
     │   │   ├── domain/
-    │   │   │   ├── model/
-    │   │   │   │   ├── GameState.java
-    │   │   │   │   ├── TeamState.java
-    │   │   │   │   ├── ResourceState.java
-    │   │   │   │   ├── JourneyState.java
-    │   │   │   │   └── Location.java
-    │   │   │   ├── event/
-    │   │   │   │   ├── GameEvent.java
-    │   │   │   │   ├── EventCategory.java
-    │   │   │   │   └── EventOutcome.java
-    │   │   │   ├── action/
-    │   │   │   │   └── GameAction.java
+    │   │   │   ├── GameState.java
+    │   │   │   ├── TeamState.java
+    │   │   │   ├── ResourceState.java
+    │   │   │   ├── JourneyState.java
+    │   │   │   ├── Location.java
+    │   │   │   ├── GameAction.java
+    │   │   │   ├── GameEvent.java
+    │   │   │   ├── EventCategory.java
+    │   │   │   ├── EventOutcome.java
+    │   │   │   ├── ActionEventResult.java
+    │   │   │   ├── WeatherSignal.java
+    │   │   │   ├── WeatherCategory.java
     │   │   │   └── port/
     │   │   │       ├── WeatherPort.java
     │   │   │       ├── DistancePort.java
@@ -403,25 +398,38 @@ silicon-valley-trail/
     │   │   └── infrastructure/
     │   │       ├── api/
     │   │       │   ├── OpenMeteoAdapter.java
-    │   │       │   ├── NominatimAdapter.java
+    │   │       │   ├── HaversineDistanceAdapter.java
     │   │       │   ├── MockWeatherAdapter.java
     │   │       │   └── MockDistanceAdapter.java
-    │   │       ├── persistence/
-    │   │       │   ├── entity/
-    │   │       │   │   ├── SavedGame.java
-    │   │       │   │   ├── TeamSnapshot.java
-    │   │       │   │   ├── ResourceSnapshot.java
-    │   │       │   │   └── JourneySnapshot.java
-    │   │       │   ├── SavedGameRepository.java
-    │   │       │   └── JpaPersistenceAdapter.java
     │   │       └── web/
-    │   │           └── GameController.java
+    │   │           ├── config/
+    │   │           │   └── GameConfig.java
+    │   │           └── controller/
+    │   │               └── GameController.java
     │   └── resources/
-    │       ├── application.properties
+    │       ├── application.yml
     │       ├── static/
-    │       │   └── css/
-    │       │       └── game.css
+    │       │   ├── css/
+    │       │   │   ├── base.css
+    │       │   │   ├── components.css
+    │       │   │   ├── game.css
+    │       │   │   ├── start.css
+    │       │   │   └── end.css
+    │       │   ├── js/
+    │       │   │   ├── toast.js
+    │       │   │   ├── stats.js
+    │       │   │   ├── actions.js
+    │       │   │   ├── journey.js
+    │       │   │   └── animations.js
+    │       │   └── img/
+    │       │       ├── team-member-1..4.png
+    │       │       ├── food-icon.png
+    │       │       ├── train.png
+    │       │       └── vc-investor-1..2.png
     │       └── templates/
+    │           ├── fragments/
+    │           │   ├── head.html
+    │           │   └── toast.html
     │           ├── start.html
     │           ├── game.html
     │           └── end.html
@@ -437,10 +445,10 @@ silicon-valley-trail/
         │   └── ConditionEvaluatorTest.java
         └── infrastructure/
             └── api/
-                └── OpenMeteoAdapterTest.java
+                └── HaversineDistanceAdapterTest.java
 ```
 
-Ports live in the domain because the domain defines what it needs. Adapters live in infrastructure because they deal with external stuff. The `web/` package only has one class, `GameController`, which is the only place that knows about HTTP or Thymeleaf.
+Ports live in the domain because the domain defines what it needs. Adapters live in infrastructure because they deal with external stuff. GameConfig wires all dependencies without Spring annotations on domain classes. GameController is the only place that knows about HTTP or Thymeleaf.
 
 ---
 
