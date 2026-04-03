@@ -2,6 +2,7 @@ package com.pcunha.svt.domain.model;
 
 import com.pcunha.svt.domain.ActionOutcome;
 import com.pcunha.svt.domain.GameAction;
+import com.pcunha.svt.domain.LossReason;
 import com.pcunha.svt.domain.WeatherCategory;
 import lombok.Getter;
 import lombok.Setter;
@@ -30,6 +31,10 @@ public class GameState {
     private ActionOutcome lastActionResult;
     @Setter
     private boolean waitingEventChoice;
+    private int turnWithoutCash;
+    private int turnWithoutFood;
+    @Setter
+    private LossReason lossReason;
 
     public GameState(TeamState teamState, ResourceState resourceState, JourneyState journeyState, String teamName) {
         this.teamName = teamName;
@@ -49,4 +54,19 @@ public class GameState {
         this.gameOver = true;
     }
 
+    public void incrementTurnWithoutFood() {
+        this.turnWithoutFood++;
+    }
+
+    public void incrementTurnWithoutCash() {
+        this.turnWithoutCash++;
+    }
+
+    public void resetTurnWithoutFood() {
+        this.turnWithoutFood = 0;
+    }
+
+    public void resetTurnWithoutCash() {
+        this.turnWithoutCash = 0;
+    }
 }
