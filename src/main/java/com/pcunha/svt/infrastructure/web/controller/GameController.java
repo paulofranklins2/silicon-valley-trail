@@ -35,6 +35,9 @@ public class GameController {
     @GetMapping("/game")
     public String getGame(HttpSession session, Model model) {
         GameState gameState = (GameState) session.getAttribute("gameState");
+        if (gameState == null) {
+            return "redirect:/";
+        }
         model.addAttribute("gameState", gameState);
         model.addAttribute("actions", GameAction.values());
         return "game";
@@ -43,6 +46,9 @@ public class GameController {
     @PostMapping("/action")
     public String processAction(@RequestParam String action, HttpSession session) {
         GameState gameState = (GameState) session.getAttribute("gameState");
+        if (gameState == null) {
+            return "redirect:/";
+        }
         gameEngine.processAction(gameState, GameAction.valueOf(action));
         if (gameState.isGameOver()) {
             return "redirect:/end";
@@ -52,8 +58,11 @@ public class GameController {
 
     @PostMapping("/api/action")
     @ResponseBody
-    public GameState processActionApi(@RequestParam String action, HttpSession session) {
+    public Object processActionApi(@RequestParam String action, HttpSession session) {
         GameState gameState = (GameState) session.getAttribute("gameState");
+        if (gameState == null) {
+            return "redirect:/";
+        }
         gameEngine.processAction(gameState, GameAction.valueOf(action));
         return gameState;
     }
@@ -61,6 +70,7 @@ public class GameController {
     @GetMapping("/end")
     public String endGame(HttpSession session, Model model) {
         GameState gameState = (GameState) session.getAttribute("gameState");
+        if (gameState == null) return "redirect:/";
         model.addAttribute("gameState", gameState);
         // renders templates/end.html
         return "end";
