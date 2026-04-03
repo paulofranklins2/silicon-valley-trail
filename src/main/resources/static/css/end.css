@@ -25,6 +25,58 @@
     margin-bottom: 28px;
 }
 
+/*  END CHARACTERS  */
+.end-characters {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.end-characters__sprite {
+    width: 56px;
+    height: 56px;
+    image-rendering: pixelated;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    background: var(--bg-deep);
+}
+
+/* Victory: bouncing, glowing green */
+.end-characters--victory .end-characters__sprite {
+    border-color: var(--green);
+    box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+}
+
+.end-characters--victory .end-characters__sprite--1 { animation: victoryBounce 1s ease-in-out infinite; }
+.end-characters--victory .end-characters__sprite--2 { animation: victoryBounce 1s ease-in-out 0.15s infinite; }
+.end-characters--victory .end-characters__sprite--3 { animation: victoryBounce 1s ease-in-out 0.3s infinite; }
+.end-characters--victory .end-characters__sprite--4 { animation: victoryBounce 1s ease-in-out 0.45s infinite; }
+
+@keyframes victoryBounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%      { transform: translateY(-10px) scale(1.05); }
+}
+
+/* Defeat: fading, desaturated, slight droop */
+.end-characters--defeat .end-characters__sprite {
+    border-color: var(--red);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+    filter: saturate(0.3) brightness(0.6);
+    animation: defeatDroop 3s ease-in-out infinite;
+}
+
+.end-characters--defeat .end-characters__sprite--1 { animation-delay: 0s; }
+.end-characters--defeat .end-characters__sprite--2 { animation-delay: 0.4s; }
+.end-characters--defeat .end-characters__sprite--3 { animation-delay: 0.8s; }
+.end-characters--defeat .end-characters__sprite--4 { animation-delay: 1.2s; }
+
+@keyframes defeatDroop {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%      { transform: translateY(3px) rotate(-3deg); }
+}
+
+/*  FINAL STATS  */
 .final-stats {
     background: linear-gradient(145deg, var(--bg-panel) 0%, var(--bg-panel-alt) 100%);
     padding: 24px;
@@ -90,5 +142,14 @@
 
     .end-page {
         padding-top: 6vh;
+    }
+
+    .end-characters__sprite {
+        width: 44px;
+        height: 44px;
+    }
+
+    .end-characters {
+        gap: 8px;
     }
 }

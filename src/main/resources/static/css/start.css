@@ -1,7 +1,7 @@
 /*  START PAGE  */
 .start-page {
     text-align: center;
-    padding-top: 15vh;
+    padding-top: 12vh;
 }
 
 .start-page h1 {
@@ -14,18 +14,141 @@
     font-size: 1rem;
     color: var(--purple);
     letter-spacing: 2px;
-    margin-bottom: 32px;
+    margin-bottom: 28px;
 }
 
 .start-page .description {
     color: var(--text-muted);
     font-size: 0.95rem;
-    margin-bottom: 40px;
+    margin-bottom: 32px;
     max-width: 440px;
     margin-left: auto;
     margin-right: auto;
 }
 
+/* Decorative pixel border on start */
+.start-page .pixel-border {
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent), var(--purple));
+    border-radius: 2px;
+    margin: 0 auto 24px;
+}
+
+/*  START CHARACTERS - Road scene  */
+.start-characters {
+    margin: 0 auto 28px;
+    max-width: 420px;
+}
+
+.start-characters__road {
+    position: relative;
+    height: 90px;
+    display: flex;
+    align-items: center;
+}
+
+.start-characters__line {
+    position: absolute;
+    top: 50%;
+    left: 10%;
+    right: 10%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--text-dim) 60%, var(--purple));
+    border-radius: 2px;
+    transform: translateY(-50%);
+}
+
+.start-characters__line::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 0;
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--accent-glow);
+    animation: dotPulseStart 2s ease-in-out infinite;
+}
+
+.start-characters__line::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    right: 0;
+    width: 8px;
+    height: 8px;
+    background: var(--purple);
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.4);
+    animation: dotPulseStart 2s ease-in-out 1s infinite;
+}
+
+.start-characters__group {
+    position: absolute;
+    left: 6%;
+    display: flex;
+    gap: 4px;
+    z-index: 2;
+}
+
+.start-characters__sprite {
+    width: 48px;
+    height: 48px;
+    image-rendering: pixelated;
+    border-radius: 6px;
+    border: 2px solid var(--border);
+    background: var(--bg-deep);
+    filter: drop-shadow(0 0 4px var(--accent-glow));
+}
+
+.start-characters__sprite--1 { animation: startIdle 2.5s ease-in-out infinite; }
+.start-characters__sprite--2 { animation: startIdle 2.5s ease-in-out 0.3s infinite; }
+.start-characters__sprite--3 { animation: startIdle 2.5s ease-in-out 0.6s infinite; }
+.start-characters__sprite--4 { animation: startIdle 2.5s ease-in-out 0.9s infinite; }
+
+@keyframes startIdle {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-5px); }
+}
+
+.start-characters__dest {
+    position: absolute;
+    right: 6%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    z-index: 2;
+}
+
+.start-characters__train {
+    width: 40px;
+    height: 40px;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.4));
+    animation: trainBob 3s ease-in-out infinite;
+}
+
+.start-characters__dest-label {
+    font-family: var(--font-arcade);
+    font-size: 0.75rem;
+    color: var(--purple);
+    letter-spacing: 2px;
+}
+
+@keyframes trainBob {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-3px); }
+}
+
+@keyframes dotPulseStart {
+    0%, 100% { box-shadow: 0 0 6px var(--accent-glow); opacity: 0.7; }
+    50%      { box-shadow: 0 0 14px var(--accent-glow); opacity: 1; }
+}
+
+/*  FORM  */
 .start-form {
     display: flex;
     flex-direction: column;
@@ -61,15 +184,6 @@
     transform: translateY(0);
 }
 
-/* Decorative pixel border on start */
-.start-page .pixel-border {
-    width: 60px;
-    height: 4px;
-    background: linear-gradient(90deg, var(--accent), var(--purple));
-    border-radius: 2px;
-    margin: 0 auto 28px;
-}
-
 /*  RESPONSIVE START  */
 @media (max-width: 600px) {
     .start-page h1 {
@@ -77,10 +191,24 @@
     }
 
     .start-page {
-        padding-top: 8vh;
+        padding-top: 6vh;
     }
 
     .start-form {
         padding: 0 8px;
+    }
+
+    .start-characters__sprite {
+        width: 36px;
+        height: 36px;
+    }
+
+    .start-characters__train {
+        width: 32px;
+        height: 32px;
+    }
+
+    .start-characters__road {
+        height: 70px;
     }
 }

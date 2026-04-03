@@ -6,6 +6,12 @@
     <!-- Victory -->
     <div th:if="${gameState.victory}">
         <h1 class="victory">You Made It!</h1>
+        <div class="end-characters end-characters--victory">
+            <img class="end-characters__sprite end-characters__sprite--1" src="/img/team-member-1.png" alt="Team member">
+            <img class="end-characters__sprite end-characters__sprite--2" src="/img/team-member-2.png" alt="Team member">
+            <img class="end-characters__sprite end-characters__sprite--3" src="/img/team-member-3.png" alt="Team member">
+            <img class="end-characters__sprite end-characters__sprite--4" src="/img/team-member-4.png" alt="Team member">
+        </div>
         <p class="result-message">
             Your team reached San Francisco in
             <strong th:text="${gameState.turn}">0</strong> turns.
@@ -16,6 +22,12 @@
     <!-- Defeat -->
     <div th:unless="${gameState.victory}">
         <h1 class="defeat">Game Over</h1>
+        <div class="end-characters end-characters--defeat">
+            <img class="end-characters__sprite end-characters__sprite--1" src="/img/team-member-1.png" alt="Team member">
+            <img class="end-characters__sprite end-characters__sprite--2" src="/img/team-member-2.png" alt="Team member">
+            <img class="end-characters__sprite end-characters__sprite--3" src="/img/team-member-3.png" alt="Team member">
+            <img class="end-characters__sprite end-characters__sprite--4" src="/img/team-member-4.png" alt="Team member">
+        </div>
         <p class="result-message" th:if="${gameState.teamState.health <= 0}">
             Your team's health collapsed. The startup dream is over.
         </p>

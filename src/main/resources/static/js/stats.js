@@ -199,12 +199,12 @@
     function renderState(state, oldState) {
         // Turn and location
         var turnLabel = document.querySelector('.top-bar__turn');
-        var locationName = document.querySelector('.location-strip__name');
-        var distanceText = document.querySelector('.location-strip__dist');
+        var locationName = document.querySelector('.journey-progress__city--current');
+        var distanceText = document.querySelector('.journey-progress__dist');
 
-        turnLabel.textContent = 'Turn ' + state.turn;
-        locationName.textContent = state.journeyState.currentLocation.name;
-        distanceText.textContent = 'Next stop: ' + state.journeyState.distanceToNextLocation.toFixed(1) + ' km';
+        if (turnLabel) turnLabel.textContent = 'Turn ' + state.turn;
+        if (locationName) locationName.textContent = state.journeyState.currentLocation.name;
+        if (distanceText) distanceText.textContent = 'Next stop: ' + state.journeyState.distanceToNextLocation.toFixed(1) + ' km';
 
         // Team stats
         var oh = oldState ? oldState.teamState.health : undefined;
