@@ -127,9 +127,14 @@
     }
 
     function renderStoryBeat(state) {
-        // Remove existing
+        // Remove existing story beat
         var existing = document.querySelector('.story-beat');
         if (existing) existing.remove();
+
+        // If waiting for a choice, don't render the story beat (modal handles it)
+        if (state.waitingEventChoice && state.lastEvent) {
+            return;
+        }
 
         if (!state.lastAction) return;
 

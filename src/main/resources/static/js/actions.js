@@ -12,9 +12,11 @@
     var cashVal = document.querySelector('.cash-val');
     var foodVal = document.querySelector('.food-val');
     var computeVal = document.querySelector('.compute-val');
+    var actionsContainer = document.querySelector('.actions');
 
     // State tracking
     var isProcessing = false;
+    var waitingForChoice = false;
 
     // Capture initial state from DOM for diff comparison
     var previousState = {
@@ -34,8 +36,198 @@
     // Initialize resource bars on load
     window.GameStats.updateResourceBars(previousState.resourceState);
 
-    // Set buttons processing state
+    // Modal DOM references
+    var choiceModal = document.getElementById('choice-modal');
+    var choiceModalTitle = document.getElementById('choice-modal-title');
+    var choiceModalDesc = document.getElementById('choice-modal-desc');
+    var choiceModalOptions = document.getElementById('choice-modal-options');
 
+    // Choice-pending state: disable/enable action buttons
+    function setChoicePending(pending) {
+        waitingForChoice = pending;
+        if (actionsContainer) {
+            if (pending) {
+                actionsContainer.classList.add('actions--choice-pending');
+            } else {
+                actionsContainer.classList.remove('actions--choice-pending');
+            }
+        }
+    }
+
+    // Build stat change tag HTML for a choice outcome
+    function buildChangeTags(outcome) {
+        var html = '';
+        var fields = [
+            ['Health', outcome.healthChange],
+            ['Energy', outcome.energyChange],
+            ['Morale', outcome.moraleChange],
+            ['Cash', outcome.cashChange],
+            ['Food', outcome.foodChange],
+            ['Compute', outcome.computeCreditsChange]
+        ];
+        fields.forEach(function (pair) {
+            if (pair[1] === 0) return;
+            var cls = pair[1] > 0 ? 'choice-modal__tag--positive' : 'choice-modal__tag--negative';
+            var sign = pair[1] > 0 ? '+' : '';
+            html += '<span class="choice-modal__tag ' + cls + '">' + pair[0] + ' ' + sign + pair[1] + '</span>';
+        });
+        return html;
+    }
+
+    // Show the choice modal with event data
+    function showChoiceModal(evt) {
+        if (!choiceModal || !evt) return;
+
+        var choices = evt.choices || evt.outcomes || [];
+        if (choices.length === 0) return;
+
+        choiceModalTitle.textContent = evt.title || 'Event';
+        choiceModalDesc.textContent = evt.description || '';
+        choiceModalOptions.innerHTML = '';
+
+        // show current stats so player can evaluate the impact
+        var statsHtml = '<div class="choice-modal__stats">' +
+            '<span>HP ' + previousState.teamState.health + '</span>' +
+            '<span>Energy ' + previousState.teamState.energy + '</span>' +
+            '<span>Morale ' + previousState.teamState.morale + '</span>' +
+            '<span>Cash $' + previousState.resourceState.cash + '</span>' +
+            '<span>Food ' + previousState.resourceState.food + '</span>' +
+            '<span>CPU ' + previousState.resourceState.computeCredits + '</span>' +
+            '</div>';
+        choiceModalOptions.insertAdjacentHTML('beforebegin', '');
+        var statsContainer = document.getElementById('choice-modal-stats');
+        if (!statsContainer) {
+            statsContainer = document.createElement('div');
+            statsContainer.id = 'choice-modal-stats';
+            choiceModalOptions.parentNode.insertBefore(statsContainer, choiceModalOptions);
+        }
+        statsContainer.innerHTML = statsHtml;
+
+        choices.forEach(function (outcome, idx) {
+            var btn = document.createElement('button');
+            btn.className = 'choice-modal__btn';
+            btn.setAttribute('data-index', idx);
+
+            var label = document.createElement('span');
+            label.className = 'choice-modal__btn-label';
+            label.textContent = outcome.description;
+            btn.appendChild(label);
+
+            var tagsSpan = document.createElement('span');
+            tagsSpan.className = 'choice-modal__btn-tags';
+            tagsSpan.innerHTML = buildChangeTags(outcome);
+            btn.appendChild(tagsSpan);
+
+            btn.addEventListener('click', function () {
+                handleModalChoice(idx, outcome.description || 'Option ' + (idx + 1));
+            });
+
+            choiceModalOptions.appendChild(btn);
+        });
+
+        choiceModal.classList.remove('choice-modal--closing');
+        choiceModal.style.display = 'flex';
+        setChoicePending(true);
+    }
+
+    // Hide the choice modal with closing animation
+    function hideChoiceModal() {
+        if (!choiceModal) return;
+        choiceModal.classList.add('choice-modal--closing');
+        setTimeout(function () {
+            choiceModal.style.display = 'none';
+            choiceModal.classList.remove('choice-modal--closing');
+            choiceModalOptions.innerHTML = '';
+        }, 250);
+    }
+
+    // Handle a choice pick from the modal
+    function handleModalChoice(choiceIndex, chosenText) {
+        if (isProcessing) return;
+
+        // Disable all modal buttons immediately
+        var allBtns = choiceModalOptions.querySelectorAll('.choice-modal__btn');
+        allBtns.forEach(function (b) {
+            b.disabled = true;
+        });
+
+        isProcessing = true;
+
+        fetch('/api/choice', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'choiceIndex=' + encodeURIComponent(choiceIndex)
+        })
+            .then(function (response) {
+                if (!response.ok) throw new Error('Choice request failed: ' + response.status);
+                return response.json();
+            })
+            .then(function (state) {
+                if (state.gameOver) {
+                    window.location.href = '/end';
+                    return;
+                }
+
+                var oldState = previousState;
+
+                // Hide modal and clear choice-pending
+                hideChoiceModal();
+                setChoicePending(false);
+
+                applyStateUpdate(state, oldState);
+
+                // Update team status animations
+                if (window.GameAnimations) {
+                    window.GameAnimations.updateTeamStatus(state.teamState);
+                }
+
+                // Show toast with what the player chose
+                var toastHtml = '<div class="toast__title">Chose: ' + window.GameToast.escapeHtml(chosenText) + '</div>';
+                var parts = [];
+                var diffs = [
+                    {label: 'Health', old: oldState.teamState.health, cur: state.teamState.health},
+                    {label: 'Energy', old: oldState.teamState.energy, cur: state.teamState.energy},
+                    {label: 'Morale', old: oldState.teamState.morale, cur: state.teamState.morale},
+                    {label: 'Cash', old: oldState.resourceState.cash, cur: state.resourceState.cash},
+                    {label: 'Food', old: oldState.resourceState.food, cur: state.resourceState.food},
+                    {
+                        label: 'Compute',
+                        old: oldState.resourceState.computeCredits,
+                        cur: state.resourceState.computeCredits
+                    }
+                ];
+                var net = 0;
+                diffs.forEach(function (d) {
+                    var delta = d.cur - d.old;
+                    if (delta !== 0) {
+                        var sign = delta > 0 ? '+' : '';
+                        var color = delta > 0 ? 'color:var(--green)' : 'color:var(--red)';
+                        parts.push('<span style="' + color + '">' + d.label + ' ' + sign + delta + '</span>');
+                        net += delta;
+                    }
+                });
+                if (parts.length > 0) {
+                    toastHtml += '<div class="toast__body">' + parts.join(' &middot; ') + '</div>';
+                }
+                var type = net >= 0 ? 'positive' : 'negative';
+                window.GameToast.show(toastHtml, type, window.GameToast.TOAST_DURATION);
+            })
+            .catch(function (err) {
+                console.error('Choice failed, reloading:', err);
+                window.location.href = '/game';
+            })
+            .finally(function () {
+                isProcessing = false;
+                applyCooldown();
+            });
+    }
+
+    // On page load, check if we are already waiting for a choice (server-rendered state)
+    if (window.__waitingEventChoice && window.__lastEvent) {
+        showChoiceModal(window.__lastEvent);
+    }
+
+    // Set buttons processing state
     function setButtonsProcessing(processing) {
         var buttons = document.querySelectorAll('.action-card button');
         buttons.forEach(function (btn) {
@@ -63,10 +255,46 @@
         }, ACTION_COOLDOWN_MS);
     }
 
-    // AJAX action handling
+    // Common state update after any response (action or choice)
+    function applyStateUpdate(state, oldState, toastOverrideHtml) {
+        previousState = {
+            teamState: {
+                health: state.teamState.health, energy: state.teamState.energy, morale: state.teamState.morale
+            }, resourceState: {
+                cash: state.resourceState.cash,
+                food: state.resourceState.food,
+                computeCredits: state.resourceState.computeCredits
+            }, journeyState: {
+                currentLocation: {name: state.journeyState.currentLocation.name}
+            }
+        };
 
+        window.GameStats.renderState(state, oldState);
+
+        // Update journey progress map
+        if (window.GameJourney) {
+            window.GameJourney.update(
+                state.journeyState.currentLocationIndex,
+                state.journeyState.distanceToNextLocation
+            );
+        }
+
+        // Update weather display
+        if (window.GameWeather && state.lastWeather) {
+            window.GameWeather.update(state.lastWeather, state.lastWeatherTemp);
+        }
+
+        // Handle choice-pending state via modal
+        if (state.waitingEventChoice && state.lastEvent) {
+            showChoiceModal(state.lastEvent);
+        } else {
+            setChoicePending(false);
+        }
+    }
+
+    // AJAX action handling
     function handleAction(actionValue) {
-        if (isProcessing) return;
+        if (isProcessing || waitingForChoice) return;
         isProcessing = true;
         setButtonsProcessing(true);
 
@@ -86,27 +314,7 @@
                 }
 
                 var oldState = previousState;
-                previousState = {
-                    teamState: {
-                        health: state.teamState.health, energy: state.teamState.energy, morale: state.teamState.morale
-                    }, resourceState: {
-                        cash: state.resourceState.cash,
-                        food: state.resourceState.food,
-                        computeCredits: state.resourceState.computeCredits
-                    }, journeyState: {
-                        currentLocation: {name: state.journeyState.currentLocation.name}
-                    }
-                };
-
-                window.GameStats.renderState(state, oldState);
-
-                // Update journey progress map
-                if (window.GameJourney) {
-                    window.GameJourney.update(
-                        state.journeyState.currentLocationIndex,
-                        state.journeyState.distanceToNextLocation
-                    );
-                }
+                applyStateUpdate(state, oldState);
 
                 // Play action animation
                 if (window.GameAnimations) {
@@ -114,13 +322,10 @@
                     window.GameAnimations.updateTeamStatus(state.teamState);
                 }
 
-                // Update weather display
-                if (window.GameWeather && state.lastWeather) {
-                    window.GameWeather.update(state.lastWeather, state.lastWeatherTemp);
+                // Single combined toast (only if not waiting for choice)
+                if (!state.waitingEventChoice) {
+                    window.GameStats.buildCombinedToast(oldState, state);
                 }
-
-                // Single combined toast (replaces any existing one)
-                window.GameStats.buildCombinedToast(oldState, state);
             })
             .catch(function (err) {
                 console.error('Action failed, falling back to form submit:', err);
@@ -129,13 +334,25 @@
             .finally(function () {
                 isProcessing = false;
                 setButtonsProcessing(false);
-                // Apply brief cooldown after action completes
-                applyCooldown();
+                // Apply brief cooldown after action completes (only if not waiting for choice)
+                if (!waitingForChoice) {
+                    applyCooldown();
+                }
             });
     }
 
-    // Intercept form submissions
+    // Expose choice handler globally (kept for backward compatibility with any remaining references)
+    window.GameChoices = {
+        pick: function (btnElement) {
+            // Modal handles choices now; this is a no-op fallback
+            var idx = parseInt(btnElement.getAttribute('data-index'));
+            var label = btnElement.querySelector('.event-choice__btn-label, .choice-modal__btn-label');
+            var text = label ? label.textContent : 'Option ' + (idx + 1);
+            handleModalChoice(idx, text);
+        }
+    };
 
+    // Intercept form submissions
     var forms = document.querySelectorAll('.action-card');
     forms.forEach(function (form) {
         form.addEventListener('submit', function (e) {
