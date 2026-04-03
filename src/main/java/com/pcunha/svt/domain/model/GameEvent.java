@@ -20,7 +20,7 @@ public class GameEvent {
     private final int cashChange;
     private final int foodChange;
     private final int computeCreditsChange;
-    private final List<EventOutcome> choices;
+    private final List<EventOutcome> outcomes;
 
 
 }
