@@ -32,8 +32,8 @@ public class GameConfig {
     }
 
     @Bean
-    public TurnProcessor turnProcessor(ActionHandler actionHandler, ConditionEvaluator conditionEvaluator, EventProcessor eventProcessor) {
-        return new TurnProcessor(actionHandler, conditionEvaluator, eventProcessor);
+    public TurnProcessor turnProcessor(ActionHandler actionHandler, ConditionEvaluator conditionEvaluator, EventProcessor eventProcessor, Random random) {
+        return new TurnProcessor(actionHandler, conditionEvaluator, eventProcessor, random);
     }
 
     @Bean

@@ -30,7 +30,7 @@ class TurnProcessorTest {
         Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(1);
 
         GameState gameState = createGameState();
-        TurnProcessor turnProcessor = new TurnProcessor(new ActionHandler(mockRandom), new ConditionEvaluator(), new EventProcessor(mockRandom));
+        TurnProcessor turnProcessor = new TurnProcessor(new ActionHandler(mockRandom), new ConditionEvaluator(), new EventProcessor(mockRandom), mockRandom);
         turnProcessor.processTurn(gameState, GameAction.TRAVEL);
         turnProcessor.processTurn(gameState, GameAction.TRAVEL);
         assertEquals(3, gameState.getTurn());
@@ -41,7 +41,7 @@ class TurnProcessorTest {
         Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(1);
 
         GameState gameState = createGameState();
-        TurnProcessor turnProcessor = new TurnProcessor(new ActionHandler(mockRandom), new ConditionEvaluator(), new EventProcessor(mockRandom));
+        TurnProcessor turnProcessor = new TurnProcessor(new ActionHandler(mockRandom), new ConditionEvaluator(), new EventProcessor(mockRandom), mockRandom);
         // team health is set to -100, should cause game over.
         gameState.getTeamState().changeHealth(-100);
         turnProcessor.processTurn(gameState, GameAction.TRAVEL);
@@ -60,7 +60,7 @@ class TurnProcessorTest {
 
         // required 20
         GameState gameState = createGameState();
-        TurnProcessor turnProcessor = new TurnProcessor(new ActionHandler(mockRandom), new ConditionEvaluator(), new EventProcessor(mockRandom));
+        TurnProcessor turnProcessor = new TurnProcessor(new ActionHandler(mockRandom), new ConditionEvaluator(), new EventProcessor(mockRandom), mockRandom);
         turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 5
         turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 10
         turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 15
@@ -72,6 +72,56 @@ class TurnProcessorTest {
         // victory should be true, and game over should be true.
         assertTrue(gameState.isVictory());
         assertTrue(gameState.isGameOver());
+    }
+
+    @Test
+    public void turnWithEventAppliesEvent() {
+        // nextDouble returns 0.1, below EVENT_CHANCE (0.5), so event fires
+        Mockito.when(mockRandom.nextDouble()).thenReturn(0.1);
+        Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(1);
+
+        GameState gameState = createGameState();
+        TurnProcessor turnProcessor = new TurnProcessor(
+                new ActionHandler(mockRandom), new ConditionEvaluator(),
+                new EventProcessor(mockRandom), mockRandom
+        );
+        turnProcessor.processTurn(gameState, GameAction.REST);
+
+        // event should have fired
+        assertNotNull(gameState.getLastEvent());
+    }
+
+    @Test
+    public void turnWithoutEventHasNullLastEvent() {
+        // nextDouble returns 0.9, above EVENT_CHANCE (0.5), so no event
+        Mockito.when(mockRandom.nextDouble()).thenReturn(0.9);
+
+        GameState gameState = createGameState();
+        TurnProcessor turnProcessor = new TurnProcessor(
+                new ActionHandler(mockRandom), new ConditionEvaluator(),
+                new EventProcessor(mockRandom), mockRandom
+        );
+        turnProcessor.processTurn(gameState, GameAction.REST);
+
+        // no event
+        assertNull(gameState.getLastEvent());
+    }
+
+    @Test
+    public void actionStillAppliesWhenNoEvent() {
+        // no event fires
+        Mockito.when(mockRandom.nextDouble()).thenReturn(0.9);
+
+        GameState gameState = createGameState();
+        TurnProcessor turnProcessor = new TurnProcessor(
+                new ActionHandler(mockRandom), new ConditionEvaluator(),
+                new EventProcessor(mockRandom), mockRandom
+        );
+        turnProcessor.processTurn(gameState, GameAction.TRAVEL);
+
+        // action still applied even without event
+        assertEquals(15, gameState.getJourneyState().getDistanceToNextLocation()); // 20 - 5
+        assertEquals(85, gameState.getTeamState().getEnergy()); // 100 - 15
     }
 
 }
