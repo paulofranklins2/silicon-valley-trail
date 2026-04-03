@@ -21,7 +21,6 @@ public class GameController {
 
     @GetMapping("/")
     public String home() {
-        // renders templates/start.html
         return "start";
     }
 
@@ -67,12 +66,22 @@ public class GameController {
         return gameState;
     }
 
+    @PostMapping("/api/choice")
+    @ResponseBody
+    public Object processChoice(@RequestParam int choiceIndex, HttpSession session) {
+        GameState gameState = (GameState) session.getAttribute("gameState");
+        if (gameState == null) {
+            return "redirect:/";
+        }
+        gameEngine.resolveChoice(gameState, choiceIndex);
+        return gameState;
+    }
+
     @GetMapping("/end")
     public String endGame(HttpSession session, Model model) {
         GameState gameState = (GameState) session.getAttribute("gameState");
         if (gameState == null) return "redirect:/";
         model.addAttribute("gameState", gameState);
-        // renders templates/end.html
         return "end";
     }
 

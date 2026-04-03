@@ -47,10 +47,31 @@ public class TurnProcessor {
         if (random.nextDouble() < EVENT_CHANCE) {
             GameEvent event = eventProcessor.generateEvent(gameState, weatherSignal);
             gameState.setLastEvent(event);
+
+            // if event has choices, pause and wait for player decision
+            if (event.getOutcomes() != null && !event.getOutcomes().isEmpty()) {
+                gameState.setWaitingEventChoice(true);
+                return;
+            }
+
             eventProcessor.applyEvent(gameState, event);
         } else {
             gameState.setLastEvent(null);
         }
+
+        conditionEvaluator.evaluate(gameState);
+        if (!gameState.isGameOver()) {
+            gameState.nextTurn();
+        }
+    }
+
+    public void resolveChoice(GameState gameState, int choiceIndex) {
+        GameEvent event = gameState.getLastEvent();
+        if (event == null || event.getOutcomes() == null) return;
+        if (choiceIndex < 0 || choiceIndex >= event.getOutcomes().size()) return;
+
+        eventProcessor.applyOutcome(gameState, event.getOutcomes().get(choiceIndex));
+        gameState.setWaitingEventChoice(false);
 
         conditionEvaluator.evaluate(gameState);
         if (!gameState.isGameOver()) {

@@ -28,6 +28,8 @@ public class GameState {
     private boolean gameOver;
     @Setter
     private ActionOutcome lastActionResult;
+    @Setter
+    private boolean waitingEventChoice;
 
     public GameState(TeamState teamState, ResourceState resourceState, JourneyState journeyState, String teamName) {
         this.teamName = teamName;

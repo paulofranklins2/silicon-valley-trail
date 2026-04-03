@@ -41,6 +41,13 @@ public class GameEngine {
         turnProcessor.processTurn(gameState, gameAction);
     }
 
+    /**
+     * Resolves a player's choice for a pending event.
+     */
+    public void resolveChoice(GameState gameState, int choiceIndex) {
+        turnProcessor.resolveChoice(gameState, choiceIndex);
+    }
+
     // 10 real locations along the San Jose to San Francisco corridor
     private List<Location> buildLocations() {
         return List.of(
