@@ -41,6 +41,7 @@ public class TurnProcessor {
         //fetch weather and apply effects
         WeatherSignal weatherSignal = weatherPort.getWeather(gameState.getJourneyState().getCurrentLocation());
         gameState.setLastWeather(weatherSignal.getWeatherCategory());
+        gameState.setLastWeatherTemp(weatherSignal.getTemperature());
         applyWeatherEffects(gameState, weatherSignal);
 
         if (random.nextDouble() < EVENT_CHANCE) {

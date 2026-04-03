@@ -20,6 +20,8 @@ public class GameState {
     private GameAction lastAction;
     @Setter
     private WeatherCategory lastWeather;
+    @Setter
+    private double lastWeatherTemp;
     private int turn;
     private boolean victory;
     @Setter

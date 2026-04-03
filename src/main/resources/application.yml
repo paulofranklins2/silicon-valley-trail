@@ -20,4 +20,5 @@ spring:
 
 game:
     weather:
-        use-mock: false
+        # options: api == real weather, mock == random, demo == cycles through all types sequentially
+        mode: api
