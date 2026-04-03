@@ -1,5 +1,6 @@
 package com.pcunha.svt.domain;
 
+import com.pcunha.svt.domain.model.TeamState;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

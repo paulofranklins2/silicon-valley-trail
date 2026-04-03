@@ -2,7 +2,7 @@ package com.pcunha.svt.infrastructure.web.controller;
 
 import com.pcunha.svt.application.GameEngine;
 import com.pcunha.svt.domain.GameAction;
-import com.pcunha.svt.domain.GameState;
+import com.pcunha.svt.domain.model.GameState;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

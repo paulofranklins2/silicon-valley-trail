@@ -2,9 +2,9 @@ package com.pcunha.svt.infrastructure.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.pcunha.svt.domain.Location;
+import com.pcunha.svt.domain.model.Location;
 import com.pcunha.svt.domain.WeatherCategory;
-import com.pcunha.svt.domain.WeatherSignal;
+import com.pcunha.svt.domain.model.WeatherSignal;
 import com.pcunha.svt.domain.port.WeatherPort;
 
 import java.net.URI;

@@ -1,5 +1,6 @@
-package com.pcunha.svt.domain;
+package com.pcunha.svt.domain.model;
 
+import com.pcunha.svt.domain.WeatherCategory;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

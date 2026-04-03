@@ -1,5 +1,7 @@
-package com.pcunha.svt.domain;
+package com.pcunha.svt.domain.model;
 
+import com.pcunha.svt.domain.ActionOutcome;
+import com.pcunha.svt.domain.GameAction;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -20,7 +22,7 @@ public class GameState {
     @Setter
     private boolean gameOver;
     @Setter
-    private ActionEventResult lastActionResult;
+    private ActionOutcome lastActionResult;
 
     public GameState(TeamState teamState, ResourceState resourceState, JourneyState journeyState, String teamName) {
         this.teamName = teamName;

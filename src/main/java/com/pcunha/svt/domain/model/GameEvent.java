@@ -1,5 +1,6 @@
-package com.pcunha.svt.domain;
+package com.pcunha.svt.domain.model;
 
+import com.pcunha.svt.domain.EventCategory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

@@ -1,6 +1,7 @@
 package com.pcunha.svt.application;
 
 import com.pcunha.svt.domain.*;
+import com.pcunha.svt.domain.model.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 

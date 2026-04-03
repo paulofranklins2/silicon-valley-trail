@@ -1,5 +1,7 @@
 package com.pcunha.svt.domain;
 
+import com.pcunha.svt.domain.model.JourneyState;
+import com.pcunha.svt.domain.model.Location;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

@@ -1,6 +1,6 @@
 package com.pcunha.svt.application;
 
-import com.pcunha.svt.domain.GameState;
+import com.pcunha.svt.domain.model.GameState;
 
 public class ConditionEvaluator {
 

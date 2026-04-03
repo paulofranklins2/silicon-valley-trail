@@ -1,8 +1,8 @@
 package com.pcunha.svt.application;
 
 import com.pcunha.svt.domain.GameAction;
-import com.pcunha.svt.domain.GameEvent;
-import com.pcunha.svt.domain.GameState;
+import com.pcunha.svt.domain.model.GameEvent;
+import com.pcunha.svt.domain.model.GameState;
 
 import java.util.Random;
 

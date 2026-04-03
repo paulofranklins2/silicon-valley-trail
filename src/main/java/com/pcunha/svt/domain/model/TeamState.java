@@ -1,4 +1,4 @@
-package com.pcunha.svt.domain;
+package com.pcunha.svt.domain.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

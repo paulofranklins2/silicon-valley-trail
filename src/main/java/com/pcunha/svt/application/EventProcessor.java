@@ -1,9 +1,9 @@
 package com.pcunha.svt.application;
 
 import com.pcunha.svt.domain.EventCategory;
-import com.pcunha.svt.domain.GameEvent;
-import com.pcunha.svt.domain.GameState;
-import com.pcunha.svt.domain.WeatherSignal;
+import com.pcunha.svt.domain.model.GameEvent;
+import com.pcunha.svt.domain.model.GameState;
+import com.pcunha.svt.domain.model.WeatherSignal;
 
 import java.util.HashMap;
 import java.util.List;

@@ -1,8 +1,8 @@
 package com.pcunha.svt.application;
 
-import com.pcunha.svt.domain.ActionEventResult;
+import com.pcunha.svt.domain.ActionOutcome;
 import com.pcunha.svt.domain.GameAction;
-import com.pcunha.svt.domain.GameState;
+import com.pcunha.svt.domain.model.GameState;
 
 import java.util.Random;
 
@@ -70,10 +70,10 @@ public class ActionHandler {
         gameState.getTeamState().changeEnergy(SCAVENGE_ENERGY);
         if (randomChance()) {
             gameState.getResourceState().changeFood(SCAVENGE_FOOD);
-            gameState.setLastActionResult(ActionEventResult.FOOD);
+            gameState.setLastActionResult(ActionOutcome.FOOD);
         } else {
             gameState.getResourceState().changeCash(SCAVENGE_CASH);
-            gameState.setLastActionResult(ActionEventResult.CASH);
+            gameState.setLastActionResult(ActionOutcome.CASH);
 
         }
     }
@@ -90,11 +90,11 @@ public class ActionHandler {
         // random change of success +cash, fail -morale
         if (randomChance()) {
             gameState.getResourceState().changeCash(PITCH_VCS_CASH);
-            gameState.setLastActionResult(ActionEventResult.PITCH_SUCCESS);
+            gameState.setLastActionResult(ActionOutcome.PITCH_SUCCESS);
 
         } else {
             gameState.getTeamState().changeMorale(PITCH_VCS_MORALE);
-            gameState.setLastActionResult(ActionEventResult.PITCH_FAILURE);
+            gameState.setLastActionResult(ActionOutcome.PITCH_FAILURE);
         }
     }
 }

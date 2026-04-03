@@ -1,6 +1,6 @@
 package com.pcunha.svt.infrastructure.api;
 
-import com.pcunha.svt.domain.Location;
+import com.pcunha.svt.domain.model.Location;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
