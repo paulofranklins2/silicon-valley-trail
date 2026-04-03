@@ -68,3 +68,6 @@ tmp/
 temp/
 *.tmp
 *.swp
+
+# Raw asset packs
+ref/
