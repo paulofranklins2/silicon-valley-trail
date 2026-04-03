@@ -28,12 +28,12 @@
             <img class="end-characters__sprite end-characters__sprite--3" src="/img/team-member-3.png" alt="Team member">
             <img class="end-characters__sprite end-characters__sprite--4" src="/img/team-member-4.png" alt="Team member">
         </div>
-        <p class="result-message" th:if="${gameState.teamState.health <= 0}">
-            Your team's health collapsed. The startup dream is over.
-        </p>
-        <p class="result-message" th:if="${gameState.teamState.morale <= 0}">
-            Your team lost all morale and quit. Back to corporate jobs.
-        </p>
+        <div th:switch="${gameState.lossReason.name()}">
+            <p class="result-message" th:case="'POOR_HEALTH'">Your team's health collapsed. The startup dream is over.</p>
+            <p class="result-message" th:case="'POOR_MORALE'">Your team lost all morale and quit. Back to corporate jobs.</p>
+            <p class="result-message" th:case="'STARVATION'">Your team ran out of food. Hunger ended the journey.</p>
+            <p class="result-message" th:case="'NO_CASH'">Your startup burned through all its cash. Investors stopped calling.</p>
+        </div>
     </div>
 
     <!-- Final stats -->
