@@ -7,17 +7,37 @@
     <!-- Top bar: title, team, turn -->
     <div class="top-bar">
         <span class="top-bar__title">Silicon Valley Trail</span>
-        <span class="top-bar__team" th:text="'Team: ' + ${gameState.teamName}">Team Name</span>
         <span class="top-bar__turn" th:text="'Turn ' + ${gameState.turn}">Turn 1</span>
     </div>
 
-    <!-- Location strip -->
-    <div class="location-strip">
-        <div class="location-strip__name" th:text="${gameState.journeyState.currentLocation.name}">San Jose</div>
-        <div class="location-strip__dist"
+    <!-- Journey progress visual -->
+    <div class="journey-progress"
+         th:data-current-index="${gameState.journeyState.currentLocationIndex}"
+         th:data-distance-remaining="${gameState.journeyState.distanceToNextLocation}"
+         th:data-locations="${gameState.journeyState.locations}"
+         th:data-distances="${gameState.journeyState.distances}">
+        <div class="journey-progress__cities">
+            <span class="journey-progress__city journey-progress__city--current"
+                  th:text="${gameState.journeyState.currentLocation.name}">San Jose</span>
+            <span class="journey-progress__city journey-progress__city--dest">San Francisco</span>
+        </div>
+        <div class="journey-progress__track">
+            <div class="journey-progress__rail"></div>
+            <!-- City dots rendered by JS -->
+            <div class="journey-progress__dots" id="journey-dots"></div>
+            <div class="journey-progress__train" id="journey-train">
+                <img src="/img/train.png" alt="Train" class="journey-progress__train-img">
+            </div>
+        </div>
+        <div class="journey-progress__dist"
              th:text="'Next stop: ' + ${#numbers.formatDecimal(gameState.journeyState.distanceToNextLocation, 1, 1)} + ' km'">
             10 km
         </div>
+    </div>
+
+    <!-- Action scene stage (dynamically populated by animations.js) -->
+    <div class="action-stage" id="action-stage">
+        <div class="action-stage__scene" id="action-scene"></div>
     </div>
 
     <!-- Desktop two-column layout wrapper -->
@@ -25,6 +45,25 @@
 
         <!-- Left column: stats -->
         <div class="game-body__stats">
+            <!-- Team display with status effects -->
+            <div class="team-display">
+                <span class="team-display__name" th:text="'Team: ' + ${gameState.teamName}">Team Name</span>
+                <div class="team-display__members">
+                    <div class="team-display__member" data-member="1">
+                        <img src="/img/team-member-1.png" alt="Team member" class="team-display__sprite">
+                    </div>
+                    <div class="team-display__member" data-member="2">
+                        <img src="/img/team-member-2.png" alt="Team member" class="team-display__sprite">
+                    </div>
+                    <div class="team-display__member" data-member="3">
+                        <img src="/img/team-member-3.png" alt="Team member" class="team-display__sprite">
+                    </div>
+                    <div class="team-display__member" data-member="4">
+                        <img src="/img/team-member-4.png" alt="Team member" class="team-display__sprite">
+                    </div>
+                </div>
+            </div>
+
             <!-- Combined stats panel -->
             <div class="stats-panel">
                 <div class="stats-panel__section">
@@ -74,7 +113,7 @@
                             <span class="res-item__val cash-val" th:text="${gameState.resourceState.cash}">100</span>
                         </div>
                         <div class="res-item" data-res="food">
-                            <span class="res-item__icon res-item__icon--food">F</span>
+                            <img class="res-item__food-icon" src="/img/food-icon.png" alt="Food">
                             <span class="res-item__name">Food</span>
                             <div class="res-item__bar-wrap">
                                 <div class="res-item__bar">
@@ -199,11 +238,23 @@
 
 </div>
 
+<!-- Hidden data for JS (location names for journey map) -->
+<script th:inline="javascript">
+    window.__journeyData = {
+        locations: /*[[${gameState.journeyState.locations}]]*/ [],
+        distances: /*[[${gameState.journeyState.distances}]]*/ [],
+        currentIndex: /*[[${gameState.journeyState.currentLocationIndex}]]*/ 0,
+        distanceRemaining: /*[[${gameState.journeyState.distanceToNextLocation}]]*/ 0
+    };
+</script>
+
 <!-- Toast container (positioned fixed, managed by JS) -->
 <div th:replace="~{fragments/toast :: toast-container}"></div>
 
 <script th:src="@{/js/toast.js}"></script>
 <script th:src="@{/js/stats.js}"></script>
+<script th:src="@{/js/journey.js}"></script>
+<script th:src="@{/js/animations.js}"></script>
 <script th:src="@{/js/actions.js}"></script>
 </body>
 </html>

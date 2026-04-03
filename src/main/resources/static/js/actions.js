@@ -5,7 +5,7 @@
     var ACTION_COOLDOWN_MS = 500;
 
     // DOM references
-    var locationName = document.querySelector('.location-strip__name');
+    var locationName = document.querySelector('.journey-progress__city--current');
     var healthRow = document.querySelectorAll('.stat-row')[0];
     var energyRow = document.querySelectorAll('.stat-row')[1];
     var moraleRow = document.querySelectorAll('.stat-row')[2];
@@ -99,6 +99,20 @@
                 };
 
                 window.GameStats.renderState(state, oldState);
+
+                // Update journey progress map
+                if (window.GameJourney) {
+                    window.GameJourney.update(
+                        state.journeyState.currentLocationIndex,
+                        state.journeyState.distanceToNextLocation
+                    );
+                }
+
+                // Play action animation
+                if (window.GameAnimations) {
+                    window.GameAnimations.playAction(actionValue, state);
+                    window.GameAnimations.updateTeamStatus(state.teamState);
+                }
 
                 // Single combined toast (replaces any existing one)
                 window.GameStats.buildCombinedToast(oldState, state);
