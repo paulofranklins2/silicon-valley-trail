@@ -118,14 +118,23 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 
 ## Day 6 - Polish + documentation
 
-### Must do
+### MUST do **REQUIRED**
+- [ ] Wire weather API into actual gameplay (currently passes null, requirement says API must CHANGE gameplay not just display)
 - [ ] Playtest full game and tune balance (food, energy, event chance)
-- [ ] Wire weather API into actual gameplay (currently passes null)
-- [ ] Write README.md (quick start, how to run, architecture, tests)
-- [ ] Record screen capture of a playthrough
 - [ ] Verify app runs from scratch with `mvn spring-boot:run`
 - [ ] Final cleanup on naming/comments/dead code
-- [ ] Update DESIGN.md with final state
+
+### README **REQUIRED**
+- [ ] Quick start from a fresh machine (Java 21, clone, run)
+- [ ] How to set API keys / how to run with mocks (Open-Meteo needs no key, fallback is automatic)
+- [ ] Brief architecture overview and dependency list
+- [ ] How to run tests (`mvn test`)
+- [ ] Example gameplay flow
+- [ ] AI disclosure (how AI was used in development)
+
+### Documentation **REQUIRED**
+- [ ] Record screen capture or provide URL to working app
+- [ ] Finalize DESIGN.md with final state
 
 ### Nice to have
 - [ ] Add persistence (H2 save/load)
