@@ -19,6 +19,8 @@ public class GameState {
     private boolean victory;
     @Setter
     private boolean gameOver;
+    @Setter
+    private ActionEventResult lastActionResult;
 
     public GameState(TeamState teamState, ResourceState resourceState, JourneyState journeyState, String teamName) {
         this.teamName = teamName;
