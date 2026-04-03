@@ -1,5 +1,6 @@
 package com.pcunha.svt.application;
 
+import com.pcunha.svt.domain.LossReason;
 import com.pcunha.svt.domain.model.*;
 import org.junit.jupiter.api.Test;
 
@@ -102,6 +103,93 @@ class ConditionEvaluatorTest {
         // should not be a victory
         assertFalse(gameState.isVictory());
         // should not be a game over
+        assertFalse(gameState.isGameOver());
+    }
+
+    @Test
+    public void gameOverWhenFoodDepletedForTwoTurns() {
+        ConditionEvaluator evaluator = new ConditionEvaluator();
+        GameState gameState = createGameState();
+
+        // set food to 0
+        gameState.getResourceState().changeFood(-10);
+
+        // evaluate twice (2 turns with no food)
+        evaluator.evaluate(gameState);
+        evaluator.evaluate(gameState);
+
+        // should be a game over due to starvation
+        assertTrue(gameState.isGameOver());
+        assertEquals(LossReason.STARVATION, gameState.getLossReason());
+    }
+
+    @Test
+    public void noGameOverWhenFoodDepletedForOnlyOneTurn() {
+        ConditionEvaluator evaluator = new ConditionEvaluator();
+        GameState gameState = createGameState();
+
+        // set food to 0
+        gameState.getResourceState().changeFood(-10);
+
+        // evaluate once (grace period not exceeded)
+        evaluator.evaluate(gameState);
+
+        // should not be a game over yet
+        assertFalse(gameState.isGameOver());
+    }
+
+    @Test
+    public void gameOverWhenCashDepletedForThreeTurns() {
+        ConditionEvaluator evaluator = new ConditionEvaluator();
+        GameState gameState = createGameState();
+
+        // set cash to 0
+        gameState.getResourceState().changeCash(-100);
+
+        // evaluate three times (3 turns with no cash)
+        evaluator.evaluate(gameState);
+        evaluator.evaluate(gameState);
+        evaluator.evaluate(gameState);
+
+        // should be a game over due to no cash
+        assertTrue(gameState.isGameOver());
+        assertEquals(LossReason.NO_CASH, gameState.getLossReason());
+    }
+
+    @Test
+    public void noGameOverWhenCashDepletedForTwoTurns() {
+        ConditionEvaluator evaluator = new ConditionEvaluator();
+        GameState gameState = createGameState();
+
+        // set cash to 0
+        gameState.getResourceState().changeCash(-100);
+
+        // evaluate twice (need 3 turns for cash game over)
+        evaluator.evaluate(gameState);
+        evaluator.evaluate(gameState);
+
+        // should not be a game over yet
+        assertFalse(gameState.isGameOver());
+    }
+
+    @Test
+    public void foodCounterResetsWhenFoodRecovered() {
+        ConditionEvaluator evaluator = new ConditionEvaluator();
+        GameState gameState = createGameState();
+
+        // set food to 0 and evaluate once (counter=1)
+        gameState.getResourceState().changeFood(-10);
+        evaluator.evaluate(gameState);
+
+        // recover food (counter should reset)
+        gameState.getResourceState().changeFood(5);
+        evaluator.evaluate(gameState);
+
+        // deplete food again and evaluate once (counter restarts at 1)
+        gameState.getResourceState().changeFood(-5);
+        evaluator.evaluate(gameState);
+
+        // should not be a game over (counter is 1, not accumulated to 2)
         assertFalse(gameState.isGameOver());
     }
 }
