@@ -2,6 +2,7 @@ package com.pcunha.svt.domain.model;
 
 import com.pcunha.svt.domain.ActionOutcome;
 import com.pcunha.svt.domain.GameAction;
+import com.pcunha.svt.domain.WeatherCategory;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -17,6 +18,8 @@ public class GameState {
     private GameEvent lastEvent;
     @Setter
     private GameAction lastAction;
+    @Setter
+    private WeatherCategory lastWeather;
     private int turn;
     private boolean victory;
     @Setter

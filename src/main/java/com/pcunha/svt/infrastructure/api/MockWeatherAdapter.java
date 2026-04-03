@@ -1,7 +1,7 @@
 package com.pcunha.svt.infrastructure.api;
 
-import com.pcunha.svt.domain.model.Location;
 import com.pcunha.svt.domain.WeatherCategory;
+import com.pcunha.svt.domain.model.Location;
 import com.pcunha.svt.domain.model.WeatherSignal;
 import com.pcunha.svt.domain.port.WeatherPort;
 
@@ -21,6 +21,4 @@ public class MockWeatherAdapter implements WeatherPort {
         double temperature = 10 + random.nextDouble() * 35;
         return new WeatherSignal(weatherCategory, temperature);
     }
-
-
 }

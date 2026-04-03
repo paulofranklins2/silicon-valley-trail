@@ -4,7 +4,6 @@ import com.pcunha.svt.domain.GameAction;
 import com.pcunha.svt.domain.WeatherCategory;
 import com.pcunha.svt.domain.model.*;
 import com.pcunha.svt.domain.port.WeatherPort;
-import com.pcunha.svt.infrastructure.api.MockWeatherAdapter;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -15,10 +14,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TurnProcessorTest {
     private final Random mockRandom = Mockito.mock(Random.class);
-    private final WeatherPort mockWeatherPort = new MockWeatherAdapter(mockRandom);
+    private final WeatherPort mockWeatherPort = Mockito.mock(WeatherPort.class);
 
     private GameState createGameState() {
         Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(1);
+        Mockito.when(mockWeatherPort.getWeather(Mockito.any()))
+                .thenReturn(new WeatherSignal(WeatherCategory.CLEAR, 20.0));
         TeamState team = new TeamState(100, 100, 100);
         ResourceState resources = new ResourceState(100, 10, 5);
         JourneyState journey = new JourneyState(
@@ -48,9 +49,14 @@ class TurnProcessorTest {
 
     @Test
     public void travelTurnCausesGameOver() {
-        Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(1);
-
         GameState gameState = createGameState();
+        // change team health to -100, should cause game over.
+        gameState.getTeamState().changeHealth(-100);
+
+        // override weather to RAINY after createGameState set it to CLEAR
+        Mockito.when(mockWeatherPort.getWeather(Mockito.any()))
+                .thenReturn(new WeatherSignal(WeatherCategory.RAINY, 15.0));
+
         TurnProcessor turnProcessor = new TurnProcessor(
                 new ActionHandler(mockRandom),
                 new ConditionEvaluator(),
@@ -58,8 +64,6 @@ class TurnProcessorTest {
                 mockRandom,
                 mockWeatherPort
         );
-        // team health is set to -100, should cause game over.
-        gameState.getTeamState().changeHealth(-100);
         turnProcessor.processTurn(gameState, GameAction.TRAVEL);
 
         // turn counter
@@ -152,7 +156,7 @@ class TurnProcessorTest {
 
         // action still applied even without event
         assertEquals(15, gameState.getJourneyState().getDistanceToNextLocation()); // 20 - 5
-        assertEquals(85, gameState.getTeamState().getEnergy()); // 100 - 15
+        assertEquals(90, gameState.getTeamState().getEnergy()); // 100 - 15 +5 weather
     }
 
     @Test
