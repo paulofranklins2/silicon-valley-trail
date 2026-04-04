@@ -12,6 +12,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.Locale;
 
 public class OpenMeteoAdapter implements WeatherPort {
     private final HttpClient httpClient;
@@ -29,7 +30,7 @@ public class OpenMeteoAdapter implements WeatherPort {
     @Override
     public WeatherSignal getWeather(Location location) {
         try {
-            String url = String.format(
+            String url = String.format(Locale.US,
                     "https://api.open-meteo.com/v1/forecast?latitude=%f&longitude=%f&current_weather=true",
                     location.getLatitude(), location.getLongitude()
             );
