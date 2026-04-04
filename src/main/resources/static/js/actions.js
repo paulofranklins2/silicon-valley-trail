@@ -3,6 +3,13 @@
 
     // Constants
     var ACTION_COOLDOWN_MS = 500;
+    var ENERGY_COSTS = {
+        TRAVEL: 15,
+        SCAVENGE: 10,
+        HACKATHON: 15,
+        REST: 0,
+        PITCH_VCS: 0
+    };
 
     // DOM references
     var locationName = document.querySelector('.journey-progress__city--current');
@@ -35,6 +42,9 @@
 
     // Initialize resource bars on load
     window.GameStats.updateResourceBars(previousState.resourceState);
+
+    // Disable actions the player can't afford on load
+    updateActionAvailability(previousState.teamState.energy);
 
     // Modal DOM references
     var choiceModal = document.getElementById('choice-modal');
@@ -249,10 +259,30 @@
         });
         setTimeout(function () {
             buttons.forEach(function (btn) {
-                btn.disabled = false;
                 btn.classList.remove('cooldown');
+                // only re-enable if not blocked by energy gate
+                if (!btn.classList.contains('action-card__btn--no-energy')) {
+                    btn.disabled = false;
+                }
             });
         }, ACTION_COOLDOWN_MS);
+    }
+
+    // Disable action buttons when player lacks the energy to use them
+    function updateActionAvailability(energy) {
+        var forms = document.querySelectorAll('.action-card');
+        forms.forEach(function (form) {
+            var input = form.querySelector('input[name="action"]');
+            var btn = form.querySelector('button');
+            if (!input || !btn) return;
+            var cost = ENERGY_COSTS[input.value] || 0;
+            if (cost > 0 && energy < cost) {
+                btn.disabled = true;
+                btn.classList.add('action-card__btn--no-energy');
+            } else {
+                btn.classList.remove('action-card__btn--no-energy');
+            }
+        });
     }
 
     // Common state update after any response (action or choice)
@@ -290,6 +320,9 @@
         } else {
             setChoicePending(false);
         }
+
+        // Disable actions the player can't afford
+        updateActionAvailability(state.teamState.energy);
     }
 
     // AJAX action handling
@@ -363,5 +396,177 @@
             }
         });
     });
+
+    // ---- City Market modal ----
+    var marketModal = document.getElementById('market-modal');
+    var marketModalTitle = document.getElementById('market-modal-title');
+    var marketModalDesc = document.getElementById('market-modal-desc');
+    var marketModalOptions = document.getElementById('market-modal-options');
+    var marketModalStats = document.getElementById('market-modal-stats');
+    var marketBtn = document.getElementById('market-btn');
+    var marketBackdrop = document.getElementById('market-backdrop');
+    var marketPurchased = [];
+
+    function showMarketModal(evt, purchased) {
+        if (!marketModal || !evt) return;
+        var choices = evt.outcomes || [];
+        if (choices.length === 0) return;
+        marketPurchased = purchased || [];
+
+        marketModalTitle.textContent = evt.title || 'City Market';
+        marketModalDesc.textContent = evt.description || '';
+        marketModalOptions.innerHTML = '';
+
+        // show current stats
+        marketModalStats.innerHTML = '<div class="choice-modal__stats">' +
+            '<span>Cash $' + previousState.resourceState.cash + '</span>' +
+            '<span>Food ' + previousState.resourceState.food + '</span>' +
+            '<span>Energy ' + previousState.teamState.energy + '</span>' +
+            '<span>Morale ' + previousState.teamState.morale + '</span>' +
+            '<span>CPU ' + previousState.resourceState.computeCredits + '</span>' +
+            '</div>';
+
+        var isLastIdx = choices.length - 1;
+        choices.forEach(function (outcome, idx) {
+            var btn = document.createElement('button');
+            btn.className = 'choice-modal__btn';
+            btn.setAttribute('data-index', idx);
+
+            // disable already purchased options (skip is never disabled)
+            var alreadyBought = idx !== isLastIdx && marketPurchased.indexOf(idx) !== -1;
+            if (alreadyBought) {
+                btn.disabled = true;
+                btn.classList.add('choice-modal__btn--sold');
+            }
+
+            var label = document.createElement('span');
+            label.className = 'choice-modal__btn-label';
+            label.textContent = alreadyBought ? outcome.description + ' (SOLD OUT)' : outcome.description;
+            btn.appendChild(label);
+
+            var tagsSpan = document.createElement('span');
+            tagsSpan.className = 'choice-modal__btn-tags';
+            tagsSpan.innerHTML = buildChangeTags(outcome);
+            btn.appendChild(tagsSpan);
+
+            if (!alreadyBought) {
+                btn.addEventListener('click', function () {
+                    handleMarketChoice(idx, outcome.description || 'Option ' + (idx + 1));
+                });
+            }
+
+            marketModalOptions.appendChild(btn);
+        });
+
+        marketModal.classList.remove('choice-modal--closing');
+        marketModal.style.display = 'flex';
+    }
+
+    function hideMarketModal() {
+        if (!marketModal) return;
+        marketModal.classList.add('choice-modal--closing');
+        setTimeout(function () {
+            marketModal.style.display = 'none';
+            marketModal.classList.remove('choice-modal--closing');
+            marketModalOptions.innerHTML = '';
+        }, 250);
+    }
+
+    function handleMarketChoice(choiceIndex, chosenText) {
+        if (isProcessing) return;
+        isProcessing = true;
+
+        var allBtns = marketModalOptions.querySelectorAll('.choice-modal__btn');
+        allBtns.forEach(function (b) { b.disabled = true; });
+
+        fetch('/api/market', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'choiceIndex=' + encodeURIComponent(choiceIndex)
+        })
+            .then(function (response) {
+                if (!response.ok) throw new Error('Market request failed: ' + response.status);
+                return response.json();
+            })
+            .then(function (data) {
+                var state = data.state;
+                var purchased = data.purchased || [];
+                if (data.error) {
+                    hideMarketModal();
+                    window.GameToast.show('<div class="toast__title">' + data.error + '</div>', 'negative', window.GameToast.TOAST_DURATION);
+                    return;
+                }
+
+                var oldState = previousState;
+                hideMarketModal();
+                applyStateUpdate(state, oldState);
+
+                if (window.GameAnimations) {
+                    window.GameAnimations.updateTeamStatus(state.teamState);
+                }
+
+                // toast
+                var toastHtml = '<div class="toast__title">Market: ' + window.GameToast.escapeHtml(chosenText) + '</div>';
+                var parts = [];
+                var diffs = [
+                    {label: 'Cash', old: oldState.resourceState.cash, cur: state.resourceState.cash},
+                    {label: 'Food', old: oldState.resourceState.food, cur: state.resourceState.food},
+                    {label: 'Energy', old: oldState.teamState.energy, cur: state.teamState.energy},
+                    {label: 'Morale', old: oldState.teamState.morale, cur: state.teamState.morale},
+                    {label: 'Compute', old: oldState.resourceState.computeCredits, cur: state.resourceState.computeCredits}
+                ];
+                var net = 0;
+                diffs.forEach(function (d) {
+                    var delta = d.cur - d.old;
+                    if (delta !== 0) {
+                        var sign = delta > 0 ? '+' : '';
+                        var color = delta > 0 ? 'color:var(--green)' : 'color:var(--red)';
+                        parts.push('<span style="' + color + '">' + d.label + ' ' + sign + delta + '</span>');
+                        net += delta;
+                    }
+                });
+                if (parts.length > 0) {
+                    toastHtml += '<div class="toast__body">' + parts.join(' &middot; ') + '</div>';
+                }
+                window.GameToast.show(toastHtml, net >= 0 ? 'positive' : 'negative', window.GameToast.TOAST_DURATION);
+            })
+            .catch(function (err) {
+                console.error('Market failed:', err);
+                hideMarketModal();
+            })
+            .finally(function () {
+                isProcessing = false;
+            });
+    }
+
+    // Open market button
+    if (marketBtn) {
+        marketBtn.addEventListener('click', function () {
+            if (isProcessing || waitingForChoice) return;
+            isProcessing = true;
+
+            fetch('/api/market')
+                .then(function (response) {
+                    if (!response.ok) throw new Error('Market fetch failed: ' + response.status);
+                    return response.json();
+                })
+                .then(function (data) {
+                    showMarketModal(data.event, data.purchased);
+                })
+                .catch(function (err) {
+                    console.error('Failed to open market:', err);
+                })
+                .finally(function () {
+                    isProcessing = false;
+                });
+        });
+    }
+
+    // Close market modal on backdrop click
+    if (marketBackdrop) {
+        marketBackdrop.addEventListener('click', function () {
+            hideMarketModal();
+        });
+    }
 
 })();

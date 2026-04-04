@@ -123,6 +123,7 @@
                                 </div>
                             </div>
                             <span class="res-item__val cash-val" th:text="${gameState.resourceState.cash}">100</span>
+                            <span class="res-item__warn" id="cash-warn"></span>
                         </div>
                         <div class="res-item" data-res="food">
                             <img class="res-item__food-icon" src="/img/food-icon.png" alt="Food">
@@ -133,6 +134,7 @@
                                 </div>
                             </div>
                             <span class="res-item__val food-val" th:text="${gameState.resourceState.food}">10</span>
+                            <span class="res-item__warn" id="food-warn"></span>
                         </div>
                         <div class="res-item" data-res="compute">
                             <span class="res-item__icon res-item__icon--compute">C</span>
@@ -290,11 +292,23 @@
                         </button>
                     </form>
                 </div>
+                <button class="market-btn" id="market-btn" type="button">Open City Market</button>
             </div>
         </div>
 
     </div>
 
+</div>
+
+<!-- Market modal overlay -->
+<div id="market-modal" class="choice-modal" style="display:none">
+    <div class="choice-modal__backdrop" id="market-backdrop"></div>
+    <div class="choice-modal__content">
+        <h3 class="choice-modal__title" id="market-modal-title"></h3>
+        <p class="choice-modal__desc" id="market-modal-desc"></p>
+        <div id="market-modal-stats"></div>
+        <div class="choice-modal__options" id="market-modal-options"></div>
+    </div>
 </div>
 
 <!-- Hidden data for JS (location names for journey map) -->

@@ -201,6 +201,40 @@
         });
     }
 
+    var foodWarn = document.getElementById('food-warn');
+    var cashWarn = document.getElementById('cash-warn');
+    var FOOD_GRACE = 2;
+    var CASH_GRACE = 3;
+
+    function updateGraceWarnings(state) {
+        var foodTurns = state.turnWithoutFood || 0;
+        var cashTurns = state.turnWithoutCash || 0;
+
+        if (foodWarn) {
+            if (foodTurns > 0) {
+                var foodLeft = FOOD_GRACE - foodTurns;
+                foodWarn.textContent = foodLeft > 0
+                    ? 'starving ' + foodTurns + '/' + FOOD_GRACE
+                    : 'STARVING!';
+                foodWarn.style.display = 'inline';
+            } else {
+                foodWarn.style.display = 'none';
+            }
+        }
+
+        if (cashWarn) {
+            if (cashTurns > 0) {
+                var cashLeft = CASH_GRACE - cashTurns;
+                cashWarn.textContent = cashLeft > 0
+                    ? 'broke ' + cashTurns + '/' + CASH_GRACE
+                    : 'BANKRUPT!';
+                cashWarn.style.display = 'inline';
+            } else {
+                cashWarn.style.display = 'none';
+            }
+        }
+    }
+
     function renderState(state, oldState) {
         // Turn and location
         var turnLabel = document.querySelector('.top-bar__turn');
@@ -229,6 +263,9 @@
 
         // Update resource bars
         updateResourceBars(state.resourceState);
+
+        // Grace period warnings
+        updateGraceWarnings(state);
 
         // Story beat section
         renderStoryBeat(state);
