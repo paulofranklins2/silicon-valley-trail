@@ -1,9 +1,8 @@
 package com.pcunha.svt.domain.model;
 
 import com.pcunha.svt.application.ScoreCalculator;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import com.pcunha.svt.domain.GameMode;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -28,6 +27,8 @@ public class LeaderboardEntry {
     private int food;
     private int computeCredits;
     private int score;
+    @Enumerated(EnumType.STRING)
+    private GameMode gameMode;
     private LocalDateTime createdAt;
 
     public static LeaderboardEntry fromGameState(GameState gameState, String playerName) {
@@ -44,6 +45,7 @@ public class LeaderboardEntry {
         leaderboardEntry.food = gameState.getResourceState().getFood();
         leaderboardEntry.computeCredits = gameState.getResourceState().getComputeCredits();
         leaderboardEntry.score = ScoreCalculator.calculate(gameState);
+        leaderboardEntry.gameMode = gameState.getGameMode();
         leaderboardEntry.createdAt = LocalDateTime.now();
         return leaderboardEntry;
     }
