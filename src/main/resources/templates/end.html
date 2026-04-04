@@ -77,7 +77,43 @@
         </div>
     </div>
 
-    <a href="/">Play Again</a>
+    <!-- Submit to leaderboard -->
+    <div class="leaderboard-submit" th:if="${!submitted}">
+        <h3>Enter the Hall of Fame</h3>
+        <form id="leaderboard-form" class="leaderboard-form">
+            <input type="text" id="player-name" placeholder="Your name" maxlength="20" required
+                   class="leaderboard-input">
+            <button type="submit" class="leaderboard-btn">Submit Score</button>
+        </form>
+    </div>
+    <div class="leaderboard-submit" th:if="${submitted}">
+        <p class="leaderboard-saved">Score saved!</p>
+    </div>
+
+    <div class="end-actions">
+        <a href="/">Play Again</a>
+        <a href="/leaderboard" class="end-actions__secondary">Leaderboard</a>
+    </div>
 </div>
+<script>
+(function() {
+    var form = document.getElementById('leaderboard-form');
+    if (!form) return;
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var name = document.getElementById('player-name').value.trim();
+        if (!name) return;
+        fetch('/api/leaderboard', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'playerName=' + encodeURIComponent(name)
+        }).then(function(res) {
+            if (res.ok) {
+                form.parentElement.innerHTML = '<p class="leaderboard-saved">Score saved!</p>';
+            }
+        });
+    });
+})();
+</script>
 </body>
 </html>
