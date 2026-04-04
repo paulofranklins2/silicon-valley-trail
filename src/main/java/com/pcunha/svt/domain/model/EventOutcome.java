@@ -3,16 +3,18 @@ package com.pcunha.svt.domain.model;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class EventOutcome {
-    private final String description;
-    private final int healthChange;
-    private final int energyChange;
-    private final int moraleChange;
-    private final int cashChange;
-    private final int foodChange;
-    private final int computeCreditsChange;
+    private String description;
+    private int healthChange;
+    private int energyChange;
+    private int moraleChange;
+    private int cashChange;
+    private int foodChange;
+    private int computeCreditsChange;
 }

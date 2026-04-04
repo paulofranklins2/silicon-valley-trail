@@ -45,7 +45,7 @@ public class GameConfig {
 
     @Bean
     public EventProcessor eventProcessor(Random random) {
-        return new EventProcessor(random);
+        return EventProcessor.create(random);
     }
 
     @Bean
