@@ -5,6 +5,8 @@
   effects:
     - stat: ENERGY
       value: -15
+    - stat: MORALE
+      value: -2
     - stat: FOOD
       value: -1
     - stat: COMPUTE_CREDIT
@@ -14,11 +16,11 @@
   displayName: Rest
   effects:
     - stat: HEALTH
-      value: 10
-    - stat: ENERGY
       value: 5
+    - stat: ENERGY
+      value: 10
     - stat: MORALE
-      value: 20
+      value: 10
     - stat: FOOD
       value: -1
 
@@ -27,6 +29,8 @@
   effects:
     - stat: ENERGY
       value: -10
+    - stat: HEALTH
+      value: -3
     - stat: FOOD
       value: 2
       random: true
@@ -42,7 +46,7 @@
     - stat: ENERGY
       value: -15
     - stat: MORALE
-      value: -5
+      value: -8
     - stat: FOOD
       value: -1
 
@@ -53,6 +57,8 @@
       value: -5
     - stat: COMPUTE_CREDIT
       value: -5
+    - stat: MORALE
+      value: -3
     - stat: CASH
       value: 50
       random: true

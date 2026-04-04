@@ -3,6 +3,7 @@ weather:
     description: Scorching heat slows the team down
     energyChange: -10
     moraleChange: -5
+    healthChange: -5
 
   - title: Clear Skies
     description: Perfect weather lifts the team's spirits
@@ -13,6 +14,7 @@ weather:
     description: Dense fog makes it hard to move forward
     energyChange: -5
     foodChange: -1
+    moraleChange: -3
 
   - title: Incoming Storm
     description: Dark clouds are rolling in. Do you take shelter or push through?
@@ -21,7 +23,7 @@ weather:
         foodChange: -2
         energyChange: 10
       - description: Push through the storm
-        healthChange: -10
+        healthChange: -15
         energyChange: -15
         moraleChange: 5
 
@@ -29,16 +31,30 @@ team:
   - title: Team Argument
     description: A disagreement breaks out among the team
     moraleChange: -15
+    energyChange: -5
 
   - title: Team Breakthrough
     description: The team solves a tough problem together
     moraleChange: 10
     energyChange: 5
+    healthChange: 5
 
   - title: Sick Day
     description: A team member falls ill
-    healthChange: -10
+    healthChange: -15
     energyChange: -10
+    moraleChange: -5
+
+  - title: Burnout
+    description: The constant grind is taking its toll. The team is mentally exhausted.
+    moraleChange: -12
+    healthChange: -8
+    energyChange: -5
+
+  - title: Team Bonding
+    description: Someone suggests a game night. The team actually laughs for once.
+    moraleChange: 15
+    healthChange: 5
 
   - title: Engineer Wants to Quit
     description: Your lead engineer got a better offer. Convince them to stay or let them go?
@@ -48,18 +64,24 @@ team:
         computeCreditsChange: 5
         moraleChange: 5
       - description: Let them go and redistribute work
-        moraleChange: -10
+        moraleChange: -15
         energyChange: -10
 
 market:
   - title: Funding Opportunity
     description: An angel investor shows interest
     cashChange: 30
+    moraleChange: 5
 
   - title: Market Crash
     description: The market takes a hit and funding dries up
     cashChange: -20
-    moraleChange: -5
+    moraleChange: -10
+
+  - title: Competitor Launch
+    description: A rival startup just launched the same product. The team feels the pressure.
+    moraleChange: -12
+    energyChange: -5
 
   - title: VC Equity Offer
     description: A VC offers to fund your startup but wants 40% equity.
@@ -75,11 +97,17 @@ location:
     description: The team finds a great local coffee spot
     energyChange: 10
     foodChange: 2
+    moraleChange: 3
 
   - title: Startup Meetup
     description: A local meetup connects the team with other founders
-    moraleChange: 5
+    moraleChange: 8
     cashChange: 10
+
+  - title: Sketchy Neighborhood
+    description: The team takes a wrong turn through a rough area. Someone trips and gets hurt.
+    healthChange: -10
+    moraleChange: -5
 
   - title: Abandoned Office
     description: You find an abandoned startup office. Scavenge for supplies or check their servers?
@@ -87,6 +115,7 @@ location:
       - description: Scavenge for food and supplies
         foodChange: 4
         energyChange: -5
+        healthChange: -3
       - description: Check their servers for compute credits
         computeCreditsChange: 8
         energyChange: -5
@@ -95,12 +124,19 @@ tech:
   - title: Server Outage
     description: Production servers go down overnight
     computeCreditsChange: -5
-    moraleChange: -5
+    moraleChange: -8
+    energyChange: -5
 
   - title: Open Source Contribution
     description: The team's open source work gets noticed
     computeCreditsChange: 5
-    moraleChange: 5
+    moraleChange: 8
+
+  - title: Security Breach
+    description: Someone leaked the API keys. The team scrambles to rotate credentials.
+    computeCreditsChange: -8
+    moraleChange: -10
+    healthChange: -5
 
   - title: Technical Debt Crisis
     description: The codebase is falling apart. Spend time fixing it or ship fast and deal with it later?
@@ -109,6 +145,7 @@ tech:
         computeCreditsChange: 10
         energyChange: -20
         foodChange: -1
+        moraleChange: -5
       - description: Ship fast, deal with it later
-        moraleChange: -10
+        moraleChange: -15
         computeCreditsChange: -5
