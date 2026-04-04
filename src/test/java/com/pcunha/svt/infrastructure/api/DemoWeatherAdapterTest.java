@@ -17,7 +17,7 @@ class DemoWeatherAdapterTest {
 
         for (WeatherCategory category : expected) {
             WeatherSignal signal = adapter.getWeather(sanJose);
-            assertEquals(category, signal.getWeatherCategory());
+            assertEquals(category, signal.weatherCategory());
         }
     }
 
@@ -33,16 +33,16 @@ class DemoWeatherAdapterTest {
 
         // next call should restart from the first category
         WeatherSignal signal = adapter.getWeather(sanJose);
-        assertEquals(WeatherCategory.values()[0], signal.getWeatherCategory());
+        assertEquals(WeatherCategory.values()[0], signal.weatherCategory());
     }
 
     @Test
     void returnsMatchingTemperatureForCategory() {
         DemoWeatherAdapter adapter = new DemoWeatherAdapter();
 
-        assertEquals(22.0, adapter.getWeather(sanJose).getTemperature()); // CLEAR
-        assertEquals(14.0, adapter.getWeather(sanJose).getTemperature()); // RAINY
-        assertEquals(10.0, adapter.getWeather(sanJose).getTemperature()); // STORMY
-        assertEquals(38.0, adapter.getWeather(sanJose).getTemperature()); // HEATWAVE
+        assertEquals(22.0, adapter.getWeather(sanJose).temperature()); // CLEAR
+        assertEquals(14.0, adapter.getWeather(sanJose).temperature()); // RAINY
+        assertEquals(10.0, adapter.getWeather(sanJose).temperature()); // STORMY
+        assertEquals(38.0, adapter.getWeather(sanJose).temperature()); // HEATWAVE
     }
 }

@@ -21,7 +21,7 @@ class OpenMeteoAdapterTest {
         Location invalid = new Location("Nowhere", 999.0, 999.0);
         WeatherSignal signal = adapter.getWeather(invalid);
         assertNotNull(signal);
-        assertNotNull(signal.getWeatherCategory());
+        assertNotNull(signal.weatherCategory());
     }
 
     @Test
@@ -33,9 +33,9 @@ class OpenMeteoAdapterTest {
         WeatherSignal weatherSignal = openMeteoAdapter.getWeather(sanJose);
 
         assertNotNull(weatherSignal);
-        assertNotNull(weatherSignal.getWeatherCategory());
+        assertNotNull(weatherSignal.weatherCategory());
 
-        assertTrue(weatherSignal.getTemperature() > -50 && weatherSignal.getTemperature() < 60,
+        assertTrue(weatherSignal.temperature() > -50 && weatherSignal.temperature() < 60,
                 "Temperature should be in a reasonable range");
     }
 }

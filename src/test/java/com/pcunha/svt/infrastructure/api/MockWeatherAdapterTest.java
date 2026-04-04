@@ -18,7 +18,7 @@ class MockWeatherAdapterTest {
     void returnsValidWeatherCategory() {
         MockWeatherAdapter adapter = new MockWeatherAdapter(new Random(42));
         WeatherSignal signal = adapter.getWeather(sanJose);
-        assertNotNull(signal.getWeatherCategory());
+        assertNotNull(signal.weatherCategory());
     }
 
     @Test
@@ -26,8 +26,8 @@ class MockWeatherAdapterTest {
         MockWeatherAdapter adapter = new MockWeatherAdapter(new Random(42));
         for (int i = 0; i < 100; i++) {
             WeatherSignal signal = adapter.getWeather(sanJose);
-            assertTrue(signal.getTemperature() >= 10, "Temperature should be >= 10");
-            assertTrue(signal.getTemperature() <= 45, "Temperature should be <= 45");
+            assertTrue(signal.temperature() >= 10, "Temperature should be >= 10");
+            assertTrue(signal.temperature() <= 45, "Temperature should be <= 45");
         }
     }
 
@@ -35,8 +35,8 @@ class MockWeatherAdapterTest {
     void deterministicWithSameSeed() {
         WeatherSignal first = new MockWeatherAdapter(new Random(1)).getWeather(sanJose);
         WeatherSignal second = new MockWeatherAdapter(new Random(1)).getWeather(sanJose);
-        assertEquals(first.getWeatherCategory(), second.getWeatherCategory());
-        assertEquals(first.getTemperature(), second.getTemperature());
+        assertEquals(first.weatherCategory(), second.weatherCategory());
+        assertEquals(first.temperature(), second.temperature());
     }
 
     @Test
@@ -44,7 +44,7 @@ class MockWeatherAdapterTest {
         MockWeatherAdapter adapter = new MockWeatherAdapter(new Random(0));
         Set<WeatherCategory> seen = new HashSet<>();
         for (int i = 0; i < 100; i++) {
-            seen.add(adapter.getWeather(sanJose).getWeatherCategory());
+            seen.add(adapter.getWeather(sanJose).weatherCategory());
         }
         assertTrue(seen.size() > 1, "Should produce more than one weather category");
     }
