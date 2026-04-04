@@ -7,7 +7,7 @@
       value: -15
     - stat: FOOD
       value: -1
-    - stat: COMPUTE
+    - stat: COMPUTE_CREDIT
       value: -1
 
 - action: REST
@@ -37,7 +37,7 @@
 - action: HACKATHON
   displayName: Hackathon
   effects:
-    - stat: COMPUTE
+    - stat: COMPUTE_CREDIT
       value: 10
     - stat: ENERGY
       value: -15
@@ -51,7 +51,7 @@
   effects:
     - stat: ENERGY
       value: -5
-    - stat: COMPUTE
+    - stat: COMPUTE_CREDIT
       value: -5
     - stat: CASH
       value: 50
