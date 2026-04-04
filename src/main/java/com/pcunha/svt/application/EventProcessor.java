@@ -14,10 +14,12 @@ import java.util.Random;
 public class EventProcessor {
     private final Random random;
     private final Map<EventCategory, List<GameEvent>> eventPool;
+    private final List<GameEvent> cityMarketEvents;
 
     public EventProcessor(Random random) {
         this.random = random;
         this.eventPool = buildEventPool();
+        this.cityMarketEvents = buildCityMarketEvents();
     }
 
     public void applyEvent(GameState state, GameEvent event) {
@@ -190,5 +192,101 @@ public class EventProcessor {
         ));
 
         return pool;
+    }
+
+    public GameEvent getCityMarketEvent() {
+        return cityMarketEvents.get(random.nextInt(cityMarketEvents.size()));
+    }
+
+    private List<GameEvent> buildCityMarketEvents() {
+        return List.of(
+                // General supply market
+                GameEvent.builder()
+                        .title("City Supply Market")
+                        .description("A local market has supplies for sale.")
+                        .eventCategory(EventCategory.LOCATION)
+                        .outcomes(List.of(
+                                EventOutcome.builder()
+                                        .description("Buy supplies (-$20 → +3 food)")
+                                        .cashChange(-20).foodChange(3).build(),
+                                EventOutcome.builder()
+                                        .description("Hire contractor (-$30 → +15 energy, +5 compute)")
+                                        .cashChange(-30).energyChange(15).computeCreditsChange(5).build(),
+                                EventOutcome.builder()
+                                        .description("Skip — save your cash")
+                                        .build()
+                        )).build(),
+
+                // Tech district
+                GameEvent.builder()
+                        .title("Tech District")
+                        .description("You pass through a tech hub. Cloud providers and coworking spaces everywhere.")
+                        .eventCategory(EventCategory.LOCATION)
+                        .outcomes(List.of(
+                                EventOutcome.builder()
+                                        .description("Rent server time (-$25 → +8 compute)")
+                                        .cashChange(-25).computeCreditsChange(8).build(),
+                                EventOutcome.builder()
+                                        .description("Coworking day pass (-$15 → +10 energy)")
+                                        .cashChange(-15).energyChange(10).build(),
+                                EventOutcome.builder()
+                                        .description("Skip — keep moving")
+                                        .build()
+                        )).build(),
+
+                // Food district
+                GameEvent.builder()
+                        .title("Food Truck Rally")
+                        .description("A row of food trucks lines the street. The smells are irresistible.")
+                        .eventCategory(EventCategory.LOCATION)
+                        .outcomes(List.of(
+                                EventOutcome.builder()
+                                        .description("Stock up on meals (-$25 → +5 food)")
+                                        .cashChange(-25).foodChange(5).build(),
+                                EventOutcome.builder()
+                                        .description("Team lunch (-$10 → +1 food, +10 morale)")
+                                        .cashChange(-10).foodChange(1).moraleChange(10).build(),
+                                EventOutcome.builder()
+                                        .description("Skip — not hungry")
+                                        .build()
+                        )).build(),
+
+                // Startup networking event
+                GameEvent.builder()
+                        .title("Startup Mixer")
+                        .description("A networking event is happening downtown. Founders and investors mingle.")
+                        .eventCategory(EventCategory.LOCATION)
+                        .outcomes(List.of(
+                                EventOutcome.builder()
+                                        .description("Buy a VIP pass (-$40 → +20 morale, +10 compute)")
+                                        .cashChange(-40).moraleChange(20).computeCreditsChange(10).build(),
+                                EventOutcome.builder()
+                                        .description("Team dinner nearby (-$15 → +15 morale, +5 energy)")
+                                        .cashChange(-15).moraleChange(15).energyChange(5).build(),
+                                EventOutcome.builder()
+                                        .description("Skip — no time for socializing")
+                                        .build()
+                        )).build(),
+
+                // Garage sale / bargain market
+                GameEvent.builder()
+                        .title("Startup Garage Sale")
+                        .description("A failed startup is selling off equipment cheap.")
+                        .eventCategory(EventCategory.LOCATION)
+                        .outcomes(List.of(
+                                EventOutcome.builder()
+                                        .description("Buy their servers (-$20 → +6 compute)")
+                                        .cashChange(-20).computeCreditsChange(6).build(),
+                                EventOutcome.builder()
+                                        .description("Buy their snack stash (-$10 → +3 food)")
+                                        .cashChange(-10).foodChange(3).build(),
+                                EventOutcome.builder()
+                                        .description("Hire their laid-off dev (-$35 → +10 energy, +5 compute, +5 morale)")
+                                        .cashChange(-35).energyChange(10).computeCreditsChange(5).moraleChange(5).build(),
+                                EventOutcome.builder()
+                                        .description("Skip — bad karma")
+                                        .build()
+                        )).build()
+        );
     }
 }
