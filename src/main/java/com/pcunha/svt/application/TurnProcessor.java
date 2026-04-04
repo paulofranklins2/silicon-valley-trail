@@ -80,6 +80,10 @@ public class TurnProcessor {
         }
     }
 
+    public void fetchInitialWeather(GameState gameState) {
+        fetchWeather(gameState);
+    }
+
     private WeatherSignal fetchWeather(GameState gameState) {
         WeatherSignal weatherSignal = weatherPort.getWeather(gameState.getJourneyState().getCurrentLocation());
         gameState.setLastWeather(weatherSignal.getWeatherCategory());
