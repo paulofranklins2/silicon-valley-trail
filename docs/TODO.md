@@ -20,7 +20,7 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] Create `domain/model/WeatherSignal`
 - [x] Create `domain/GameAction` enum
 - [x] Create `domain/EventCategory` enum
-- [x] Create `domain/ActionOutcome` enum
+- [x] Create `domain/ActionOutcome` enum (includes EXHAUSTED)
 - [x] Create `domain/WeatherCategory` enum
 - [x] Create `domain/LossReason` enum
 - [x] Create `domain/port/WeatherPort`
@@ -38,10 +38,10 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 ## Day 2 - Core game loop
 
 ### Must have
-- [x] Create `application/ActionHandler`
-- [x] Create `application/ConditionEvaluator` (with grace period loss for food/cash)
-- [x] Create `application/TurnProcessor`
-- [x] Create `application/GameEngine`
+- [x] Create `application/ActionHandler` (energy gate, compute travel penalty)
+- [x] Create `application/ConditionEvaluator` (grace period loss for food/cash, counter updates after checks)
+- [x] Create `application/TurnProcessor` (weather only on travel, fetchWeather helper)
+- [x] Create `application/GameEngine` (market with cash validation, 15 locations)
 
 ### Tests
 - [x] Test each action produces correct resource changes
@@ -57,9 +57,10 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 
 ### Must have
 - [x] Create `application/EventProcessor`
-- [x] Add initial event pool across all 5 categories (15 events)
+- [x] Add initial event pool across all 5 categories (15+ events)
 - [x] Add random event chance (20% per turn, not every turn)
 - [x] Add events with player choices (5 choice events across all categories)
+- [x] Add 5 city market variants (Supply Market, Tech District, Food Truck Rally, Startup Mixer, Garage Sale)
 
 ### Tests
 - [x] Test event deltas apply correctly
@@ -83,7 +84,8 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] Create `infrastructure/api/DemoWeatherAdapter`
 - [x] Fallback to mock on failure
 - [x] Create `domain/WeatherCategory` enum
-- [x] Wire weather into gameplay (TurnProcessor applies stat changes per weather type)
+- [x] Wire weather into gameplay (TurnProcessor applies stat changes per weather type, travel only)
+- [x] Weather mode set to `api` (real Open-Meteo data)
 
 ### Distance
 - [x] Create `infrastructure/api/HaversineDistanceAdapter`
@@ -104,13 +106,15 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 ## Day 5 - Web UI
 
 ### Must have
-- [x] Create `infrastructure/web/GameController`
+- [x] Create `infrastructure/web/GameController` (market API with per-city persistence and purchase limits)
 - [x] Create `infrastructure/web/GameConfig` (Spring bean wiring)
 - [x] GET `/` to show start page
-- [x] POST `/start` to create game in session
+- [x] POST `/start` to create game in session (clears stale market data)
 - [x] POST `/action` to process turn
 - [x] POST `/api/action` to process turn via AJAX (returns JSON)
 - [x] POST `/api/choice` to resolve event choices via AJAX
+- [x] GET `/api/market` to get city market (persists per city)
+- [x] POST `/api/market` to buy from market (cash validation, duplicate blocking)
 - [x] GET `/game` to show current state
 - [x] GET `/end` to show victory/defeat with loss reason
 - [x] Null session guards on all routes (redirect to / if no game)
@@ -120,10 +124,13 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] AJAX action processing without page refresh
 - [x] Toast notifications for action feedback
 - [x] Journey map with proportional city dots and animated train
-- [x] Action scenes with character sprite animations
+- [x] Action scenes with fixed-height stage (no layout shift)
 - [x] Team display with status effects based on stats
 - [x] Choice modal with outcome tags and current stats display
+- [x] City market modal (voluntary, per-city, sold-out tracking, backdrop close)
 - [x] Weather effects UI (rain, storm, heatwave animations + temperature)
+- [x] Action buttons disable when player lacks energy
+- [x] Grace period warnings (pulsing red badges: starving X/2, broke X/3)
 - [x] Kenney game assets (characters, food icons, train)
 - [x] Maven Wrapper (mvnw) for zero-install builds
 
@@ -131,10 +138,14 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 
 ## Day 6 - Polish + documentation
 
-### Gameplay - REQUIRED
+### Gameplay
 - [x] Wire weather API into actual gameplay (TurnProcessor applies stat effects per weather type)
 - [x] Add cash/food loss conditions with grace periods (food: 2 turns, cash: 3 turns)
 - [x] Update end.html to use lossReason field (shows specific message per loss type)
+- [x] Energy gate: actions require sufficient energy (travel/hackathon: 15, scavenge: 10)
+- [x] Compute penalty: travel distance halved when compute credits depleted
+- [x] Market: cash validation prevents buying without money
+- [x] Weather mode set to `api` for real weather data
 - [ ] Playtest full game and tune balance (food drain, energy costs, event chance, travel distances)
 - [ ] Verify app runs from scratch with `./mvnw spring-boot:run`
 - [ ] Final cleanup on naming/comments/dead code
@@ -155,7 +166,7 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 
 ### Nice to have
 - [ ] Weather-conditional events
-- [ ] More events to reduce repetition across 10 locations
 - [ ] Weighted event selection (low morale... more team events, low cash... more market events)
-- [ ] H2 persistence (I could maybe implement a ranking system where user can enter their name or just save teamname)
-- [ ] Second API integration (maybe osrm for longer events instead of using Haversine, create a OpenSource Route Machine/Nominatim mode)
+- [ ] H2 persistence (ranking system or save/load)
+- [ ] Second API integration (OSRM for real route distances)
+- [ ] Move market state from session to GameState (proper game state ownership)
