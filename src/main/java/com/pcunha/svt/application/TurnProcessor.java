@@ -1,16 +1,19 @@
 package com.pcunha.svt.application;
 
+import com.pcunha.svt.domain.ActionOutcome;
 import com.pcunha.svt.domain.GameAction;
 import com.pcunha.svt.domain.model.GameEvent;
 import com.pcunha.svt.domain.model.GameState;
 import com.pcunha.svt.domain.model.WeatherSignal;
 import com.pcunha.svt.domain.port.WeatherPort;
+import lombok.Getter;
 
 import java.util.Random;
 
 public class TurnProcessor {
     private final ActionHandler actionHandler;
     private final ConditionEvaluator conditionEvaluator;
+    @Getter
     private final EventProcessor eventProcessor;
     private final Random random;
     private final static double EVENT_CHANCE = 0.2;
@@ -38,12 +41,24 @@ public class TurnProcessor {
         gameState.setLastAction(gameAction);
         actionHandler.handle(gameState, gameAction);
 
-        //fetch weather and apply effects
-        WeatherSignal weatherSignal = weatherPort.getWeather(gameState.getJourneyState().getCurrentLocation());
-        gameState.setLastWeather(weatherSignal.getWeatherCategory());
-        gameState.setLastWeatherTemp(weatherSignal.getTemperature());
-        applyWeatherEffects(gameState, weatherSignal);
+        // if action was blocked (e.g. exhausted), skip the rest of the turn
+        if (gameState.getLastActionResult() == ActionOutcome.EXHAUSTED) {
+            // still fetch weather for display
+            fetchWeather(gameState);
+            gameState.setLastEvent(null);
+            return;
+        }
 
+        // fetch weather
+        WeatherSignal weatherSignal = fetchWeather(gameState);
+
+        // weather effects only apply when traveling,
+        // this prevents users to find a good weather and exploit it
+        if (gameAction == GameAction.TRAVEL) {
+            applyWeatherEffects(gameState, weatherSignal);
+        }
+
+        // random events
         if (random.nextDouble() < EVENT_CHANCE) {
             GameEvent event = eventProcessor.generateEvent(gameState, weatherSignal);
             gameState.setLastEvent(event);
@@ -63,6 +78,13 @@ public class TurnProcessor {
         if (!gameState.isGameOver()) {
             gameState.nextTurn();
         }
+    }
+
+    private WeatherSignal fetchWeather(GameState gameState) {
+        WeatherSignal weatherSignal = weatherPort.getWeather(gameState.getJourneyState().getCurrentLocation());
+        gameState.setLastWeather(weatherSignal.getWeatherCategory());
+        gameState.setLastWeatherTemp(weatherSignal.getTemperature());
+        return weatherSignal;
     }
 
     public void resolveChoice(GameState gameState, int choiceIndex) {
