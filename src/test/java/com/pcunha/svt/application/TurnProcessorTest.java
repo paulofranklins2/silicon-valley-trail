@@ -38,7 +38,7 @@ class TurnProcessorTest {
         GameState gameState = createGameState();
         TurnProcessor turnProcessor = new TurnProcessor(
                 new ActionHandler(mockRandom), new ConditionEvaluator(),
-                new EventProcessor(mockRandom),
+                EventProcessor.create(mockRandom),
                 mockRandom,
                 mockWeatherPort
         );
@@ -60,7 +60,7 @@ class TurnProcessorTest {
         TurnProcessor turnProcessor = new TurnProcessor(
                 new ActionHandler(mockRandom),
                 new ConditionEvaluator(),
-                new EventProcessor(mockRandom),
+                EventProcessor.create(mockRandom),
                 mockRandom,
                 mockWeatherPort
         );
@@ -83,7 +83,7 @@ class TurnProcessorTest {
         TurnProcessor turnProcessor = new TurnProcessor(
                 new ActionHandler(mockRandom),
                 new ConditionEvaluator(),
-                new EventProcessor(mockRandom),
+                EventProcessor.create(mockRandom),
                 mockRandom,
                 mockWeatherPort
         );
@@ -110,7 +110,7 @@ class TurnProcessorTest {
         TurnProcessor turnProcessor = new TurnProcessor(
                 new ActionHandler(mockRandom),
                 new ConditionEvaluator(),
-                new EventProcessor(mockRandom),
+                EventProcessor.create(mockRandom),
                 mockRandom,
                 mockWeatherPort
         );
@@ -129,7 +129,7 @@ class TurnProcessorTest {
         TurnProcessor turnProcessor = new TurnProcessor(
                 new ActionHandler(mockRandom),
                 new ConditionEvaluator(),
-                new EventProcessor(mockRandom),
+                EventProcessor.create(mockRandom),
                 mockRandom,
                 mockWeatherPort
         );
@@ -148,7 +148,7 @@ class TurnProcessorTest {
         TurnProcessor turnProcessor = new TurnProcessor(
                 new ActionHandler(mockRandom),
                 new ConditionEvaluator(),
-                new EventProcessor(mockRandom),
+                EventProcessor.create(mockRandom),
                 mockRandom,
                 mockWeatherPort
         );
@@ -174,7 +174,7 @@ class TurnProcessorTest {
         TurnProcessor turnProcessor = new TurnProcessor(
                 new ActionHandler(mockRandom),
                 new ConditionEvaluator(),
-                new EventProcessor(mockRandom),
+                EventProcessor.create(mockRandom),
                 mockRandom,
                 mockedWeatherPort
         );
