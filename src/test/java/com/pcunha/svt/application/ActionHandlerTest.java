@@ -31,7 +31,7 @@ class ActionHandlerTest {
     public void travel() {
         // health 100, energy 100, morale 100, cash 100, food 10, computeCredit 5
         GameState gameState = createGameState();
-        ActionHandler handler = new ActionHandler(mockRandom);
+        ActionHandler handler = ActionHandler.create(mockRandom);
         // energy -15, food -1, computeCredit -1
         handler.handle(gameState, GameAction.TRAVEL);
 
@@ -63,7 +63,7 @@ class ActionHandlerTest {
 
         // health 80, energy 70, morale 60, cash 100, food 10, computeCredit 5
         GameState gameState = new GameState(team, resources, journey, "Test Team Name");
-        ActionHandler actionHandler = new ActionHandler(mockRandom);
+        ActionHandler actionHandler = ActionHandler.create(mockRandom);
 
         // health + 10, morale + 20, food - 1, energy + 5
         actionHandler.handle(gameState, GameAction.REST);
@@ -84,7 +84,7 @@ class ActionHandlerTest {
     public void scavenge() {
         // health 100, energy 100, morale 100, cash 100, food 10, computeCredit 5
         GameState gameState = createGameState();
-        ActionHandler handler = new ActionHandler(mockRandom);
+        ActionHandler handler = ActionHandler.create(mockRandom);
         // energy -10, food +2 or cash + 10
         when(mockRandom.nextBoolean()).thenReturn(true);
         handler.handle(gameState, GameAction.SCAVENGE);
@@ -110,7 +110,7 @@ class ActionHandlerTest {
     public void hackathon() {
         // health 100, energy 100, morale 100, cash 100, food 10, computeCredit 5
         GameState gameState = createGameState();
-        ActionHandler handler = new ActionHandler(mockRandom);
+        ActionHandler handler = ActionHandler.create(mockRandom);
         // compute credit + 10, energy -5, morale -5, food -1
         handler.handle(gameState, GameAction.HACKATHON);
 
@@ -129,7 +129,7 @@ class ActionHandlerTest {
     public void pitchVcs() {
         // health 100, energy 100, morale 100, cash 100, food 10, computeCredit 5
         GameState gameState = createGameState();
-        ActionHandler handler = new ActionHandler(mockRandom);
+        ActionHandler handler = ActionHandler.create(mockRandom);
 
         when(mockRandom.nextBoolean()).thenReturn(true);
         handler.handle(gameState, GameAction.PITCH_VCS);
