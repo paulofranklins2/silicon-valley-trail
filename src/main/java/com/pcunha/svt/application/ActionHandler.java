@@ -28,8 +28,12 @@ public class ActionHandler {
     private static final int HACKATHON_COMPUTE_CREDIT = 10;
     private static final int HACKATHON_FOOD = -1;
     // consts pitch vcs
+    private static final int PITCH_VCS_ENERGY = -5;
+    private static final int PITCH_VCS_COMPUTE_CREDIT = -5;
     private static final int PITCH_VCS_MORALE = -10;
     private static final int PITCH_VCS_CASH = 50;
+
+    private static final double COMPUTE_PENALTY_FACTOR = 0.5;
 
     public ActionHandler(Random random) {
         this.random = random;
@@ -40,6 +44,14 @@ public class ActionHandler {
     }
 
     public void handle(GameState gameState, GameAction gameAction) {
+        int energyCost = getEnergyCost(gameAction);
+
+        // check enough energy, avoiding user to keep using the action when that was no energy
+        if (energyCost > 0 && gameState.getTeamState().getEnergy() < energyCost) {
+            gameState.setLastActionResult(ActionOutcome.EXHAUSTED);
+            return;
+        }
+
         switch (gameAction) {
             case TRAVEL -> travel(gameState);
             case REST -> rest(gameState);
@@ -49,9 +61,25 @@ public class ActionHandler {
         }
     }
 
+    private int getEnergyCost(GameAction action) {
+        return switch (action) {
+            case TRAVEL -> Math.abs(TRAVEL_ENERGY);
+            case SCAVENGE -> Math.abs(SCAVENGE_ENERGY);
+            case HACKATHON -> Math.abs(HACKATHON_ENERGY);
+            case PITCH_VCS -> Math.abs(PITCH_VCS_ENERGY);
+            case REST -> 0;
+        };
+    }
+
+    private double calculateTravelDistance(GameState gameState) {
+        if (gameState.getResourceState().getComputeCredits() <= 0) {
+            return TRAVEL_DISTANCE * COMPUTE_PENALTY_FACTOR;
+        }
+        return TRAVEL_DISTANCE;
+    }
+
     private void travel(GameState gameState) {
-        // -distance,  -energy, -food, -computeCredit
-        gameState.getJourneyState().travel(TRAVEL_DISTANCE);
+        gameState.getJourneyState().travel(calculateTravelDistance(gameState));
         gameState.getTeamState().changeEnergy(TRAVEL_ENERGY);
         gameState.getResourceState().changeFood(TRAVEL_FOOD);
         gameState.getResourceState().changeComputeCredits(TRAVEL_COMPUTE_CREDIT);
@@ -87,6 +115,10 @@ public class ActionHandler {
     }
 
     private void pitchVcs(GameState gameState) {
+        // -energy, -computeCredit
+        gameState.getTeamState().changeEnergy(PITCH_VCS_ENERGY);
+        gameState.getResourceState().changeComputeCredits(PITCH_VCS_COMPUTE_CREDIT);
+
         // random change of success +cash, fail -morale
         if (randomChance()) {
             gameState.getResourceState().changeCash(PITCH_VCS_CASH);
