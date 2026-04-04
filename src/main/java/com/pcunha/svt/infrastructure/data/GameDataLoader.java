@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.pcunha.svt.domain.EventCategory;
+import com.pcunha.svt.domain.GameAction;
+import com.pcunha.svt.domain.model.ActionInfo;
 import com.pcunha.svt.domain.model.GameEvent;
 import com.pcunha.svt.domain.model.Location;
 
@@ -15,9 +17,22 @@ import java.util.Map;
 
 public class GameDataLoader {
     private static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory());
+    private static final String PATH_ACTIONS = "data/actions.yaml";
     private static final String PATH_LOCATIONS = "data/locations.yaml";
     private static final String PATH_MARKETS = "data/markets.yaml";
     private static final String PATH_EVENTS = "data/events.yaml";
+
+    public static List<ActionInfo> loadActions() {
+        return load(PATH_ACTIONS, new TypeReference<>() {
+        });
+    }
+
+    public static Map<GameAction, ActionInfo> loadActionMap() {
+        List<ActionInfo> actions = loadActions();
+        Map<GameAction, ActionInfo> map = new java.util.EnumMap<>(GameAction.class);
+        actions.forEach(a -> map.put(a.getAction(), a));
+        return map;
+    }
 
     public static List<Location> loadLocations() {
         return load(PATH_LOCATIONS, new TypeReference<>() {

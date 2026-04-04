@@ -2,131 +2,95 @@ package com.pcunha.svt.application;
 
 import com.pcunha.svt.domain.ActionOutcome;
 import com.pcunha.svt.domain.GameAction;
+import com.pcunha.svt.domain.StatType;
+import com.pcunha.svt.domain.model.ActionInfo;
 import com.pcunha.svt.domain.model.GameState;
+import com.pcunha.svt.infrastructure.data.GameDataLoader;
 
+import java.util.Map;
 import java.util.Random;
+
 
 public class ActionHandler {
     private final Random random;
-    private static final double TRAVEL_DISTANCE = 5.0;
-    // consts travel
-    private static final int TRAVEL_ENERGY = -15;
-    private static final int TRAVEL_FOOD = -1;
-    private static final int TRAVEL_COMPUTE_CREDIT = -1;
-    // consts rest
-    private static final int REST_HEALTH = 10;
-    private static final int REST_ENERGY = 5;
-    private static final int REST_MORALE = 20;
-    private static final int REST_FOOD = -1;
-    // consts scavenge
-    private static final int SCAVENGE_ENERGY = -10;
-    private static final int SCAVENGE_FOOD = 2;
-    private static final int SCAVENGE_CASH = 10;
-    // consts hackathon
-    private static final int HACKATHON_ENERGY = -15;
-    private static final int HACKATHON_MORALE = -5;
-    private static final int HACKATHON_COMPUTE_CREDIT = 10;
-    private static final int HACKATHON_FOOD = -1;
-    // consts pitch vcs
-    private static final int PITCH_VCS_ENERGY = -5;
-    private static final int PITCH_VCS_COMPUTE_CREDIT = -5;
-    private static final int PITCH_VCS_MORALE = -10;
-    private static final int PITCH_VCS_CASH = 50;
+    private final Map<GameAction, ActionInfo> actionMap;
 
-    private static final double COMPUTE_PENALTY_FACTOR = 0.5;
-
-    public ActionHandler(Random random) {
+    public ActionHandler(Random random, Map<GameAction, ActionInfo> actionMap) {
         this.random = random;
+        this.actionMap = actionMap;
     }
 
-    private boolean randomChance() {
-        return this.random.nextBoolean();
+    public static ActionHandler create(Random random) {
+        return new ActionHandler(random, GameDataLoader.loadActionMap());
     }
 
     public void handle(GameState gameState, GameAction gameAction) {
-        int energyCost = getEnergyCost(gameAction);
+        ActionInfo info = actionMap.get(gameAction);
+        int energyCost = info.getEnergyCost();
 
-        // check enough energy, avoiding user to keep using the action when that was no energy
         if (energyCost > 0 && gameState.getTeamState().getEnergy() < energyCost) {
             gameState.setLastActionResult(ActionOutcome.EXHAUSTED);
             return;
         }
 
         switch (gameAction) {
-            case TRAVEL -> travel(gameState);
-            case REST -> rest(gameState);
-            case SCAVENGE -> scavenge(gameState);
-            case HACKATHON -> hackathon(gameState);
-            case PITCH_VCS -> pitchVcs(gameState);
+            case TRAVEL -> travel(gameState, info);
+            case REST, HACKATHON -> applyAllEffects(gameState, info);
+            case SCAVENGE -> scavenge(gameState, info);
+            case PITCH_VCS -> pitchVcs(gameState, info);
         }
     }
 
-    private int getEnergyCost(GameAction action) {
-        return switch (action) {
-            case TRAVEL -> Math.abs(TRAVEL_ENERGY);
-            case SCAVENGE -> Math.abs(SCAVENGE_ENERGY);
-            case HACKATHON -> Math.abs(HACKATHON_ENERGY);
-            case PITCH_VCS -> Math.abs(PITCH_VCS_ENERGY);
-            case REST -> 0;
-        };
-    }
-
-    private double calculateTravelDistance(GameState gameState) {
-        if (gameState.getResourceState().getComputeCredits() <= 0) {
-            return TRAVEL_DISTANCE * COMPUTE_PENALTY_FACTOR;
+    private void travel(GameState gameState, ActionInfo info) {
+        double distance = info.getTravelDistance();
+        if (gameState.getResourceState().getComputeCredits() <= 0 && info.getComputePenaltyFactor() > 0) {
+            distance *= info.getComputePenaltyFactor();
         }
-        return TRAVEL_DISTANCE;
+        gameState.getJourneyState().travel(distance);
+        applyAllEffects(gameState, info);
     }
 
-    private void travel(GameState gameState) {
-        gameState.getJourneyState().travel(calculateTravelDistance(gameState));
-        gameState.getTeamState().changeEnergy(TRAVEL_ENERGY);
-        gameState.getResourceState().changeFood(TRAVEL_FOOD);
-        gameState.getResourceState().changeComputeCredits(TRAVEL_COMPUTE_CREDIT);
-    }
-
-    private void rest(GameState gameState) {
-        // +health, +energy, -food, +morale
-        gameState.getTeamState().changeHealth(REST_HEALTH);
-        gameState.getTeamState().changeEnergy(REST_ENERGY);
-        gameState.getResourceState().changeFood(REST_FOOD);
-        gameState.getTeamState().changeMorale(REST_MORALE);
-    }
-
-    private void scavenge(GameState gameState) {
-        // -energy, random chance of +food or +cash
-        gameState.getTeamState().changeEnergy(SCAVENGE_ENERGY);
-        if (randomChance()) {
-            gameState.getResourceState().changeFood(SCAVENGE_FOOD);
+    private void scavenge(GameState gameState, ActionInfo info) {
+        gameState.getTeamState().changeEnergy(info.getEffect(StatType.ENERGY));
+        if (random.nextBoolean()) {
+            gameState.getResourceState().changeFood(info.getRandomEffect(StatType.FOOD));
             gameState.setLastActionResult(ActionOutcome.FOOD);
         } else {
-            gameState.getResourceState().changeCash(SCAVENGE_CASH);
+            gameState.getResourceState().changeCash(info.getRandomEffect(StatType.CASH));
             gameState.setLastActionResult(ActionOutcome.CASH);
-
         }
     }
 
-    private void hackathon(GameState gameState) {
-        // +computeCredit, -energy, -morale, -food
-        gameState.getTeamState().changeEnergy(HACKATHON_ENERGY);
-        gameState.getTeamState().changeMorale(HACKATHON_MORALE);
-        gameState.getResourceState().changeComputeCredits(HACKATHON_COMPUTE_CREDIT);
-        gameState.getResourceState().changeFood(HACKATHON_FOOD);
+    private void pitchVcs(GameState gameState, ActionInfo info) {
+        // guaranteed costs
+        gameState.getTeamState().changeEnergy(info.getEffect(StatType.ENERGY));
+        gameState.getResourceState().changeComputeCredits(info.getEffect(StatType.COMPUTE_CREDIT));
+
+        // random outcome
+        if (random.nextBoolean()) {
+            gameState.getResourceState().changeCash(info.getRandomEffect(StatType.CASH));
+            gameState.setLastActionResult(ActionOutcome.PITCH_SUCCESS);
+        } else {
+            gameState.getTeamState().changeMorale(info.getRandomEffect(StatType.MORALE));
+            gameState.setLastActionResult(ActionOutcome.PITCH_FAILURE);
+        }
     }
 
-    private void pitchVcs(GameState gameState) {
-        // -energy, -computeCredit
-        gameState.getTeamState().changeEnergy(PITCH_VCS_ENERGY);
-        gameState.getResourceState().changeComputeCredits(PITCH_VCS_COMPUTE_CREDIT);
+    private void applyAllEffects(GameState gameState, ActionInfo info) {
+        for (ActionInfo.Effect fx : info.getEffects()) {
+            if (fx.isRandom()) continue;
+            applyStat(gameState, fx.getStat(), fx.getValue());
+        }
+    }
 
-        // random change of success +cash, fail -morale
-        if (randomChance()) {
-            gameState.getResourceState().changeCash(PITCH_VCS_CASH);
-            gameState.setLastActionResult(ActionOutcome.PITCH_SUCCESS);
-
-        } else {
-            gameState.getTeamState().changeMorale(PITCH_VCS_MORALE);
-            gameState.setLastActionResult(ActionOutcome.PITCH_FAILURE);
+    private void applyStat(GameState gameState, StatType statType, int value) {
+        switch (statType) {
+            case HEALTH -> gameState.getTeamState().changeHealth(value);
+            case ENERGY -> gameState.getTeamState().changeEnergy(value);
+            case MORALE -> gameState.getTeamState().changeMorale(value);
+            case CASH -> gameState.getResourceState().changeCash(value);
+            case FOOD -> gameState.getResourceState().changeFood(value);
+            case COMPUTE_CREDIT -> gameState.getResourceState().changeComputeCredits(value);
         }
     }
 }

@@ -35,7 +35,7 @@ public class GameConfig {
 
     @Bean
     public ActionHandler actionHandler(Random random) {
-        return new ActionHandler(random);
+        return ActionHandler.create(random);
     }
 
     @Bean

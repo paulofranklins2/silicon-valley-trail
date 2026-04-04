@@ -1,0 +1,61 @@
+- action: TRAVEL
+  displayName: Travel
+  travelDistance: 5.0
+  computePenaltyFactor: 0.5
+  effects:
+    - stat: ENERGY
+      value: -15
+    - stat: FOOD
+      value: -1
+    - stat: COMPUTE
+      value: -1
+
+- action: REST
+  displayName: Rest
+  effects:
+    - stat: HEALTH
+      value: 10
+    - stat: ENERGY
+      value: 5
+    - stat: MORALE
+      value: 20
+    - stat: FOOD
+      value: -1
+
+- action: SCAVENGE
+  displayName: Scavenge
+  effects:
+    - stat: ENERGY
+      value: -10
+    - stat: FOOD
+      value: 2
+      random: true
+    - stat: CASH
+      value: 10
+      random: true
+
+- action: HACKATHON
+  displayName: Hackathon
+  effects:
+    - stat: COMPUTE
+      value: 10
+    - stat: ENERGY
+      value: -15
+    - stat: MORALE
+      value: -5
+    - stat: FOOD
+      value: -1
+
+- action: PITCH_VCS
+  displayName: Pitch VCs
+  effects:
+    - stat: ENERGY
+      value: -5
+    - stat: COMPUTE
+      value: -5
+    - stat: CASH
+      value: 50
+      random: true
+    - stat: MORALE
+      value: -10
+      random: true
