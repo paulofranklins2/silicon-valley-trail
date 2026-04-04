@@ -1,9 +1,6 @@
 package com.pcunha.svt.domain.model;
 
-import com.pcunha.svt.domain.ActionOutcome;
-import com.pcunha.svt.domain.GameAction;
-import com.pcunha.svt.domain.LossReason;
-import com.pcunha.svt.domain.WeatherCategory;
+import com.pcunha.svt.domain.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -38,15 +35,13 @@ public class GameState {
     private int turnWithoutFood;
     @Setter
     private LossReason lossReason;
-
-    // market state (per city)
     @Setter
     private GameEvent currentMarketEvent;
     @Setter
     private int marketCityIndex = -1;
     private Set<Integer> marketPurchased = new HashSet<>();
-
-    // leaderboard
+    @Setter
+    private GameMode gameMode;
     @Setter
     private boolean leaderboardSubmitted;
 

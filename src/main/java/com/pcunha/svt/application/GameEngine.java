@@ -1,38 +1,43 @@
 package com.pcunha.svt.application;
 
 import com.pcunha.svt.domain.GameAction;
+import com.pcunha.svt.domain.GameMode;
 import com.pcunha.svt.domain.model.*;
 import com.pcunha.svt.domain.port.DistancePort;
 import com.pcunha.svt.infrastructure.data.GameDataLoader;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Main game class. Sets up new games and runs turns.
  */
 public class GameEngine {
     private final TurnProcessor turnProcessor;
-    private final DistancePort distancePort;
+    private final Map<GameMode, DistancePort> distancePorts;
 
-    public GameEngine(TurnProcessor turnProcessor, DistancePort distancePort) {
+    public GameEngine(TurnProcessor turnProcessor, Map<GameMode, DistancePort> distancePorts) {
         this.turnProcessor = turnProcessor;
-        this.distancePort = distancePort;
+        this.distancePorts = distancePorts;
     }
 
     /**
      * Sets up a new game with starting stats and real distances between locations.
+     * Distance calculation depends on the selected game mode (Haversine or OSRM).
      */
-    public GameState createNewGame(String teamName) {
+    public GameState createNewGame(String teamName, GameMode gameMode) {
         TeamState teamState = new TeamState(100, 100, 100);
         ResourceState resourceState = new ResourceState(100, 5, 5);
 
-        List<Location> locations = buildLocations();
+        DistancePort distancePort = distancePorts.get(gameMode);
+        List<Location> locations = GameDataLoader.loadLocations();
         List<Double> distances = calculateDistances(locations, distancePort);
 
         JourneyState journeyState = new JourneyState(locations, distances);
 
         GameState gameState = new GameState(teamState, resourceState, journeyState, teamName);
+        gameState.setGameMode(gameMode);
         turnProcessor.fetchInitialWeather(gameState);
         return gameState;
     }
@@ -76,11 +81,6 @@ public class GameEngine {
         return true;
     }
 
-    private List<Location> buildLocations() {
-        return GameDataLoader.loadLocations();
-    }
-
-    // gets the distance between each location and the next one
     private List<Double> calculateDistances(List<Location> locations, DistancePort distancePort) {
         List<Double> distances = new ArrayList<>();
         for (int i = 0; i < locations.size() - 1; i++) {
@@ -88,5 +88,4 @@ public class GameEngine {
         }
         return distances;
     }
-
 }

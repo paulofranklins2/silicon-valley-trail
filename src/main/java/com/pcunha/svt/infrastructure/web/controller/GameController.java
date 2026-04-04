@@ -3,6 +3,7 @@ package com.pcunha.svt.infrastructure.web.controller;
 import com.pcunha.svt.application.ConditionEvaluator;
 import com.pcunha.svt.application.GameEngine;
 import com.pcunha.svt.domain.GameAction;
+import com.pcunha.svt.domain.GameMode;
 import com.pcunha.svt.domain.model.GameEvent;
 import com.pcunha.svt.domain.model.GameState;
 import com.pcunha.svt.domain.model.LeaderboardEntry;
@@ -34,8 +35,9 @@ public class GameController {
     }
 
     @PostMapping("/start")
-    public String createGame(@RequestParam String teamName, HttpSession session) {
-        GameState gameState = gameEngine.createNewGame(teamName);
+    public String createGame(@RequestParam String teamName, @RequestParam(defaultValue = "FAST") String gameMode, HttpSession session) {
+        GameMode mode = GameMode.valueOf(gameMode);
+        GameState gameState = gameEngine.createNewGame(teamName, mode);
         session.setAttribute("gameState", gameState);
         return "redirect:/game";
     }
@@ -160,7 +162,8 @@ public class GameController {
 
     @GetMapping("/leaderboard")
     public String leaderboard(Model model) {
-        model.addAttribute("entries", leaderboardPort.getTopScores());
+        model.addAttribute("fastEntries", leaderboardPort.getTopScores(GameMode.FAST));
+        model.addAttribute("roadEntries", leaderboardPort.getTopScores(GameMode.ROAD));
         return "leaderboard";
     }
 

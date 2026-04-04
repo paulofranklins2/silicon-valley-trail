@@ -1,16 +1,23 @@
 package com.pcunha.svt.infrastructure.web.config;
 
-import com.pcunha.svt.application.*;
+import com.pcunha.svt.application.ActionHandler;
+import com.pcunha.svt.application.ConditionEvaluator;
+import com.pcunha.svt.application.EventProcessor;
+import com.pcunha.svt.application.GameEngine;
+import com.pcunha.svt.application.TurnProcessor;
+import com.pcunha.svt.domain.GameMode;
 import com.pcunha.svt.domain.port.DistancePort;
 import com.pcunha.svt.domain.port.WeatherPort;
 import com.pcunha.svt.infrastructure.api.DemoWeatherAdapter;
 import com.pcunha.svt.infrastructure.api.HaversineDistanceAdapter;
 import com.pcunha.svt.infrastructure.api.MockWeatherAdapter;
 import com.pcunha.svt.infrastructure.api.OpenMeteoAdapter;
+import com.pcunha.svt.infrastructure.api.OsrmDistanceAdapter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Map;
 import java.util.Random;
 
 @Configuration
@@ -54,12 +61,15 @@ public class GameConfig {
     }
 
     @Bean
-    public DistancePort distancePort() {
-        return new HaversineDistanceAdapter();
-    }
+    public GameEngine gameEngine(TurnProcessor turnProcessor) {
+        HaversineDistanceAdapter haversine = new HaversineDistanceAdapter();
+        OsrmDistanceAdapter osrm = new OsrmDistanceAdapter(haversine);
 
-    @Bean
-    public GameEngine gameEngine(TurnProcessor turnProcessor, DistancePort distancePort) {
-        return new GameEngine(turnProcessor, distancePort);
+        Map<GameMode, DistancePort> distancePorts = Map.of(
+                GameMode.FAST, haversine,
+                GameMode.ROAD, osrm
+        );
+
+        return new GameEngine(turnProcessor, distancePorts);
     }
 }
