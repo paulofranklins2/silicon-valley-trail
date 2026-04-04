@@ -203,8 +203,9 @@
 
     var foodWarn = document.getElementById('food-warn');
     var cashWarn = document.getElementById('cash-warn');
-    var FOOD_GRACE = 2;
-    var CASH_GRACE = 3;
+    var config = window.__gameConfig || {};
+    var FOOD_GRACE = config.foodGraceTurns || 2;
+    var CASH_GRACE = config.cashGraceTurns || 3;
 
     function updateGraceWarnings(state) {
         var foodTurns = state.turnWithoutFood || 0;

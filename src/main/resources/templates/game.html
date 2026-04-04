@@ -233,61 +233,16 @@
         <div class="game-body__actions">
             <div class="actions" th:classappend="${gameState.waitingEventChoice ? 'actions--choice-pending' : ''}">
                 <div class="actions__grid">
-                    <form action="/action" class="action-card" method="post">
-                        <input name="action" type="hidden" value="TRAVEL">
-                        <button type="submit">
-                            <span class="action-card__name">Travel</span>
+                    <form th:each="info : ${actions}" action="/action" class="action-card" method="post">
+                        <input name="action" type="hidden" th:value="${info.action}">
+                        <button type="submit" th:data-energy-cost="${info.energyCost}">
+                            <span class="action-card__name" th:text="${info.displayName}">Action</span>
                             <span class="action-card__fx">
-                                <span class="cost">-15 energy</span>
-                                <span class="cost">-1 food</span>
-                                <span class="cost">-1 cpu</span>
-                            </span>
-                        </button>
-                    </form>
-                    <form action="/action" class="action-card" method="post">
-                        <input name="action" type="hidden" value="REST">
-                        <button type="submit">
-                            <span class="action-card__name">Rest</span>
-                            <span class="action-card__fx">
-                                <span class="gain">+10 hp</span>
-                                <span class="gain">+5 energy</span>
-                                <span class="gain">+20 morale</span>
-                                <span class="cost">-1 food</span>
-                            </span>
-                        </button>
-                    </form>
-                    <form action="/action" class="action-card" method="post">
-                        <input name="action" type="hidden" value="SCAVENGE">
-                        <button type="submit">
-                            <span class="action-card__name">Scavenge</span>
-                            <span class="action-card__fx">
-                                <span class="cost">-10 energy</span>
-                                <span class="gain">+2 food</span>
-                                <span class="or-text">or</span>
-                                <span class="gain">+10 cash</span>
-                            </span>
-                        </button>
-                    </form>
-                    <form action="/action" class="action-card" method="post">
-                        <input name="action" type="hidden" value="HACKATHON">
-                        <button type="submit">
-                            <span class="action-card__name">Hackathon</span>
-                            <span class="action-card__fx">
-                                <span class="gain">+10 cpu</span>
-                                <span class="cost">-15 energy</span>
-                                <span class="cost">-5 morale</span>
-                                <span class="cost">-1 food</span>
-                            </span>
-                        </button>
-                    </form>
-                    <form action="/action" class="action-card" method="post">
-                        <input name="action" type="hidden" value="PITCH_VCS">
-                        <button type="submit">
-                            <span class="action-card__name">Pitch VCs</span>
-                            <span class="action-card__fx">
-                                <span class="gain">+50 cash</span>
-                                <span class="or-text">or</span>
-                                <span class="cost">-10 morale</span>
+                                <th:block th:each="fx, iter : ${info.effects}">
+                                    <span th:if="${fx.random && !iter.first}" class="or-text">or</span>
+                                    <span th:classappend="${fx.positive} ? 'gain' : 'cost'"
+                                          th:text="${(fx.value > 0 ? '+' : '') + fx.value + ' ' + fx.stat.name().toLowerCase()}">effect</span>
+                                </th:block>
                             </span>
                         </button>
                     </form>
@@ -321,6 +276,10 @@
     };
     window.__waitingEventChoice = /*[[${gameState.waitingEventChoice}]]*/ false;
     window.__lastEvent = /*[[${gameState.lastEvent}]]*/ null;
+    window.__gameConfig = {
+        foodGraceTurns: /*[[${foodGraceTurns}]]*/ 2,
+        cashGraceTurns: /*[[${cashGraceTurns}]]*/ 3
+    };
 </script>
 
 <!-- Choice modal overlay (JS-driven) -->

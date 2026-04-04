@@ -3,13 +3,6 @@
 
     // Constants
     var ACTION_COOLDOWN_MS = 500;
-    var ENERGY_COSTS = {
-        TRAVEL: 15,
-        SCAVENGE: 10,
-        HACKATHON: 15,
-        REST: 0,
-        PITCH_VCS: 0
-    };
 
     // DOM references
     var locationName = document.querySelector('.journey-progress__city--current');
@@ -272,10 +265,9 @@
     function updateActionAvailability(energy) {
         var forms = document.querySelectorAll('.action-card');
         forms.forEach(function (form) {
-            var input = form.querySelector('input[name="action"]');
             var btn = form.querySelector('button');
-            if (!input || !btn) return;
-            var cost = ENERGY_COSTS[input.value] || 0;
+            if (!btn) return;
+            var cost = parseInt(btn.getAttribute('data-energy-cost')) || 0;
             if (cost > 0 && energy < cost) {
                 btn.disabled = true;
                 btn.classList.add('action-card__btn--no-energy');
