@@ -1,0 +1,59 @@
+- name: San Jose
+  latitude: 37.3382
+  longitude: -121.8863
+
+- name: Santa Clara
+  latitude: 37.3541
+  longitude: -121.9552
+
+- name: Sunnyvale
+  latitude: 37.3688
+  longitude: -122.0363
+
+- name: Cupertino
+  latitude: 37.3230
+  longitude: -122.0322
+
+- name: Mountain View
+  latitude: 37.3861
+  longitude: -122.0839
+
+- name: Palo Alto
+  latitude: 37.4419
+  longitude: -122.1430
+
+- name: Menlo Park
+  latitude: 37.4530
+  longitude: -122.1817
+
+- name: Redwood City
+  latitude: 37.4852
+  longitude: -122.2364
+
+- name: San Carlos
+  latitude: 37.5072
+  longitude: -122.2605
+
+- name: San Mateo
+  latitude: 37.5630
+  longitude: -122.3255
+
+- name: Burlingame
+  latitude: 37.5841
+  longitude: -122.3661
+
+- name: Millbrae
+  latitude: 37.5985
+  longitude: -122.3872
+
+- name: South San Francisco
+  latitude: 37.6547
+  longitude: -122.4077
+
+- name: Daly City
+  latitude: 37.6879
+  longitude: -122.4702
+
+- name: San Francisco
+  latitude: 37.7749
+  longitude: -122.4194

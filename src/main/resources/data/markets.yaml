@@ -1,0 +1,63 @@
+- title: City Supply Market
+  description: A local market has supplies for sale.
+  outcomes:
+    - description: Buy supplies
+      cashChange: -20
+      foodChange: 3
+    - description: Hire contractor
+      cashChange: -30
+      energyChange: 15
+      computeCreditsChange: 5
+    - description: Skip
+
+- title: Tech District
+  description: You pass through a tech hub. Cloud providers and coworking spaces everywhere.
+  outcomes:
+    - description: Rent server time
+      cashChange: -25
+      computeCreditsChange: 8
+    - description: Coworking day pass
+      cashChange: -15
+      energyChange: 10
+    - description: Skip
+
+- title: Food Truck Rally
+  description: A row of food trucks lines the street. The smells are irresistible.
+  outcomes:
+    - description: Stock up on meals
+      cashChange: -25
+      foodChange: 5
+    - description: Team lunch
+      cashChange: -10
+      foodChange: 1
+      moraleChange: 10
+    - description: Skip
+
+- title: Startup Mixer
+  description: A networking event is happening downtown. Founders and investors mingle.
+  outcomes:
+    - description: Buy a VIP pass
+      cashChange: -40
+      moraleChange: 20
+      computeCreditsChange: 10
+    - description: Team dinner nearby
+      cashChange: -15
+      moraleChange: 15
+      energyChange: 5
+    - description: Skip
+
+- title: Startup Garage Sale
+  description: A failed startup is selling off equipment cheap.
+  outcomes:
+    - description: Buy their servers
+      cashChange: -20
+      computeCreditsChange: 6
+    - description: Buy their snack stash
+      cashChange: -10
+      foodChange: 3
+    - description: Hire their laid-off dev
+      cashChange: -35
+      energyChange: 10
+      computeCreditsChange: 5
+      moraleChange: 5
+    - description: Skip

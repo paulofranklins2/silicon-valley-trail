@@ -46,6 +46,12 @@
             <scope>runtime</scope>
         </dependency>
 
+        <!-- Jackson YAML for loading game data files -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
+        </dependency>
+
         <!-- Lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
