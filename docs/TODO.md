@@ -12,20 +12,12 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 ### Must have
 - [x] Create `domain/model/TeamState` (health, energy, morale clamped 0-100)
 - [x] Create `domain/model/ResourceState` (cash, food, computeCredits floor at 0)
-- [x] Create `domain/model/JourneyState` (currentLocationIndex, distanceToNext)
+- [x] Create `domain/model/JourneyState` (currentLocationIndex, distanceToNext, totalDistance)
 - [x] Create `domain/model/Location` (name, lat, long)
-- [x] Create `domain/model/GameState` (composes TeamState, ResourceState, JourneyState + turn, gameOver, victory)
-- [x] Create `domain/model/GameEvent`
-- [x] Create `domain/model/EventOutcome`
-- [x] Create `domain/model/WeatherSignal`
-- [x] Create `domain/GameAction` enum
-- [x] Create `domain/EventCategory` enum
-- [x] Create `domain/ActionOutcome` enum (includes EXHAUSTED)
-- [x] Create `domain/WeatherCategory` enum
-- [x] Create `domain/LossReason` enum
-- [x] Create `domain/port/WeatherPort`
-- [x] Create `domain/port/DistancePort`
-- [x] Create `domain/port/PersistencePort`
+- [x] Create `domain/model/GameState` (composes above + turn, gameOver, victory, market state, game mode)
+- [x] Create `domain/model/GameEvent`, `EventOutcome`, `WeatherSignal`, `ActionInfo`
+- [x] Create enums: `GameAction`, `EventCategory`, `ActionOutcome`, `WeatherCategory`, `LossReason`, `StatType`, `GameMode`
+- [x] Create ports: `WeatherPort`, `DistancePort`, `LeaderboardPort`
 
 ### Tests
 - [x] Test TeamState clamping
@@ -38,10 +30,11 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 ## Day 2 - Core game loop
 
 ### Must have
-- [x] Create `application/ActionHandler` (energy gate, compute travel penalty)
+- [x] Create `application/ActionHandler` (energy gate, compute travel penalty, data-driven from YAML)
 - [x] Create `application/ConditionEvaluator` (grace period loss for food/cash, counter updates after checks)
 - [x] Create `application/TurnProcessor` (weather only on travel, fetchWeather helper)
-- [x] Create `application/GameEngine` (market with cash validation, 15 locations)
+- [x] Create `application/GameEngine` (game mode support, batch distance calculation)
+- [x] Create `application/ScoreCalculator` (weighted scoring for leaderboard)
 
 ### Tests
 - [x] Test each action produces correct resource changes
@@ -50,17 +43,18 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] Test loss conditions (starvation grace period, no cash grace period)
 - [x] Test grace period counter reset when resource recovered
 - [x] Test turn flow with known state
+- [x] Test score calculation (victory high, defeat medium, early death low, faster > slower)
 
 ---
 
 ## Day 3 - Event system
 
 ### Must have
-- [x] Create `application/EventProcessor`
-- [x] Add initial event pool across all 5 categories (15+ events)
-- [x] Add random event chance (20% per turn, not every turn)
-- [x] Add events with player choices (5 choice events across all categories)
-- [x] Add 5 city market variants (Supply Market, Tech District, Food Truck Rally, Startup Mixer, Garage Sale)
+- [x] Create `application/EventProcessor` (loads from YAML)
+- [x] Add event pool across 5 categories (20+ events)
+- [x] Add random event chance (20% per turn)
+- [x] Add events with player choices (5 choice events)
+- [x] Add 5 city market variants (voluntary, per-city, purchase limits)
 
 ### Tests
 - [x] Test event deltas apply correctly
@@ -76,97 +70,81 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 
 ## Day 4 - API integration
 
-### Weather API
-- [x] Create `infrastructure/api/OpenMeteoAdapter`
-- [x] Parse weather response into `WeatherSignal`
-- [x] Add 3-second timeout
-- [x] Create `infrastructure/api/MockWeatherAdapter`
-- [x] Create `infrastructure/api/DemoWeatherAdapter`
+### Weather API (Open-Meteo)
+- [x] Create `OpenMeteoAdapter` with 3s timeout, Locale.US URL formatting
+- [x] Create `MockWeatherAdapter`, `DemoWeatherAdapter`
 - [x] Fallback to mock on failure
-- [x] Create `domain/WeatherCategory` enum
-- [x] Wire weather into gameplay (TurnProcessor applies stat changes per weather type, travel only)
-- [x] Weather mode set to `api` (real Open-Meteo data)
+- [x] Wire weather into gameplay (travel only, prevents resting exploit)
+- [x] Weather mode set to `api`
 
-### Distance
-- [x] Create `infrastructure/api/HaversineDistanceAdapter`
-- [x] Wire into GameEngine for real distances at startup
-- [x] Create `infrastructure/api/MockDistanceAdapter`
+### Distance API (Haversine + OSRM)
+- [x] Create `HaversineDistanceAdapter` (straight-line, pure math)
+- [x] Create `OsrmDistanceAdapter` (real driving distance, batch API call, Haversine fallback)
+- [x] Create `MockDistanceAdapter`
+- [x] `DistancePort.calculateLegDistances()` default method eliminates duplication
+- [x] Game mode selection: Fast (Haversine) vs Road (OSRM)
+
+### Data-driven content
+- [x] Create `GameDataLoader` (YAML deserialization)
+- [x] Move events, markets, locations, actions to YAML files
+- [x] `StatType` enum for type-safe stat references
 
 ### Tests
 - [x] Test Haversine returns valid distance
-- [x] Test OpenMeteo fallback triggers on invalid location
-- [x] Test OpenMeteo returns valid signal for real location
-- [x] Test MockWeatherAdapter returns valid category and temp range
-- [x] Test MockWeatherAdapter deterministic with same seed
-- [x] Test DemoWeatherAdapter cycles through all types and wraps around
-- [x] Test MockDistanceAdapter returns fixed fallback distance
+- [x] Test OSRM returns valid distance for real locations
+- [x] Test OSRM fallback on invalid coordinates
+- [x] Test OSRM road distance >= straight-line distance
+- [x] Test OpenMeteo fallback on invalid location
+- [x] Test MockWeatherAdapter (valid range, deterministic, varied)
+- [x] Test DemoWeatherAdapter (cycles, wraps, correct temps)
+- [x] Test MockDistanceAdapter (fixed fallback)
+- [x] Test GameDataLoader (events, locations, markets)
 
 ---
 
 ## Day 5 - Web UI
 
 ### Must have
-- [x] Create `infrastructure/web/GameController` (market API with per-city persistence and purchase limits)
-- [x] Create `infrastructure/web/GameConfig` (Spring bean wiring)
-- [x] GET `/` to show start page
-- [x] POST `/start` to create game in session (clears stale market data)
-- [x] POST `/action` to process turn
-- [x] POST `/api/action` to process turn via AJAX (returns JSON)
-- [x] POST `/api/choice` to resolve event choices via AJAX
-- [x] GET `/api/market` to get city market (persists per city)
-- [x] POST `/api/market` to buy from market (cash validation, duplicate blocking)
-- [x] GET `/game` to show current state
-- [x] GET `/end` to show victory/defeat with loss reason
-- [x] Null session guards on all routes (redirect to / if no game)
-- [x] Create templates (start, game, end) with Thymeleaf fragments
-- [x] Split CSS into modular files (13 files)
-- [x] Split JS into modules (toast, stats, actions, journey, animations, weather)
-- [x] AJAX action processing without page refresh
-- [x] Toast notifications for action feedback
-- [x] Journey map with proportional city dots and animated train
-- [x] Action scenes with fixed-height stage (no layout shift)
-- [x] Team display with status effects based on stats
-- [x] Choice modal with outcome tags and current stats display
-- [x] City market modal (voluntary, per-city, sold-out tracking, backdrop close)
-- [x] Weather effects UI (rain, storm, heatwave animations + temperature)
-- [x] Action buttons disable when player lacks energy
-- [x] Grace period warnings (pulsing red badges: starving X/2, broke X/3)
-- [x] Kenney game assets (characters, food icons, train)
-- [x] Maven Wrapper (mvnw) for zero-install builds
+- [x] GameController with AJAX endpoints (action, choice, market, leaderboard)
+- [x] Game mode selection on start page (Fast / Road)
+- [x] Action cards rendered from backend data (no hardcoded frontend values)
+- [x] Energy costs read from `data-energy-cost` attribute
+- [x] Grace period thresholds from `window.__gameConfig`
+- [x] City market modal (voluntary, per-city persistence on GameState, sold-out tracking)
+- [x] Choice modal with outcome tags and current stats
+- [x] Weather display with initial weather on game start
+- [x] Journey map with total distance and game mode label
+- [x] Grace period warnings (pulsing badges: starving X/2, broke X/3)
+- [x] Leaderboard page with separate Fast / Road rankings
+- [x] End screen with score submission and loss reason
+- [x] Maven Wrapper for zero-install builds
 
 ---
 
 ## Day 6 - Polish + documentation
 
 ### Gameplay
-- [x] Wire weather API into actual gameplay (TurnProcessor applies stat effects per weather type)
-- [x] Add cash/food loss conditions with grace periods (food: 2 turns, cash: 3 turns)
-- [x] Update end.html to use lossReason field (shows specific message per loss type)
-- [x] Energy gate: actions require sufficient energy (travel/hackathon: 15, scavenge: 10)
-- [x] Compute penalty: travel distance halved when compute credits depleted
-- [x] Market: cash validation prevents buying without money
-- [x] Weather mode set to `api` for real weather data
-- [ ] Playtest full game and tune balance (food drain, energy costs, event chance, travel distances)
+- [x] Energy gate: actions blocked when insufficient energy
+- [x] Compute penalty: travel halved at 0 compute
+- [x] Market: cash validation, purchase limits
+- [x] Weather only on travel (prevents exploit)
+- [x] Game balance: health/morale drain from actions and events
+- [x] Leaderboard with weighted score (victory, turn efficiency, stats, resources)
+- [x] Two game modes with separate leaderboards
+- [ ] Playtest full game and tune balance
 - [ ] Verify app runs from scratch with `./mvnw spring-boot:run`
-- [ ] Final cleanup on naming/comments/dead code
+- [ ] Delete `PersistencePort` (unused)
 
 ### README - REQUIRED
-- [ ] Quick start from a fresh machine (Java 21, clone, `./mvnw spring-boot:run`)
-- [ ] How to set API keys / how to run with mocks (Open-Meteo needs no key, `game.weather.mode` config)
-- [ ] Brief architecture overview (hexagonal: domain/application/infrastructure)
-- [ ] Dependency list with versions
-- [ ] How to run tests (`./mvnw test`)
-- [ ] Example gameplay flow (sample turn sequence)
-- [ ] AI disclosure (how AI was used in development)
+- [ ] Quick start from a fresh machine
+- [ ] API keys / mock instructions
+- [ ] Architecture overview
+- [ ] Dependency list
+- [ ] How to run tests
+- [ ] Example gameplay
+- [ ] AI disclosure
 
 ### Documentation - REQUIRED
-- [ ] Record screen capture or provide URL to working app
-- [x] Update DESIGN.md with final state (loss conditions, choice events, test coverage, project structure)
-- [ ] Add `.env.example` file (even though Open-Meteo needs no key)
-
-### Nice to have
-- [ ] Weather-conditional events
-- [ ] Weighted event selection (low morale... more team events, low cash... more market events)
-- [ ] H2 persistence (ranking system or save/load)
-- [ ] Second API integration (OSRM for real route distances)
-- [ ] Move market state from session to GameState (proper game state ownership)
+- [ ] Live URL or screen recording
+- [ ] Update DESIGN.md with final state
+- [ ] Add `.env.example` file

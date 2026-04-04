@@ -221,130 +221,172 @@ Weighted event selection based on weather and game state is supported but not ye
 
 ## 9. API Integration
 
-### Decision: Open-Meteo + Haversine
+### Decision: Open-Meteo + Haversine + OSRM
 
 - **Weather (Open-Meteo):**
     - no API key needed
     - real weather data for real locations
     - directly affects gameplay (rain to harder travel, heat to morale drop)
+    - weather effects only apply when traveling, not when resting. I added this restriction because without it, players could exploit clear weather by spamming REST to get free health and energy. Now resting is "indoors" and weather only hits you on the road.
 
-- **Distance (Haversine formula):**
+- **Distance (Haversine + OSRM):**
 
-I originally planned to use Nominatim (OpenStreetMap) for real distances between locations. But when I started implementing it, I had two options:
+I started with just Haversine for straight-line distances. Pure math, no API, always works. Good enough for a game.
 
-**Option A: OpenSource Route Machine/Nominatim API call** to get real driving distances. This means another HTTP call, another fallback, another timeout to handle, and a dependency on an external service. All for a number that the player never sees directly.
+But then I realized I could turn this into a game mode feature. Instead of choosing one distance method at config time, I made both available as player choices:
 
-**Option B: Haversine formula** to calculate straight-line distance from coordinates. Pure math, no API call, no network, no fallback needed. Always works.
+**Fast mode:** Haversine (straight-line). Shorter distances, quicker game. Good for learning the mechanics.
 
-I went with **Option B**. For a game, the exact driving distance between Mountain View and Palo Alto doesn't matter. What matters is that the legs have different lengths so the player has to plan ahead. Haversine gives me that from the real coordinates I already have, with zero infrastructure complexity.
+**Road mode:** OSRM (Open Source Routing Machine). Real driving distances via API. Longer journey, more resource pressure, harder to survive.
 
-The `DistancePort` interface still exists, so if I ever need real routing distances, I can swap in an API adapter without changing the game logic.
+The key insight was that the `DistancePort` interface already existed. Adding OSRM was just a new adapter. The game engine picks the right one based on the player's mode selection. Zero changes to game logic.
 
-Both APIs need no setup. Clone the repo and it works.
+OSRM has a nice feature: you can send all 15 waypoints in a single request and get all 14 leg distances back at once. I used this instead of making 14 separate API calls, which would have been painfully slow at game start. The batch approach starts the game in about 1 second.
+
+One gotcha I hit: `String.format("%f")` uses locale-specific decimal separators. On non-US systems, coordinates get commas instead of dots, which breaks the API URL. Fixed with `Locale.US` everywhere I format coordinates for API calls.
+
+Both OSRM and Open-Meteo need no API key. Clone the repo and both modes work.
 
 ---
 
 ### Fallback Strategy
 
 ```
-try API (3s timeout)
-fallback to mock
+try API (timeout)
+fallback to mock/haversine
 ```
 
-If the API fails, the game still works.
+Every external call follows this pattern:
+- `OpenMeteoAdapter` falls back to `MockWeatherAdapter`
+- `OsrmDistanceAdapter` falls back to `HaversineDistanceAdapter`
+- `DistancePort.calculateLegDistances()` is a default method on the interface, so Haversine and Mock get it for free. OSRM overrides it with the batch call.
 
-The engine doesn't know or care where the data came from.
+If any API fails, the game still works. The engine doesn't know or care where the data came from.
 
 ---
 
 ## 10. Map Design
 
-10 real locations from San Jose to San Francisco:
+15 real locations from San Jose to San Francisco:
 
 1. San Jose
 2. Santa Clara
 3. Sunnyvale
-4. Mountain View
-5. Palo Alto
-6. Menlo Park
-7. Redwood City
-8. San Carlos
-9. South San Francisco
-10. San Francisco
+4. Cupertino
+5. Mountain View
+6. Palo Alto
+7. Menlo Park
+8. Redwood City
+9. San Carlos
+10. San Mateo
+11. Burlingame
+12. Millbrae
+13. South San Francisco
+14. Daly City
+15. San Francisco
 
-Each has:
-- real lat/long coordinates (for weather API)
-- distance to next (calculated with Haversine from real coordinates)
-- possible location-specific events
+I started with 10 (the requirement minimum) but added 5 more during balance tuning. More cities means more market opportunities and more travel turns, which makes the game feel less rushed. The locations are defined in `locations.yaml`, not hardcoded in Java.
 
-Real distances matter because they affect resource cost and planning. A long leg costs more, so the player needs to prepare.
+Each has real lat/long coordinates used by both the weather API and distance calculations. In Fast mode, total journey is about 65 km. In Road mode, it's about 106 km.
 
 ---
 
-## 11. Persistence
+## 11. Persistence & Leaderboard
 
-### Decision: H2 + Spring Data JPA
+### Decision: H2 + Spring Data JPA for leaderboard
 
-**Why:**
-- zero setup with Spring Boot
-- real database behavior
-- easy CRUD
+I originally planned save/load game functionality with multiple JPA entities (SavedGame, TeamSnapshot, etc.). But during development I realized the game is short enough that saving mid-game isn't necessary. What players actually want is to see how they rank against each other.
 
-Saving/loading is basically one line with `JpaRepository`.
-
-I kept domain models separate from JPA entities to avoid coupling. The domain doesn't know about `@Entity` or `@Id`. The persistence adapter handles the mapping between domain objects and database entities.
-
-### Schema
+So I pivoted to a leaderboard system instead. One entity, one table:
 
 | Entity | Fields | What it stores |
 |---|---|---|
-| `SavedGame` | id, teamName, turn, victory, gameOver, createdAt | Root save, one row per game |
-| `TeamSnapshot` | health, energy, morale | Team stats at save time |
-| `ResourceSnapshot` | cash, food, computeCredits | Resources at save time |
-| `JourneySnapshot` | currentLocationIndex, distanceToNext | Progress at save time |
+| `LeaderboardEntry` | id, playerName, teamName, turns, victory, lastLocation, health, energy, morale, cash, food, computeCredits, score, gameMode, createdAt | One row per completed game |
+
+The score is calculated by `ScoreCalculator` at submission time, not on every leaderboard view. It uses weighted factors:
+- Victory gives a 1000-point base
+- Turn efficiency rewards faster wins (up to 500 bonus)
+- Stats are weighted: morale x3, health x2, energy x1 (harder to maintain = more points)
+- Resources are weighted: food x3, cash x2, compute x1 (scarcer = more points)
+- Losers get a journey progress bonus based on how far they got
+
+The leaderboard is split by game mode (Fast vs Road) so the rankings are fair. Road mode is harder, so comparing scores across modes wouldn't make sense.
+
+I went back and forth on whether market state and leaderboard submission should live in the HTTP session or on GameState. Originally I had them as session attributes, but that meant cleanup code in `POST /start` to clear stale data. Moving everything onto GameState was cleaner: new game = new object = everything resets automatically.
 
 ### H2 Config
 
-```properties
-# application.yml
-spring.datasource.url=jdbc:h2:mem:svt
-spring.datasource.driver-class-name=org.h2.Driver
-spring.jpa.hibernate.ddl-auto=create-drop
-spring.h2.console.enabled=true
-spring.h2.console.path=/h2-console
-```
-
-In-memory by default. Data resets on restart, which is fine for a game session. If I want saves to persist, I just change one line to `jdbc:h2:file:./data/svt`.
-
-The H2 console at `/h2-console` is useful for checking the database while developing.
+In-memory by default. Data resets on restart, which is fine for a demo. For production, I'd swap to Postgres with one config change and add a Flyway migration for the index on `score`.
 
 ---
 
-## 12. Testing Strategy
+## 12. Data-Driven Design
+
+### Decision: YAML files for game content
+
+Early on, events, markets, locations, and action effects were all hardcoded in Java using builder chains. EventProcessor alone was 290 lines of `.builder().title("...").cashChange(-20).build()`. It worked, but it was ugly, hard to edit, and mixed data with logic.
+
+I moved everything to YAML files in `resources/data/`:
+
+| File | What it defines |
+|---|---|
+| `actions.yaml` | All 5 actions: stat effects, energy costs, travel distance, compute penalty |
+| `events.yaml` | All events grouped by category, with stat changes and choice outcomes |
+| `markets.yaml` | All 5 market variants with purchase options |
+| `locations.yaml` | All 15 cities with lat/long coordinates |
+
+`GameDataLoader` handles deserialization. Jackson + `jackson-dataformat-yaml` does the heavy lifting. The domain models needed `@NoArgsConstructor` for Jackson, which meant dropping `final` fields. Worth it for the cleaner separation.
+
+I also introduced a `StatType` enum to replace magic strings like `"hp"` and `"cpu"` in the YAML. Now if you typo a stat name in the YAML (`stat: HELTH`), Jackson fails at startup with a clear error instead of silently ignoring it.
+
+For testing, `EventProcessor` and `ActionHandler` use factory methods (`EventProcessor.create(random)`, `ActionHandler.create(random)`) that load from YAML. Tests can also use the constructor directly with empty data for isolation.
+
+The result: EventProcessor went from 290 lines to 57. ActionHandler lost 20+ constants. Adding a new event or city is a YAML edit, no recompile.
+
+---
+
+## 13. City Market System
+
+### Decision: Voluntary market, not forced events
+
+I originally had the market trigger automatically when arriving at a new city. It interrupted the game flow and felt annoying. Players should choose when to shop, not be forced into it.
+
+So I made it a button. The player opens the market whenever they want, browses the options, buys what they need, or closes it. No turn consumed.
+
+Each city gets a random market variant from 5 types (Supply Market, Tech District, Food Truck Rally, Startup Mixer, Startup Garage Sale). The market persists per city on `GameState` - if you close and reopen, same market. Move to a new city, fresh market. Each option can only be bought once per city (marked "SOLD OUT").
+
+The market is the main way to spend cash, which solves the problem of cash being a meaningless resource. Before markets, cash only mattered when it hit 0 for the grace period. Now it's a strategic resource: save for expensive options or spend early on food when you need it.
+
+Cash validation happens server-side in `GameEngine.resolveMarketPurchase()`. If you can't afford it, the purchase is rejected. No negative cash from overspending.
+
+---
+
+## 14. Testing Strategy
 
 Used:
 - JUnit 5
 - Mockito
-- AssertJ
 
 Focus:
 - domain logic (clamping, state transitions, multi-location travel)
 - action handling (correct resource changes for all 5 actions)
 - event system (event application, generation returns valid events)
 - turn processing (event chance, action applies without event, turn counter)
-- win/loss conditions (health, morale, victory priority)
-- distance calculation (Haversine returns valid km)
+- win/loss conditions (health, morale, starvation grace, cash grace, victory priority)
+- distance calculation (Haversine and OSRM, with fallback verification)
+- score calculation (victory vs defeat, turn efficiency, edge cases)
+- data loading (YAML files parse correctly, all categories present)
+- all weather adapters (API fallback, mock behavior, demo cycling)
 
 Skipped:
-- controller (thin layer, just routing and session)
-- templates (visual, tested by playing the game)
-- API fallback tests (OpenMeteo fallback on invalid location, mock adapter validation, demo adapter cycling)
+- controller (thin routing layer, tested by playing the game)
+- templates (visual, tested by playing)
 
-Tests are focused on logic, not framework internals.
+Tests are focused on logic, not framework internals. 74 tests across 15 test files.
 
 ---
 
-## 13. Error Handling
+## 15. Error Handling
 
 ### Principle: handle issues at the boundary
 
@@ -357,15 +399,12 @@ No need for defensive checks inside the game engine. The boundaries already guar
 
 ---
 
-## 14. Project Structure
+## 16. Project Structure
 
 ```
 silicon-valley-trail/
 ├── pom.xml
-├── mvnw
-├── mvnw.cmd
-├── .mvn/
-│   └── wrapper/
+├── mvnw / mvnw.cmd
 ├── .gitignore
 ├── README.md
 ├── docs/
@@ -376,106 +415,78 @@ silicon-valley-trail/
     │   ├── java/com/pcunha/svt/
     │   │   ├── SiliconValleyTrailApplication.java
     │   │   ├── domain/
-    │   │   │   ├── GameState.java
-    │   │   │   ├── TeamState.java
-    │   │   │   ├── ResourceState.java
-    │   │   │   ├── JourneyState.java
-    │   │   │   ├── Location.java
+    │   │   │   ├── model/
+    │   │   │   │   ├── GameState.java
+    │   │   │   │   ├── TeamState.java
+    │   │   │   │   ├── ResourceState.java
+    │   │   │   │   ├── JourneyState.java
+    │   │   │   │   ├── Location.java
+    │   │   │   │   ├── GameEvent.java
+    │   │   │   │   ├── EventOutcome.java
+    │   │   │   │   ├── WeatherSignal.java
+    │   │   │   │   ├── ActionInfo.java
+    │   │   │   │   └── LeaderboardEntry.java (@Entity)
+    │   │   │   ├── port/
+    │   │   │   │   ├── WeatherPort.java
+    │   │   │   │   ├── DistancePort.java (+ calculateLegDistances default)
+    │   │   │   │   └── LeaderboardPort.java
     │   │   │   ├── GameAction.java
-    │   │   │   ├── GameEvent.java
+    │   │   │   ├── GameMode.java (FAST, ROAD)
     │   │   │   ├── EventCategory.java
-    │   │   │   ├── EventOutcome.java
-    │   │   │   ├── ActionOutcome.java
-    │   │   │   ├── LossReason.java
-    │   │   │   ├── WeatherSignal.java
+    │   │   │   ├── ActionOutcome.java (+ EXHAUSTED)
     │   │   │   ├── WeatherCategory.java
-    │   │   │   └── port/
-    │   │   │       ├── WeatherPort.java
-    │   │   │       ├── DistancePort.java
-    │   │   │       └── PersistencePort.java
+    │   │   │   ├── LossReason.java
+    │   │   │   └── StatType.java (HEALTH, ENERGY, MORALE, CASH, FOOD, COMPUTE_CREDIT)
     │   │   ├── application/
     │   │   │   ├── GameEngine.java
     │   │   │   ├── TurnProcessor.java
-    │   │   │   ├── ActionHandler.java
-    │   │   │   ├── EventProcessor.java
-    │   │   │   └── ConditionEvaluator.java
+    │   │   │   ├── ActionHandler.java (data-driven from YAML)
+    │   │   │   ├── EventProcessor.java (data-driven from YAML)
+    │   │   │   ├── ConditionEvaluator.java
+    │   │   │   └── ScoreCalculator.java
     │   │   └── infrastructure/
     │   │       ├── api/
     │   │       │   ├── OpenMeteoAdapter.java
     │   │       │   ├── HaversineDistanceAdapter.java
+    │   │       │   ├── OsrmDistanceAdapter.java (batch API, Haversine fallback)
     │   │       │   ├── MockWeatherAdapter.java
     │   │       │   ├── MockDistanceAdapter.java
-    │   │       │   └── DemoWeatherAdapter.java
+    │   │       │   ├── DemoWeatherAdapter.java
+    │   │       │   └── LeaderboardAdapter.java
+    │   │       ├── data/
+    │   │       │   └── GameDataLoader.java (YAML deserialization)
+    │   │       ├── persistence/
+    │   │       │   └── LeaderboardRepository.java
     │   │       └── web/
-    │   │           ├── config/
-    │   │           │   └── GameConfig.java
-    │   │           └── controller/
-    │   │               └── GameController.java
+    │   │           ├── config/GameConfig.java
+    │   │           └── controller/GameController.java
     │   └── resources/
     │       ├── application.yml
-    │       ├── static/
-    │       │   ├── css/
-    │       │   │   ├── base.css
-    │       │   │   ├── components.css
-    │       │   │   ├── game.css
-    │       │   │   ├── game-layout.css
-    │       │   │   ├── actions.css
-    │       │   │   ├── journey.css
-    │       │   │   ├── weather.css
-    │       │   │   ├── choice-modal.css
-    │       │   │   ├── story.css
-    │       │   │   ├── scenes.css
-    │       │   │   ├── animations.css
-    │       │   │   ├── start.css
-    │       │   │   └── end.css
-    │       │   ├── js/
-    │       │   │   ├── toast.js
-    │       │   │   ├── stats.js
-    │       │   │   ├── actions.js
-    │       │   │   ├── journey.js
-    │       │   │   ├── weather.js
-    │       │   │   └── animations.js
-    │       │   └── img/
-    │       │       ├── team-member-1..4.png
-    │       │       ├── food-icon.png
-    │       │       ├── train.png
-    │       │       └── vc-investor-1..2.png
-    │       └── templates/
-    │           ├── fragments/
-    │           │   ├── head.html
-    │           │   └── toast.html
-    │           ├── start.html
-    │           ├── game.html
-    │           └── end.html
+    │       ├── data/
+    │       │   ├── actions.yaml
+    │       │   ├── events.yaml
+    │       │   ├── markets.yaml
+    │       │   └── locations.yaml
+    │       ├── static/ (css/, js/, img/)
+    │       └── templates/ (start, game, end, leaderboard + fragments)
     └── test/java/com/pcunha/svt/
-        ├── domain/
-        │   ├── TeamStateTest.java
-        │   ├── ResourceStateTest.java
-        │   └── JourneyStateTest.java
-        ├── application/
-        │   ├── ActionHandlerTest.java
-        │   ├── EventProcessorTest.java
-        │   ├── TurnProcessorTest.java
-        │   └── ConditionEvaluatorTest.java
+        ├── domain/ (TeamState, ResourceState, JourneyState)
+        ├── application/ (ActionHandler, ConditionEvaluator, EventProcessor, TurnProcessor, ScoreCalculator)
         └── infrastructure/
-            └── api/
-                ├── HaversineDistanceAdapterTest.java
-                ├── MockWeatherAdapterTest.java
-                ├── DemoWeatherAdapterTest.java
-                ├── OpenMeteoAdapterTest.java
-                └── MockDistanceAdapterTest.java
+            ├── api/ (Haversine, OpenMeteo, OSRM, MockWeather, DemoWeather, MockDistance)
+            └── data/ (GameDataLoader)
 ```
 
 Ports live in the domain because the domain defines what it needs. Adapters live in infrastructure because they deal with external stuff. GameConfig wires all dependencies without Spring annotations on domain classes. GameController is the only place that knows about HTTP or Thymeleaf.
 
 ---
 
-## 15. Dependencies
+## 17. Dependencies
 
 - Spring Boot (web, thymeleaf, data-jpa, devtools)
 - H2
-- JUnit 5, Mockito, AssertJ
-- Jackson
+- Jackson + jackson-dataformat-yaml (for YAML game data files)
+- JUnit 5, Mockito
 - Lombok (limited use)
 
 DevTools auto-restarts the app when I change code, so I don't have to stop and re-run manually every time. It also disables Thymeleaf caching so template changes show up instantly on refresh.
@@ -499,7 +510,7 @@ No Lombok in the application layer (GameEngine, TurnProcessor, etc). Business lo
 
 ---
 
-## 16. Code Practices
+## 18. Code Practices
 
 - single responsibility per class and method
 - no magic numbers, use named constants
@@ -511,7 +522,7 @@ Keeping things simple and readable.
 
 ---
 
-## 17. Tradeoffs
+## 19. Tradeoffs
 
 | Decision | Benefit | Cost |
 |---|---|---|
@@ -519,29 +530,30 @@ Keeping things simple and readable.
 | Hexagonal architecture | Easy to test, clean API boundary | More files and interfaces |
 | 6 stats / 5 actions | Better gameplay, real decisions | More balancing work |
 | Category-based events | API integration point, varied gameplay | More complex than flat random |
-| Two APIs | Map feels real, weather affects gameplay | Extra adapter code |
-| H2 + JPA | Real database, easy CRUD, zero setup | In-memory data lost on restart |
-| Open-Meteo | No API key, zero friction | Less data than OpenWeatherMap |
+| Open-Meteo + OSRM | Two APIs, no keys, real data | Extra adapter code |
+| H2 + JPA | Real database, leaderboard, zero setup | In-memory data lost on restart |
+| YAML data files | Content separate from code, easy to edit | Extra dependency (jackson-yaml), deserialization setup |
+| Game modes (Fast/Road) | Replayability, shows architecture flexibility | OSRM dependency for Road mode |
+| Score calculator | Fair rankings, weighted by difficulty | Balancing the formula is subjective |
+| Market on GameState | Single source of truth, no session cleanup | GameState grows larger |
 
 All decisions aim for balance between simplicity and doing things right.
 
 ---
 
-## 18. Extension Strategy
+## 20. Extension Strategy
 
-I focused on the required features, but the architecture is set up so these can be added later without major changes.
+The architecture supports these without major changes:
 
-Examples:
-- multiplayer: support multiple `TeamState`, one per session
-- CLI: new adapter that uses Scanner, no engine changes
-- extra APIs: new ports/adapters, plug into event weights
-- leaderboard: simple DB query on `SavedGame`
-
-I didn't build these because they're outside scope, but the design supports them.
+- **Weighted events:** `generateEvent()` already receives GameState and WeatherSignal. Just add category selection logic based on current stats or weather.
+- **Multiplayer:** support multiple `TeamState`, one per session
+- **CLI:** new adapter that uses Scanner, no engine changes
+- **Postgres:** swap H2 URL in `application.yml`, add Flyway migration for `score` index. All JPA code stays the same.
+- **More game modes:** add a new `GameMode` enum value and wire a new `DistancePort` adapter. GameEngine picks it automatically.
 
 ---
 
-## 19. Implementation Plan
+## 21. Implementation Plan
 
 | Day | Focus |
 |---|---|
