@@ -45,4 +45,8 @@ public class JourneyState {
     public Location getCurrentLocation() {
         return locations.get(currentLocationIndex);
     }
+
+    public double getTotalDistance() {
+        return distances.stream().mapToDouble(Double::doubleValue).sum();
+    }
 }

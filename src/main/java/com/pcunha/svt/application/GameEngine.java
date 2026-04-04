@@ -6,7 +6,6 @@ import com.pcunha.svt.domain.model.*;
 import com.pcunha.svt.domain.port.DistancePort;
 import com.pcunha.svt.infrastructure.data.GameDataLoader;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -32,7 +31,7 @@ public class GameEngine {
 
         DistancePort distancePort = distancePorts.get(gameMode);
         List<Location> locations = GameDataLoader.loadLocations();
-        List<Double> distances = calculateDistances(locations, distancePort);
+        List<Double> distances = distancePort.calculateLegDistances(locations);
 
         JourneyState journeyState = new JourneyState(locations, distances);
 
@@ -81,11 +80,4 @@ public class GameEngine {
         return true;
     }
 
-    private List<Double> calculateDistances(List<Location> locations, DistancePort distancePort) {
-        List<Double> distances = new ArrayList<>();
-        for (int i = 0; i < locations.size() - 1; i++) {
-            distances.add(distancePort.getDistance(locations.get(i), locations.get(i + 1)));
-        }
-        return distances;
-    }
 }

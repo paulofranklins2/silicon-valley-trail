@@ -2,6 +2,7 @@ package com.pcunha.svt.infrastructure.web.controller;
 
 import com.pcunha.svt.application.ConditionEvaluator;
 import com.pcunha.svt.application.GameEngine;
+import com.pcunha.svt.application.ScoreCalculator;
 import com.pcunha.svt.domain.GameAction;
 import com.pcunha.svt.domain.GameMode;
 import com.pcunha.svt.domain.model.GameEvent;
@@ -139,6 +140,7 @@ public class GameController {
         GameState gameState = getGameState(session);
         if (gameState == null) return "redirect:/";
         model.addAttribute("gameState", gameState);
+        model.addAttribute("score", ScoreCalculator.calculate(gameState));
         model.addAttribute("submitted", gameState.isLeaderboardSubmitted());
         return "end";
     }
