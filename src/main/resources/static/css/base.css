@@ -17,20 +17,55 @@
     --accent: #00d4ff;
     --accent-dim: rgba(0, 212, 255, 0.12);
     --accent-glow: rgba(0, 212, 255, 0.35);
+    --accent-glow-strong: rgba(0, 212, 255, 0.55);
     --text: #d8d8e8;
     --text-muted: #7a7a9a;
     --text-dim: #50506a;
     --green: #22c55e;
     --green-bg: rgba(34, 197, 94, 0.12);
     --green-border: rgba(34, 197, 94, 0.3);
+    --green-glow: rgba(34, 197, 94, 0.5);
     --yellow: #eab308;
     --yellow-bg: rgba(234, 179, 8, 0.12);
+    --yellow-glow: rgba(234, 179, 8, 0.4);
     --red: #ef4444;
     --red-bg: rgba(239, 68, 68, 0.12);
     --red-border: rgba(239, 68, 68, 0.3);
+    --red-glow: rgba(239, 68, 68, 0.5);
     --purple: #a855f7;
+    --purple-glow: rgba(168, 85, 247, 0.4);
     --radius: 10px;
     --radius-sm: 6px;
+
+    /* Spacing scale */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 12px;
+    --space-lg: 16px;
+    --space-xl: 24px;
+    --space-2xl: 32px;
+
+    /* Shadow system */
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.25);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.35);
+    --shadow-lg: 0 4px 24px rgba(0,0,0,0.45);
+    --shadow-glow: 0 0 16px var(--accent-dim);
+    --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.04);
+
+    /* Animation timings */
+    --duration-fast: 0.15s;
+    --duration-normal: 0.25s;
+    --duration-slow: 0.4s;
+    --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* Disabled state */
+    --opacity-disabled: 0.4;
+
+    /* Extra text/bg colors */
+    --text-bright: #e8e8f8;
+    --bg-gradient-dark: #1a1a3e;
+
     --font-arcade: 'VT323', monospace;
     --font-body: 'Inter', -apple-system, sans-serif;
 }
@@ -42,11 +77,14 @@ body {
     min-height: 100vh;
     display: flex;
     justify-content: center;
-    padding: 12px 10px;
-    background-image: radial-gradient(ellipse at 15% 20%, rgba(0, 212, 255, 0.04) 0%, transparent 60%),
-    radial-gradient(ellipse at 85% 80%, rgba(168, 85, 247, 0.04) 0%, transparent 60%);
+    padding: var(--space-md) var(--space-md);
+    background-image:
+        radial-gradient(ellipse at 15% 20%, rgba(0, 212, 255, 0.05) 0%, transparent 60%),
+        radial-gradient(ellipse at 85% 80%, rgba(168, 85, 247, 0.05) 0%, transparent 60%),
+        radial-gradient(ellipse at 50% 50%, rgba(0, 212, 255, 0.02) 0%, transparent 80%);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
 }
 
 .container {
@@ -55,7 +93,57 @@ body {
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--space-md);
+}
+
+/* Screen shake utility (applied via JS) */
+.screen-shake {
+    animation: screenShake 0.4s ease-out;
+}
+
+@keyframes screenShake {
+    0% { transform: translate(0, 0); }
+    10% { transform: translate(-4px, 2px); }
+    20% { transform: translate(4px, -2px); }
+    30% { transform: translate(-3px, -1px); }
+    40% { transform: translate(3px, 1px); }
+    50% { transform: translate(-2px, 1px); }
+    60% { transform: translate(2px, -1px); }
+    70% { transform: translate(-1px, 0); }
+    80% { transform: translate(1px, 0); }
+    100% { transform: translate(0, 0); }
+}
+
+/* Damage flash overlay (applied via JS) */
+.damage-flash::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(239, 68, 68, 0.15), transparent 70%);
+    pointer-events: none;
+    z-index: 9998;
+    animation: damageFlashAnim 0.5s ease-out forwards;
+}
+
+@keyframes damageFlashAnim {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Gain flash overlay */
+.gain-flash::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(34, 197, 94, 0.1), transparent 70%);
+    pointer-events: none;
+    z-index: 9998;
+    animation: gainFlashAnim 0.5s ease-out forwards;
+}
+
+@keyframes gainFlashAnim {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
 }
 
 /*  SCANLINE (very subtle)  */
@@ -80,7 +168,7 @@ h1 {
     font-size: 2.4rem;
     font-weight: 400;
     color: var(--accent);
-    text-shadow: 0 0 20px var(--accent-glow), 0 0 60px rgba(0, 212, 255, 0.1);
+    text-shadow: 0 0 20px var(--accent-glow), 0 0 60px rgba(0, 212, 255, 0.15);
     letter-spacing: 3px;
     line-height: 1.2;
 }
@@ -101,11 +189,11 @@ h3 {
     color: var(--text-muted);
     letter-spacing: 2px;
     text-transform: uppercase;
-    margin-bottom: 14px;
+    margin-bottom: var(--space-md);
 }
 
 p {
-    margin-bottom: 4px;
+    margin-bottom: var(--space-xs);
     font-size: 0.9rem;
 }
 
@@ -115,12 +203,12 @@ form input[type="text"] {
     background: var(--bg-panel);
     border: 2px solid var(--border);
     color: var(--text);
-    padding: 14px 18px;
+    padding: var(--space-md) var(--space-lg);
     border-radius: var(--radius);
     font-size: 1rem;
     font-family: var(--font-body);
     text-align: center;
-    transition: all 0.2s;
+    transition: all var(--duration-normal) ease;
 }
 
 form input[type="text"]::placeholder {
@@ -130,7 +218,7 @@ form input[type="text"]::placeholder {
 form input[type="text"]:focus {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 16px var(--accent-dim);
+    box-shadow: var(--shadow-glow), 0 0 32px rgba(0, 212, 255, 0.06);
     background: var(--bg-panel-alt);
 }
 
@@ -144,20 +232,24 @@ form input[type="text"]:focus {
     border-radius: var(--radius);
     cursor: pointer;
     letter-spacing: 2px;
-    transition: all 0.2s;
+    transition: all var(--duration-normal) ease;
     text-decoration: none;
     display: inline-block;
     font-weight: 400;
+    position: relative;
+    overflow: hidden;
 }
 
 .btn-primary:hover {
     background: #00b8d4;
-    box-shadow: 0 0 24px var(--accent-glow);
-    transform: translateY(-1px);
+    box-shadow: 0 0 24px var(--accent-glow), 0 0 48px rgba(0, 212, 255, 0.15);
+    transform: translateY(-2px);
 }
 
 .btn-primary:active {
-    transform: translateY(0);
+    transform: translateY(1px);
+    box-shadow: 0 0 12px var(--accent-dim);
+    transition: all var(--duration-fast) ease;
 }
 
 /* ANIMATIONS */
@@ -172,6 +264,17 @@ form input[type="text"]:focus {
     }
 }
 
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 @keyframes glowPulse {
     0%, 100% {
         opacity: 0.6;
@@ -183,10 +286,10 @@ form input[type="text"]:focus {
 
 @keyframes pulseGreen {
     0% {
-        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
     }
-    70% {
-        box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+    50% {
+        box-shadow: 0 0 8px 4px rgba(34, 197, 94, 0.3);
     }
     100% {
         box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
@@ -195,54 +298,152 @@ form input[type="text"]:focus {
 
 @keyframes pulseRed {
     0% {
-        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5);
     }
-    70% {
-        box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+    50% {
+        box-shadow: 0 0 8px 4px rgba(239, 68, 68, 0.3);
     }
     100% {
         box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
     }
 }
 
+/* Shimmer effect for stat bar fills */
+@keyframes barShimmer {
+    0% {
+        background-position: -200% center;
+    }
+    100% {
+        background-position: 200% center;
+    }
+}
+
+/* Floating stat change indicator */
+@keyframes floatStatChange {
+    0% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    70% {
+        opacity: 0.8;
+        transform: translateY(-24px) scale(1.1);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-36px) scale(0.9);
+    }
+}
+
+.stat-change-float {
+    position: absolute;
+    font-family: var(--font-arcade);
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+    pointer-events: none;
+    z-index: 100;
+    animation: floatStatChange 0.8s ease-out forwards;
+    text-shadow: 0 0 8px currentColor;
+}
+
+.stat-change-float--positive {
+    color: var(--green);
+}
+
+.stat-change-float--negative {
+    color: var(--red);
+}
+
+/* Sparkle burst */
+@keyframes sparkleBurst {
+    0% {
+        opacity: 0;
+        transform: scale(0) rotate(0deg);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2) rotate(180deg);
+    }
+    100% {
+        opacity: 0;
+        transform: scale(0.5) rotate(360deg);
+    }
+}
+
+/* Turn counter tick animation */
+@keyframes turnTick {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.3); color: #fff; text-shadow: 0 0 16px var(--accent-glow-strong); }
+    100% { transform: scale(1); }
+}
+
+.turn-tick {
+    animation: turnTick 0.4s ease-out;
+}
+
 .container > * {
-    animation: fadeIn 0.3s ease both;
+    animation: fadeInScale 0.35s ease both;
 }
 
 .container > *:nth-child(2) {
-    animation-delay: 0.04s;
+    animation-delay: 0.05s;
 }
 
 .container > *:nth-child(3) {
-    animation-delay: 0.08s;
+    animation-delay: 0.1s;
 }
 
 .container > *:nth-child(4) {
-    animation-delay: 0.12s;
+    animation-delay: 0.15s;
 }
 
 .container > *:nth-child(5) {
-    animation-delay: 0.16s;
+    animation-delay: 0.2s;
+}
+
+.container > *:nth-child(6) {
+    animation-delay: 0.25s;
+}
+
+/* Ripple effect for button clicks */
+@keyframes rippleEffect {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0.5;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(4);
+        opacity: 0;
+    }
+}
+
+.btn-ripple {
+    position: absolute;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    background: rgba(0, 212, 255, 0.3);
+    pointer-events: none;
+    animation: rippleEffect 0.5s ease-out forwards;
 }
 
 /*  RESPONSIVE BASE  */
 @media (min-width: 769px) {
     body {
-        padding: 24px 20px;
+        padding: var(--space-xl) var(--space-xl);
     }
 
     .container {
-        gap: 16px;
+        gap: var(--space-lg);
     }
 }
 
 @media (max-width: 600px) {
     body {
-        padding: 8px 6px;
+        padding: var(--space-sm) var(--space-sm);
     }
 
     .container {
-        gap: 8px;
+        gap: var(--space-sm);
     }
 
     h1 {

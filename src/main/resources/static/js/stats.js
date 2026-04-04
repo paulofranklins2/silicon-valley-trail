@@ -24,6 +24,86 @@
         return 'good';
     }
 
+    /**
+     * Animate a number counting from old to new value.
+     */
+    function animateNumber(el, from, to, duration) {
+        if (from === to) {
+            el.textContent = to;
+            return;
+        }
+        duration = duration || 500;
+        var start = performance.now();
+        var diff = to - from;
+
+        function tick(now) {
+            var elapsed = now - start;
+            var progress = Math.min(elapsed / duration, 1);
+            // Ease out cubic
+            var eased = 1 - Math.pow(1 - progress, 3);
+            var current = Math.round(from + diff * eased);
+            el.textContent = current;
+            if (progress < 1) {
+                requestAnimationFrame(tick);
+            }
+        }
+
+        requestAnimationFrame(tick);
+    }
+
+    /**
+     * Create a floating stat change indicator (e.g., "+15" or "-10")
+     * that floats upward and fades out.
+     */
+    function createFloatingIndicator(targetEl, delta) {
+        var rect = targetEl.getBoundingClientRect();
+        var indicator = document.createElement('div');
+        indicator.className = 'stat-change-float ' +
+            (delta > 0 ? 'stat-change-float--positive' : 'stat-change-float--negative');
+        indicator.textContent = (delta > 0 ? '+' : '') + delta;
+
+        // Position near the stat value
+        indicator.style.position = 'fixed';
+        indicator.style.left = rect.left + 'px';
+        indicator.style.top = (rect.top - 4) + 'px';
+
+        document.body.appendChild(indicator);
+
+        // Remove after animation
+        setTimeout(function () {
+            if (indicator.parentNode) indicator.parentNode.removeChild(indicator);
+        }, 850);
+    }
+
+    /**
+     * Trigger screen shake for big damage events.
+     */
+    function triggerScreenShake() {
+        var container = document.querySelector('.container');
+        if (!container) return;
+        container.classList.remove('screen-shake');
+        // Force reflow
+        void container.offsetWidth;
+        container.classList.add('screen-shake');
+        setTimeout(function () {
+            container.classList.remove('screen-shake');
+        }, 450);
+    }
+
+    /**
+     * Flash the screen border with damage/gain color.
+     */
+    function triggerScreenFlash(type) {
+        var body = document.body;
+        var cls = type === 'damage' ? 'damage-flash' : 'gain-flash';
+        body.classList.remove('damage-flash', 'gain-flash');
+        void body.offsetWidth;
+        body.classList.add(cls);
+        setTimeout(function () {
+            body.classList.remove(cls);
+        }, 550);
+    }
+
     function updateBar(row, newValue, oldValue) {
         var fill = row.querySelector('.stat-row__fill');
         var val = row.querySelector('.stat-row__val');
@@ -31,31 +111,46 @@
 
         fill.className = 'stat-row__fill ' + barClass(newValue);
         fill.style.width = newValue + '%';
-        val.textContent = newValue;
 
-        // Animate value flash
+        // Animate the number counting
         if (oldValue !== undefined && oldValue !== newValue) {
+            animateNumber(val, oldValue, newValue, 450);
+
             var flashClass = newValue > oldValue ? 'flash-up' : 'flash-down';
             val.classList.add(flashClass);
 
             var pulseClass = newValue > oldValue ? 'pulse-up' : 'pulse-down';
             bar.classList.add(pulseClass);
 
+            // Floating indicator
+            var delta = newValue - oldValue;
+            createFloatingIndicator(val, delta);
+
             setTimeout(function () {
                 val.classList.remove(flashClass);
                 bar.classList.remove(pulseClass);
-            }, 700);
+            }, 800);
+        } else {
+            val.textContent = newValue;
         }
     }
 
     function updateResource(el, newValue, oldValue) {
-        el.textContent = newValue;
         if (oldValue !== undefined && oldValue !== newValue) {
+            animateNumber(el, oldValue, newValue, 400);
+
             var flashClass = newValue > oldValue ? 'flash-up' : 'flash-down';
             el.classList.add(flashClass);
+
+            // Floating indicator
+            var delta = newValue - oldValue;
+            createFloatingIndicator(el, delta);
+
             setTimeout(function () {
                 el.classList.remove(flashClass);
-            }, 700);
+            }, 800);
+        } else {
+            el.textContent = newValue;
         }
     }
 
@@ -90,6 +185,9 @@
             {label: 'Compute', old: oldState.resourceState.computeCredits, cur: newState.resourceState.computeCredits}
         ];
 
+        var totalNegative = 0;
+        var totalPositive = 0;
+
         diffs.forEach(function (d) {
             var delta = d.cur - d.old;
             if (delta !== 0) {
@@ -97,8 +195,22 @@
                 var color = delta > 0 ? 'color:var(--green)' : 'color:var(--red)';
                 parts.push('<span style="' + color + '">' + d.label + ' ' + sign + delta + '</span>');
                 net += delta;
+                if (delta < 0) totalNegative += Math.abs(delta);
+                if (delta > 0) totalPositive += delta;
             }
         });
+
+        // Screen effects based on severity
+        if (totalNegative >= 15) {
+            triggerScreenShake();
+            triggerScreenFlash('damage');
+        } else if (totalNegative >= 8) {
+            triggerScreenFlash('damage');
+        }
+
+        if (totalPositive >= 15) {
+            triggerScreenFlash('gain');
+        }
 
         var actionName = (newState.lastAction || '').replace(/_/g, ' ');
         var evt = newState.lastEvent;
@@ -127,47 +239,29 @@
     }
 
     function renderStoryBeat(state) {
-        // Remove existing story beat
-        var existing = document.querySelector('.story-beat');
-        if (existing) existing.remove();
+        var container = document.getElementById('story-beat-container');
+        if (!container) return;
 
-        // If waiting for a choice, don't render the story beat (modal handles it)
+        // If waiting for a choice, show waiting state
         if (state.waitingEventChoice && state.lastEvent) {
+            container.innerHTML = '<div class="story-beat__empty"><span class="story-beat__action-label">A decision awaits...</span></div>';
             return;
         }
 
-        if (!state.lastAction) return;
+        if (!state.lastAction) {
+            container.innerHTML = '<div class="story-beat__empty"><span class="story-beat__action-label">Waiting for orders...</span></div>';
+            return;
+        }
 
-        var section = document.createElement('div');
-        section.className = 'story-beat story-beat--entering';
+        var html = '<div class="story-beat__action"><span class="story-beat__action-label">' +
+            state.lastAction.replace(/_/g, ' ') + '</span></div>';
 
-        // Action label
-        var actionDiv = document.createElement('div');
-        actionDiv.className = 'story-beat__action';
-        var actionSpan = document.createElement('span');
-        actionSpan.className = 'story-beat__action-label';
-        actionSpan.textContent = state.lastAction.replace(/_/g, ' ');
-        actionDiv.appendChild(actionSpan);
-        section.appendChild(actionDiv);
-
-        // Event
         var evt = state.lastEvent;
         if (evt) {
-            var eventDiv = document.createElement('div');
-            eventDiv.className = 'story-beat__event';
-
-            var titleP = document.createElement('p');
-            titleP.className = 'story-beat__title';
-            titleP.textContent = evt.title;
-            eventDiv.appendChild(titleP);
-
-            var descP = document.createElement('p');
-            descP.className = 'story-beat__desc';
-            descP.textContent = evt.description;
-            eventDiv.appendChild(descP);
-
-            var impactDiv = document.createElement('div');
-            impactDiv.className = 'story-beat__impacts';
+            html += '<div class="story-beat__event">';
+            html += '<p class="story-beat__title">' + escapeHtml(evt.title) + '</p>';
+            html += '<p class="story-beat__desc">' + escapeHtml(evt.description) + '</p>';
+            html += '<div class="story-beat__impacts">';
             var impacts = [
                 ['Health', evt.healthChange],
                 ['Energy', evt.energyChange],
@@ -178,27 +272,20 @@
             ];
             impacts.forEach(function (pair) {
                 if (pair[1] === 0) return;
-                var span = document.createElement('span');
-                span.className = pair[1] > 0 ? 'positive' : 'negative';
-                span.textContent = pair[0] + ' ' + (pair[1] > 0 ? '+' : '') + pair[1];
-                impactDiv.appendChild(span);
+                var cls = pair[1] > 0 ? 'positive' : 'negative';
+                var sign = pair[1] > 0 ? '+' : '';
+                html += '<span class="' + cls + '">' + pair[0] + ' ' + sign + pair[1] + '</span>';
             });
-            eventDiv.appendChild(impactDiv);
-            section.appendChild(eventDiv);
+            html += '</div></div>';
         }
 
-        // Insert into the stats column (game-body__stats)
-        var statsCol = document.querySelector('.game-body__stats');
-        if (statsCol) {
-            statsCol.appendChild(section);
-        }
+        container.innerHTML = html;
+    }
 
-        // Animate in
-        requestAnimationFrame(function () {
-            requestAnimationFrame(function () {
-                section.classList.remove('story-beat--entering');
-            });
-        });
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(text));
+        return div.innerHTML;
     }
 
     var foodWarn = document.getElementById('food-warn');
@@ -213,10 +300,9 @@
 
         if (foodWarn) {
             if (foodTurns > 0) {
-                var foodLeft = FOOD_GRACE - foodTurns;
-                foodWarn.textContent = foodLeft > 0
-                    ? 'starving ' + foodTurns + '/' + FOOD_GRACE
-                    : 'STARVING!';
+                foodWarn.textContent = foodTurns >= FOOD_GRACE
+                    ? 'STARVING!'
+                    : 'starving ' + foodTurns + '/' + FOOD_GRACE;
                 foodWarn.style.display = 'inline';
             } else {
                 foodWarn.style.display = 'none';
@@ -225,10 +311,9 @@
 
         if (cashWarn) {
             if (cashTurns > 0) {
-                var cashLeft = CASH_GRACE - cashTurns;
-                cashWarn.textContent = cashLeft > 0
-                    ? 'broke ' + cashTurns + '/' + CASH_GRACE
-                    : 'BANKRUPT!';
+                cashWarn.textContent = cashTurns >= CASH_GRACE
+                    ? 'BANKRUPT!'
+                    : 'broke ' + cashTurns + '/' + CASH_GRACE;
                 cashWarn.style.display = 'inline';
             } else {
                 cashWarn.style.display = 'none';
@@ -237,12 +322,23 @@
     }
 
     function renderState(state, oldState) {
-        // Turn and location
+        // Turn counter with tick animation
         var turnLabel = document.querySelector('.top-bar__turn');
         var locationName = document.querySelector('.journey-progress__city--current');
         var distanceText = document.querySelector('.journey-progress__dist');
 
-        if (turnLabel) turnLabel.textContent = 'Turn ' + state.turn;
+        if (turnLabel) {
+            turnLabel.textContent = 'Turn ' + state.turn;
+            // Animate the turn counter
+            if (oldState && state.turn !== oldState.turn) {
+                turnLabel.classList.remove('turn-tick');
+                void turnLabel.offsetWidth;
+                turnLabel.classList.add('turn-tick');
+                setTimeout(function () {
+                    turnLabel.classList.remove('turn-tick');
+                }, 450);
+            }
+        }
         if (locationName) locationName.textContent = state.journeyState.currentLocation.name;
         if (distanceText) distanceText.textContent = 'Next stop: ' + state.journeyState.distanceToNextLocation.toFixed(1) + ' km';
 

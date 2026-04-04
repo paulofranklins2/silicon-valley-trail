@@ -31,8 +31,31 @@
     </p>
     <form action="/start" class="start-form" method="post">
         <input name="teamName" placeholder="Enter team name..." required type="text">
+        <div class="mode-selector">
+            <label class="mode-option mode-option--active">
+                <input type="radio" name="gameMode" value="FAST" checked>
+                <span class="mode-option__name">Fast</span>
+                <span class="mode-option__desc">Straight-line distance</span>
+            </label>
+            <label class="mode-option">
+                <input type="radio" name="gameMode" value="ROAD">
+                <span class="mode-option__name">Road</span>
+                <span class="mode-option__desc">Real driving distance</span>
+            </label>
+        </div>
         <button type="submit">Launch</button>
     </form>
+    <script>
+        document.querySelectorAll('.mode-option input').forEach(function(radio) {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('.mode-option').forEach(function(el) {
+                    el.classList.remove('mode-option--active');
+                });
+                this.closest('.mode-option').classList.add('mode-option--active');
+            });
+        });
+    </script>
+    <a href="/leaderboard" class="start-leaderboard-link">View Leaderboard</a>
 </div>
 </body>
 </html>

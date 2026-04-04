@@ -19,7 +19,10 @@
     var waitingForChoice = false;
 
     // Capture initial state from DOM for diff comparison
+    var turnEl = document.querySelector('.top-bar__turn');
+    var turnText = turnEl ? turnEl.textContent : '';
     var previousState = {
+        turn: parseInt(turnText.replace(/\D/g, '')) || 1,
         teamState: {
             health: parseInt(healthRow.querySelector('.stat-row__val').textContent) || 0,
             energy: parseInt(energyRow.querySelector('.stat-row__val').textContent) || 0,
@@ -44,6 +47,25 @@
     var choiceModalTitle = document.getElementById('choice-modal-title');
     var choiceModalDesc = document.getElementById('choice-modal-desc');
     var choiceModalOptions = document.getElementById('choice-modal-options');
+
+    /**
+     * Create a ripple effect on button click.
+     */
+    function createRipple(btn, e) {
+        var rect = btn.getBoundingClientRect();
+        var x = e.clientX - rect.left;
+        var y = e.clientY - rect.top;
+
+        var ripple = document.createElement('span');
+        ripple.className = 'btn-ripple';
+        ripple.style.left = x + 'px';
+        ripple.style.top = y + 'px';
+        btn.appendChild(ripple);
+
+        setTimeout(function () {
+            if (ripple.parentNode) ripple.parentNode.removeChild(ripple);
+        }, 550);
+    }
 
     // Choice-pending state: disable/enable action buttons
     function setChoicePending(pending) {
@@ -121,7 +143,8 @@
             tagsSpan.innerHTML = buildChangeTags(outcome);
             btn.appendChild(tagsSpan);
 
-            btn.addEventListener('click', function () {
+            btn.addEventListener('click', function (e) {
+                createRipple(btn, e);
                 handleModalChoice(idx, outcome.description || 'Option ' + (idx + 1));
             });
 
@@ -280,6 +303,7 @@
     // Common state update after any response (action or choice)
     function applyStateUpdate(state, oldState, toastOverrideHtml) {
         previousState = {
+            turn: state.turn,
             teamState: {
                 health: state.teamState.health, energy: state.teamState.energy, morale: state.teamState.morale
             }, resourceState: {
@@ -318,7 +342,7 @@
     }
 
     // AJAX action handling
-    function handleAction(actionValue) {
+    function handleAction(actionValue, clickEvent) {
         if (isProcessing || waitingForChoice) return;
         isProcessing = true;
         setButtonsProcessing(true);
@@ -377,17 +401,38 @@
         }
     };
 
-    // Intercept form submissions
+    // Intercept form submissions and add ripple effects
     var forms = document.querySelectorAll('.action-card');
     forms.forEach(function (form) {
+        var btn = form.querySelector('button');
+
+        // Add ripple on click
+        if (btn) {
+            btn.addEventListener('mousedown', function (e) {
+                if (!btn.disabled) {
+                    createRipple(btn, e);
+                }
+            });
+        }
+
         form.addEventListener('submit', function (e) {
             e.preventDefault();
             var actionInput = form.querySelector('input[name="action"]');
             if (actionInput) {
-                handleAction(actionInput.value);
+                handleAction(actionInput.value, e);
             }
         });
     });
+
+    // Add ripple to market button
+    var marketBtnEl = document.getElementById('market-btn');
+    if (marketBtnEl) {
+        marketBtnEl.addEventListener('mousedown', function (e) {
+            if (!marketBtnEl.disabled) {
+                createRipple(marketBtnEl, e);
+            }
+        });
+    }
 
     // ---- City Market modal ----
     var marketModal = document.getElementById('market-modal');
@@ -442,7 +487,8 @@
             btn.appendChild(tagsSpan);
 
             if (!alreadyBought) {
-                btn.addEventListener('click', function () {
+                btn.addEventListener('click', function (e) {
+                    createRipple(btn, e);
                     handleMarketChoice(idx, outcome.description || 'Option ' + (idx + 1));
                 });
             }

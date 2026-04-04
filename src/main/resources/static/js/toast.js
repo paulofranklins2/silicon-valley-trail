@@ -18,7 +18,7 @@
             setTimeout(function () {
                 if (old.parentNode) old.parentNode.removeChild(old);
                 if (callback) callback();
-            }, 200);
+            }, 260);
             currentToast = null;
         } else {
             currentToast = null;
@@ -46,7 +46,7 @@
         toastContainer.appendChild(toast);
         currentToast = toast;
 
-        // Trigger enter animation
+        // Trigger enter animation with slight delay for smoothness
         requestAnimationFrame(function () {
             requestAnimationFrame(function () {
                 toast.classList.add('toast--visible');

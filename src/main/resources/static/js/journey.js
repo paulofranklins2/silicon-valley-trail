@@ -12,6 +12,9 @@
     var distances = data.distances || [];
     var totalLocations = locations.length;
 
+    // Track previous position for movement animation
+    var lastTrainPercent = -1;
+
     // Compute the total journey distance (sum of all segment distances)
     function totalJourneyDistance() {
         var sum = 0;
@@ -81,15 +84,28 @@
         var progressPct = totalDist > 0 ? (totalTraveled / totalDist) * 100 : 0;
         progressPct = Math.max(0, Math.min(100, progressPct));
 
+        // Detect if train is moving
+        var isMoving = lastTrainPercent >= 0 && Math.abs(progressPct - lastTrainPercent) > 0.5;
+
         // Update rail fill
         if (rail) {
             rail.style.setProperty('--rail-progress', progressPct + '%');
         }
 
-        // Update train position
+        // Update train position with bob animation if moving
         if (trainEl) {
             trainEl.style.left = progressPct + '%';
+
+            if (isMoving) {
+                trainEl.classList.add('journey-progress__train--moving');
+                // Remove moving class after transition completes
+                setTimeout(function () {
+                    trainEl.classList.remove('journey-progress__train--moving');
+                }, 1100);
+            }
         }
+
+        lastTrainPercent = progressPct;
 
         // Update dots - a dot is "visited" if its index < currentIndex, "current" if equal
         var dots = dotsContainer ? dotsContainer.querySelectorAll('.journey-dot') : [];

@@ -8,10 +8,14 @@
     border: 1px solid var(--border);
     border-radius: var(--radius);
     overflow: hidden;
+    position: relative;
+    box-shadow: var(--shadow-sm);
 }
 
+/* Glow line removed — keep panels clean */
+
 .stats-panel__section {
-    padding: 16px 20px;
+    padding: var(--space-lg) var(--space-xl);
 }
 
 .stats-panel__section-label {
@@ -20,25 +24,26 @@
     color: var(--text-dim);
     letter-spacing: 2px;
     text-transform: uppercase;
-    margin-bottom: 10px;
+    margin-bottom: var(--space-md);
 }
 
 .stats-panel__divider {
     height: 1px;
-    background: var(--border);
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
 }
 
 .stats-panel__bars {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-md);
 }
 
 /*  STAT ROWS (health, energy, morale bars)  */
 .stat-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--space-md);
+    position: relative;
 }
 
 .stat-row__label {
@@ -48,76 +53,132 @@
     color: var(--text-muted);
     letter-spacing: 1px;
     flex-shrink: 0;
+    transition: color var(--duration-normal) ease;
 }
 
 .stat-row__bar {
     flex: 1;
-    height: 12px;
+    height: 14px;
     background: var(--bg-deep);
-    border-radius: 6px;
+    border-radius: 7px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
     min-width: 0;
+    position: relative;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 .stat-row__fill {
     height: 100%;
-    border-radius: 5px;
-    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1), background 0.4s ease, box-shadow 0.4s ease;
+    border-radius: 6px;
+    transition: width 0.8s var(--ease-out), background var(--duration-slow) ease, box-shadow var(--duration-slow) ease;
+    position: relative;
+}
+
+/* Animated shimmer on stat bars */
+.stat-row__fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.08) 40%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.08) 60%,
+        transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: barShimmer 3s ease-in-out infinite;
+    border-radius: 6px;
 }
 
 .stat-row__fill.good {
     background: linear-gradient(90deg, #16a34a, var(--green));
-    box-shadow: 0 0 6px rgba(34, 197, 94, 0.35);
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .stat-row__fill.warning {
     background: linear-gradient(90deg, #ca8a04, var(--yellow));
-    box-shadow: 0 0 6px rgba(234, 179, 8, 0.35);
+    box-shadow: 0 0 8px rgba(234, 179, 8, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .stat-row__fill.danger {
     background: linear-gradient(90deg, #dc2626, var(--red));
-    box-shadow: 0 0 6px rgba(239, 68, 68, 0.35);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    animation: dangerPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes dangerPulse {
+    0%, 100% { box-shadow: 0 0 6px rgba(239, 68, 68, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1); }
+    50% { box-shadow: 0 0 14px rgba(239, 68, 68, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15); }
+}
+
+/* Override shimmer on danger - make it faster and red-tinted */
+.stat-row__fill.danger::after {
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 100, 100, 0.1) 40%,
+        rgba(255, 150, 150, 0.2) 50%,
+        rgba(255, 100, 100, 0.1) 60%,
+        transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: barShimmer 1.5s ease-in-out infinite;
 }
 
 .stat-row__val {
     width: 32px;
     text-align: right;
     font-family: var(--font-arcade);
-    font-size: 1.05rem;
+    font-size: 1.1rem;
     color: var(--text);
     flex-shrink: 0;
-    transition: color 0.3s ease;
+    transition: color var(--duration-normal) ease, transform var(--duration-normal) ease, text-shadow var(--duration-normal) ease;
 }
 
 .stat-row__val.flash-up {
     color: var(--green);
+    text-shadow: 0 0 8px var(--green-glow);
+    transform: scale(1.2);
 }
 
 .stat-row__val.flash-down {
     color: var(--red);
+    text-shadow: 0 0 8px var(--red-glow);
+    transform: scale(1.2);
 }
 
 .stat-row__bar.pulse-up {
-    animation: pulseGreen 0.6s ease;
+    animation: pulseGreen 0.7s ease;
 }
 
 .stat-row__bar.pulse-down {
-    animation: pulseRed 0.6s ease;
+    animation: pulseRed 0.7s ease;
+}
+
+/* Danger state: glow the label too */
+.stat-row[data-stat="health"] .stat-row__fill.danger ~ .stat-row__val {
+    color: var(--red);
+    text-shadow: 0 0 6px var(--red-glow);
 }
 
 /*  RESOURCE ROWS (cash, food, compute)  */
 .stats-panel__resources {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--space-md);
 }
 
 .res-item {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-sm);
+    position: relative;
 }
 
 .res-item__icon {
@@ -127,6 +188,7 @@
     width: 18px;
     text-align: center;
     flex-shrink: 0;
+    transition: text-shadow var(--duration-normal) ease;
 }
 
 .res-item__icon--food {
@@ -156,29 +218,52 @@
     background: var(--bg-deep);
     border-radius: 4px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .res-item__fill {
     height: 100%;
     border-radius: 3px;
-    transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: width 0.8s var(--ease-out);
     min-width: 2px;
+    position: relative;
+}
+
+/* Subtle shimmer on resource bars too */
+.res-item__fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.1) 45%,
+        rgba(255, 255, 255, 0.18) 50%,
+        rgba(255, 255, 255, 0.1) 55%,
+        transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: barShimmer 4s ease-in-out infinite;
+    border-radius: 3px;
 }
 
 .res-item__fill--cash {
     background: linear-gradient(90deg, #16a34a, var(--green));
-    box-shadow: 0 0 4px rgba(34, 197, 94, 0.25);
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.3);
 }
 
 .res-item__fill--food {
     background: linear-gradient(90deg, #ca8a04, var(--yellow));
-    box-shadow: 0 0 4px rgba(234, 179, 8, 0.25);
+    box-shadow: 0 0 6px rgba(234, 179, 8, 0.3);
 }
 
 .res-item__fill--compute {
     background: linear-gradient(90deg, #7c3aed, var(--purple));
-    box-shadow: 0 0 4px rgba(168, 85, 247, 0.25);
+    box-shadow: 0 0 6px rgba(168, 85, 247, 0.3);
 }
 
 .res-item__val {
@@ -186,7 +271,7 @@
     font-size: 1.1rem;
     color: var(--text);
     letter-spacing: 1px;
-    transition: color 0.3s ease;
+    transition: color var(--duration-normal) ease, transform var(--duration-normal) ease, text-shadow var(--duration-normal) ease;
     min-width: 36px;
     text-align: right;
     flex-shrink: 0;
@@ -194,62 +279,99 @@
 
 .res-item__val.flash-up {
     color: var(--green);
+    text-shadow: 0 0 8px var(--green-glow);
+    transform: scale(1.15);
 }
 
 .res-item__val.flash-down {
     color: var(--red);
+    text-shadow: 0 0 8px var(--red-glow);
+    transform: scale(1.15);
 }
 
 .res-item__warn {
     display: none;
+    position: absolute;
+    right: 0;
+    top: -10px;
     font-family: var(--font-arcade);
-    font-size: 0.65rem;
+    font-size: 0.6rem;
     letter-spacing: 0.5px;
     color: var(--red);
     background: var(--red-bg);
     border: 1px solid var(--red-border);
     border-radius: var(--radius-sm);
-    padding: 1px 6px;
-    animation: warnPulse 1.5s ease-in-out infinite;
+    padding: 1px var(--space-xs);
+    animation: warnPulse 1.2s ease-in-out infinite;
+    text-shadow: 0 0 4px var(--red-glow);
+    z-index: 2;
+    white-space: nowrap;
 }
 
 @keyframes warnPulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
+    0%, 100% { opacity: 1; box-shadow: 0 0 4px rgba(239, 68, 68, 0.2); }
+    50% { opacity: 0.6; box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
 }
 
 /*  RESPONSIVE COMPONENTS  */
 @media (min-width: 1100px) {
     .stats-panel__section {
-        padding: 20px 24px;
+        padding: var(--space-xl) var(--space-2xl);
     }
 }
 
 @media (max-width: 600px) {
+    .stats-panel::before {
+        height: 1px;
+    }
+
     .stats-panel__section {
-        padding: 10px 12px;
+        padding: var(--space-sm) var(--space-md);
     }
 
     .stats-panel__section-label {
-        font-size: 0.72rem;
-        margin-bottom: 6px;
+        font-size: 0.68rem;
+        margin-bottom: var(--space-xs);
     }
 
     .stats-panel__bars {
-        gap: 5px;
+        gap: var(--space-xs);
+    }
+
+    .stat-row {
+        gap: var(--space-sm);
+    }
+
+    .stat-row__label {
+        font-size: 0.8rem;
+        width: 32px;
     }
 
     .stat-row__bar {
         height: 10px;
     }
 
+    .stat-row__val {
+        font-size: 0.95rem;
+        width: 28px;
+    }
+
+    .stats-panel__resources {
+        gap: var(--space-xs);
+    }
+
     .res-item__bar {
         height: 6px;
     }
 
+    .res-item__val {
+        font-size: 0.95rem;
+        min-width: 30px;
+    }
+
     .res-item__name {
-        width: 48px;
-        font-size: 0.72rem;
+        width: 44px;
+        font-size: 0.68rem;
     }
 }
 

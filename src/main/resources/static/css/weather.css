@@ -4,35 +4,37 @@
  * heatwave effects, clear glow, and all weather-related animations.
  */
 
-/*  WEATHER DISPLAY  */
+/*  WEATHER DISPLAY (inline in top bar)  */
 .weather-display {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: var(--bg-panel);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    gap: var(--space-sm);
     font-family: var(--font-arcade);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     letter-spacing: 1px;
+    transition: opacity var(--duration-slow) ease;
 }
 
 .weather-display__icon {
     font-size: 1.2rem;
     line-height: 1;
+    transition: transform var(--duration-normal) ease;
+}
+
+.weather-display__icon:hover {
+    transform: scale(1.2);
 }
 
 .weather-display__label {
     color: var(--text);
     font-size: 1rem;
+    transition: color var(--duration-slow) ease;
 }
 
 .weather-display__effects {
     font-size: 0.8rem;
     letter-spacing: 0.5px;
-    padding: 2px 8px;
+    padding: 2px var(--space-sm);
     border-radius: var(--radius-sm);
 }
 
@@ -40,12 +42,14 @@
     color: var(--green);
     background: var(--green-bg);
     border: 1px solid var(--green-border);
+    text-shadow: 0 0 4px rgba(34, 197, 94, 0.3);
 }
 
 .weather-effects--negative {
     color: var(--red);
     background: var(--red-bg);
     border: 1px solid var(--red-border);
+    text-shadow: 0 0 4px rgba(239, 68, 68, 0.3);
 }
 
 /*  WEATHER OVERLAY  */
@@ -55,7 +59,7 @@
     pointer-events: none;
     z-index: 100;
     opacity: 1;
-    transition: opacity 0.4s ease;
+    transition: opacity var(--duration-slow) ease;
     overflow: hidden;
 }
 
@@ -164,8 +168,7 @@
 
 /* Darken panels when rainy */
 .weather-overlay--rainy ~ .game-body .stats-panel,
-.weather-overlay--rainy ~ .game-body .story-beat,
-.weather-overlay--rainy ~ .game-body .team-display {
+.weather-overlay--rainy ~ .game-body .story-beat {
     filter: brightness(0.92);
 }
 
@@ -251,8 +254,7 @@
 
 /* Darken panels when stormy */
 .weather-overlay--stormy ~ .game-body .stats-panel,
-.weather-overlay--stormy ~ .game-body .story-beat,
-.weather-overlay--stormy ~ .game-body .team-display {
+.weather-overlay--stormy ~ .game-body .story-beat {
     filter: brightness(0.82);
 }
 
@@ -382,21 +384,21 @@
 /*  WEATHER RESPONSIVE  */
 @media (max-width: 600px) {
     .weather-display {
-        padding: 6px 10px;
-        gap: 6px;
-        font-size: 0.8rem;
+        gap: var(--space-xs);
+        font-size: 0.7rem;
     }
 
     .weather-display__icon {
-        font-size: 1rem;
-    }
-
-    .weather-display__label {
         font-size: 0.85rem;
     }
 
+    .weather-display__label {
+        font-size: 0.75rem;
+    }
+
     .weather-display__effects {
-        font-size: 0.7rem;
+        font-size: 0.6rem;
+        padding: 1px var(--space-xs);
     }
 
     /* Make rain slightly smaller on mobile but still very visible */

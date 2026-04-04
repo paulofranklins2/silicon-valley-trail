@@ -4,17 +4,15 @@
 <body>
 <div class="container">
 
-    <!-- Top bar: title, team, turn -->
+    <!-- Top bar: title, weather, turn -->
     <div class="top-bar">
         <span class="top-bar__title">Silicon Valley Trail</span>
+        <div class="top-bar__weather weather-display" th:data-weather="${gameState.lastWeather}">
+            <span class="weather-display__icon" id="weather-icon"></span>
+            <span class="weather-display__label" id="weather-label"></span>
+            <span class="weather-display__effects" id="weather-effects"></span>
+        </div>
         <span class="top-bar__turn" th:text="'Turn ' + ${gameState.turn}">Turn 1</span>
-    </div>
-
-    <!-- Weather display -->
-    <div class="weather-display" th:data-weather="${gameState.lastWeather}">
-        <span class="weather-display__icon" id="weather-icon"></span>
-        <span class="weather-display__label" id="weather-label"></span>
-        <span class="weather-display__effects" id="weather-effects"></span>
     </div>
 
     <!-- Weather overlay (CSS animations + DOM particles) -->
@@ -41,9 +39,15 @@
                 <img src="/img/train.png" alt="Train" class="journey-progress__train-img">
             </div>
         </div>
-        <div class="journey-progress__dist"
-             th:text="'Next stop: ' + ${#numbers.formatDecimal(gameState.journeyState.distanceToNextLocation, 1, 1)} + ' km'">
-            10 km
+        <div class="journey-progress__info">
+            <span class="journey-progress__dist"
+                  th:text="'Next stop: ' + ${#numbers.formatDecimal(gameState.journeyState.distanceToNextLocation, 1, 1)} + ' km'">
+                10 km
+            </span>
+            <span class="journey-progress__total"
+                  th:text="'Total: ' + ${#numbers.formatDecimal(gameState.journeyState.totalDistance, 1, 1)} + ' km (' + ${gameState.gameMode.displayName} + ')'">
+                Total: 65 km
+            </span>
         </div>
     </div>
 
@@ -52,32 +56,68 @@
         <div class="action-stage__scene" id="action-scene"></div>
     </div>
 
+    <!-- Story beat (always present, above the two-column grid) -->
+    <div class="story-beat" id="story-beat-container">
+        <div th:if="${gameState.lastAction != null and !gameState.waitingEventChoice}">
+            <div class="story-beat__action">
+                <span class="story-beat__action-label" th:text="${gameState.lastAction}">TRAVEL</span>
+            </div>
+            <div class="story-beat__event" th:if="${gameState.lastEvent != null}">
+                <p class="story-beat__title" th:text="${gameState.lastEvent.title}">Event Title</p>
+                <p class="story-beat__desc" th:text="${gameState.lastEvent.description}">Event description</p>
+                <div class="story-beat__impacts">
+                    <span th:classappend="${gameState.lastEvent.healthChange > 0 ? 'positive' : 'negative'}"
+                          th:if="${gameState.lastEvent.healthChange != 0}"
+                          th:text="'Health ' + (${gameState.lastEvent.healthChange > 0} ? '+' : '') + ${gameState.lastEvent.healthChange}">Health</span>
+                    <span th:classappend="${gameState.lastEvent.energyChange > 0 ? 'positive' : 'negative'}"
+                          th:if="${gameState.lastEvent.energyChange != 0}"
+                          th:text="'Energy ' + (${gameState.lastEvent.energyChange > 0} ? '+' : '') + ${gameState.lastEvent.energyChange}">Energy</span>
+                    <span th:classappend="${gameState.lastEvent.moraleChange > 0 ? 'positive' : 'negative'}"
+                          th:if="${gameState.lastEvent.moraleChange != 0}"
+                          th:text="'Morale ' + (${gameState.lastEvent.moraleChange > 0} ? '+' : '') + ${gameState.lastEvent.moraleChange}">Morale</span>
+                    <span th:classappend="${gameState.lastEvent.cashChange > 0 ? 'positive' : 'negative'}"
+                          th:if="${gameState.lastEvent.cashChange != 0}"
+                          th:text="'Cash ' + (${gameState.lastEvent.cashChange > 0} ? '+' : '') + ${gameState.lastEvent.cashChange}">Cash</span>
+                    <span th:classappend="${gameState.lastEvent.foodChange > 0 ? 'positive' : 'negative'}"
+                          th:if="${gameState.lastEvent.foodChange != 0}"
+                          th:text="'Food ' + (${gameState.lastEvent.foodChange > 0} ? '+' : '') + ${gameState.lastEvent.foodChange}">Food</span>
+                    <span th:classappend="${gameState.lastEvent.computeCreditsChange > 0 ? 'positive' : 'negative'}"
+                          th:if="${gameState.lastEvent.computeCreditsChange != 0}"
+                          th:text="'Compute ' + (${gameState.lastEvent.computeCreditsChange > 0} ? '+' : '') + ${gameState.lastEvent.computeCreditsChange}">Compute</span>
+                </div>
+            </div>
+        </div>
+        <div th:if="${gameState.lastAction == null}" class="story-beat__empty">
+            <span class="story-beat__action-label">Waiting for orders...</span>
+        </div>
+    </div>
+
     <!-- Desktop two-column layout wrapper -->
     <div class="game-body">
 
         <!-- Left column: stats -->
         <div class="game-body__stats">
-            <!-- Team display with status effects -->
-            <div class="team-display">
-                <span class="team-display__name" th:text="'Team: ' + ${gameState.teamName}">Team Name</span>
-                <div class="team-display__members">
-                    <div class="team-display__member" data-member="1">
-                        <img src="/img/team-member-1.png" alt="Team member" class="team-display__sprite">
-                    </div>
-                    <div class="team-display__member" data-member="2">
-                        <img src="/img/team-member-2.png" alt="Team member" class="team-display__sprite">
-                    </div>
-                    <div class="team-display__member" data-member="3">
-                        <img src="/img/team-member-3.png" alt="Team member" class="team-display__sprite">
-                    </div>
-                    <div class="team-display__member" data-member="4">
-                        <img src="/img/team-member-4.png" alt="Team member" class="team-display__sprite">
+            <!-- Combined stats panel (team + stats unified) -->
+            <div class="stats-panel">
+                <!-- Team header inside the stats panel -->
+                <div class="stats-panel__team">
+                    <span class="team-display__name" th:text="${gameState.teamName}">Team Name</span>
+                    <div class="team-display__members">
+                        <div class="team-display__member" data-member="1">
+                            <img src="/img/team-member-1.png" alt="Team member" class="team-display__sprite">
+                        </div>
+                        <div class="team-display__member" data-member="2">
+                            <img src="/img/team-member-2.png" alt="Team member" class="team-display__sprite">
+                        </div>
+                        <div class="team-display__member" data-member="3">
+                            <img src="/img/team-member-3.png" alt="Team member" class="team-display__sprite">
+                        </div>
+                        <div class="team-display__member" data-member="4">
+                            <img src="/img/team-member-4.png" alt="Team member" class="team-display__sprite">
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Combined stats panel -->
-            <div class="stats-panel">
+                <div class="stats-panel__divider"></div>
                 <div class="stats-panel__section">
                     <div class="stats-panel__section-label">Team Status</div>
                     <div class="stats-panel__bars">
@@ -150,37 +190,6 @@
                 </div>
             </div>
 
-            <!-- Event story beat (server-rendered for initial load) -->
-            <div class="story-beat" th:if="${gameState.lastAction != null and !gameState.waitingEventChoice}">
-                <div class="story-beat__action">
-                    <span class="story-beat__action-label" th:text="${gameState.lastAction}">TRAVEL</span>
-                </div>
-                <div class="story-beat__event" th:if="${gameState.lastEvent != null}">
-                    <p class="story-beat__title" th:text="${gameState.lastEvent.title}">Event Title</p>
-                    <p class="story-beat__desc" th:text="${gameState.lastEvent.description}">Event description</p>
-                    <div class="story-beat__impacts">
-                        <span th:classappend="${gameState.lastEvent.healthChange > 0 ? 'positive' : 'negative'}"
-                              th:if="${gameState.lastEvent.healthChange != 0}"
-                              th:text="'Health ' + (${gameState.lastEvent.healthChange > 0} ? '+' : '') + ${gameState.lastEvent.healthChange}">Health</span>
-                        <span th:classappend="${gameState.lastEvent.energyChange > 0 ? 'positive' : 'negative'}"
-                              th:if="${gameState.lastEvent.energyChange != 0}"
-                              th:text="'Energy ' + (${gameState.lastEvent.energyChange > 0} ? '+' : '') + ${gameState.lastEvent.energyChange}">Energy</span>
-                        <span th:classappend="${gameState.lastEvent.moraleChange > 0 ? 'positive' : 'negative'}"
-                              th:if="${gameState.lastEvent.moraleChange != 0}"
-                              th:text="'Morale ' + (${gameState.lastEvent.moraleChange > 0} ? '+' : '') + ${gameState.lastEvent.moraleChange}">Morale</span>
-                        <span th:classappend="${gameState.lastEvent.cashChange > 0 ? 'positive' : 'negative'}"
-                              th:if="${gameState.lastEvent.cashChange != 0}"
-                              th:text="'Cash ' + (${gameState.lastEvent.cashChange > 0} ? '+' : '') + ${gameState.lastEvent.cashChange}">Cash</span>
-                        <span th:classappend="${gameState.lastEvent.foodChange > 0 ? 'positive' : 'negative'}"
-                              th:if="${gameState.lastEvent.foodChange != 0}"
-                              th:text="'Food ' + (${gameState.lastEvent.foodChange > 0} ? '+' : '') + ${gameState.lastEvent.foodChange}">Food</span>
-                        <span th:classappend="${gameState.lastEvent.computeCreditsChange > 0 ? 'positive' : 'negative'}"
-                              th:if="${gameState.lastEvent.computeCreditsChange != 0}"
-                              th:text="'Compute ' + (${gameState.lastEvent.computeCreditsChange > 0} ? '+' : '') + ${gameState.lastEvent.computeCreditsChange}">Compute</span>
-                    </div>
-                </div>
-            </div>
-
             <!-- Event choice fallback (no-JS form submission, hidden when JS takes over via modal) -->
             <noscript>
             <div class="event-choice" id="event-choice-container"
@@ -246,8 +255,13 @@
                             </span>
                         </button>
                     </form>
+                    <div class="action-card action-card--market">
+                        <button class="market-btn" id="market-btn" type="button">
+                            <span class="action-card__name">Market</span>
+                            <span class="action-card__fx"><span class="gain">Buy &amp; Sell</span></span>
+                        </button>
+                    </div>
                 </div>
-                <button class="market-btn" id="market-btn" type="button">Open City Market</button>
             </div>
         </div>
 

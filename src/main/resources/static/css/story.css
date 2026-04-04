@@ -4,80 +4,136 @@
  * impact tags (positive/negative), and entry animations.
  */
 
-/*  STORY BEAT (event/last turn)  */
+/*  STORY BEAT (event/last turn — always visible above the grid)  */
 .story-beat {
-    padding: 14px 20px;
-    background: rgba(0, 212, 255, 0.03);
+    padding: var(--space-md) var(--space-xl);
+    background: linear-gradient(145deg, rgba(0, 212, 255, 0.04) 0%, rgba(0, 212, 255, 0.01) 100%);
     border: 1px solid var(--border);
     border-left: 3px solid var(--accent);
     border-radius: var(--radius);
-    transition: opacity 0.4s ease, transform 0.4s ease;
+    transition: opacity var(--duration-slow) ease, transform var(--duration-slow) var(--ease-out);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+    min-height: 44px;
+}
+
+.story-beat__empty {
+    display: flex;
+    align-items: center;
+}
+
+.story-beat__empty .story-beat__action-label {
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    text-shadow: none;
+}
+
+/* Subtle left edge glow */
+.story-beat::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 40px;
+    background: linear-gradient(90deg, rgba(0, 212, 255, 0.06), transparent);
+    pointer-events: none;
 }
 
 .story-beat--entering {
     opacity: 0;
-    transform: translateY(-6px);
+    transform: translateY(-8px) scale(0.98);
 }
 
 .story-beat__action {
-    margin-bottom: 6px;
+    margin-bottom: var(--space-sm);
 }
 
 .story-beat__action-label {
     font-family: var(--font-arcade);
     font-size: 1.05rem;
     color: var(--accent);
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
+    text-shadow: 0 0 8px var(--accent-glow);
 }
 
 .story-beat__event {
-    margin-top: 6px;
+    margin-top: var(--space-sm);
 }
 
 .story-beat__title {
     font-weight: 700;
     color: var(--accent);
-    font-size: 0.9rem;
-    margin-bottom: 2px;
+    font-size: 0.92rem;
+    margin-bottom: var(--space-xs);
 }
 
 .story-beat__desc {
     color: var(--text-muted);
-    font-size: 0.84rem;
-    margin-bottom: 8px;
+    font-size: 0.88rem;
+    margin-bottom: var(--space-md);
     font-style: italic;
+    line-height: 1.6;
 }
 
 .story-beat__impacts {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: var(--space-sm);
 }
 
 .story-beat__impacts span {
     display: inline-block;
-    padding: 2px 8px;
+    padding: 2px var(--space-sm);
     border-radius: var(--radius-sm);
     font-family: var(--font-arcade);
     font-size: 0.82rem;
     letter-spacing: 0.5px;
+    transition: transform var(--duration-normal) ease;
+}
+
+.story-beat__impacts span:hover {
+    transform: scale(1.05);
 }
 
 .story-beat__impacts .positive {
     background: var(--green-bg);
     color: var(--green);
     border: 1px solid var(--green-border);
+    text-shadow: 0 0 4px rgba(34, 197, 94, 0.3);
 }
 
 .story-beat__impacts .negative {
     background: var(--red-bg);
     color: var(--red);
     border: 1px solid var(--red-border);
+    text-shadow: 0 0 4px rgba(239, 68, 68, 0.3);
 }
 
 /*  RESPONSIVE: story  */
 @media (max-width: 600px) {
     .story-beat {
-        padding: 10px 12px;
+        padding: var(--space-sm) var(--space-md);
+        min-height: 36px;
+    }
+
+    .story-beat__action-label {
+        font-size: 0.9rem;
+    }
+
+    .story-beat__title {
+        font-size: 0.85rem;
+    }
+
+    .story-beat__desc {
+        font-size: 0.8rem;
+        margin-bottom: var(--space-sm);
+        line-height: 1.4;
+    }
+
+    .story-beat__impacts span {
+        font-size: 0.72rem;
+        padding: 1px var(--space-xs);
     }
 }

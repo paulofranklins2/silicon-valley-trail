@@ -6,20 +6,34 @@
 
 /*  ACTION SCENE STAGE  */
 .action-stage {
-    height: 130px;
+    height: 100px;
     overflow: hidden;
     border-radius: var(--radius);
     border: 1px solid var(--border);
     background: linear-gradient(145deg, var(--bg-panel) 0%, var(--bg-panel-alt) 100%);
+    box-shadow: var(--shadow-sm);
+    transition: opacity 0.35s ease;
+    position: relative;
 }
+
 
 .action-stage--active {
     /* scene content fades in, container stays fixed */
 }
 
+/* Subtle vignette inside the stage */
+.action-stage::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.25) 100%);
+    pointer-events: none;
+    border-radius: var(--radius);
+}
+
 .action-stage__scene {
     position: relative;
-    height: 130px;
+    height: 100px;
     overflow: hidden;
 }
 
@@ -52,26 +66,27 @@
     font-family: var(--font-arcade);
     font-size: 0.7rem;
     letter-spacing: 1px;
-    top: 8px;
+    top: var(--space-sm);
     color: var(--text-dim);
 }
 
 .scene-label--left {
-    left: 12px;
+    left: var(--space-md);
     color: var(--accent);
-    text-shadow: 0 0 6px var(--accent-glow);
+    text-shadow: 0 0 8px var(--accent-glow);
 }
 
 .scene-label--right {
-    right: 12px;
+    right: var(--space-md);
     color: var(--purple);
+    text-shadow: 0 0 6px rgba(168, 85, 247, 0.3);
 }
 
 .scene-label--center {
     left: 50%;
     transform: translateX(-50%);
     color: var(--accent);
-    text-shadow: 0 0 6px var(--accent-glow);
+    text-shadow: 0 0 8px var(--accent-glow);
 }
 
 /* Simple road/track line for travel scene */
@@ -94,7 +109,7 @@
     width: 0%;
     background: linear-gradient(90deg, var(--accent), var(--purple));
     border-radius: 2px;
-    box-shadow: 0 0 6px var(--accent-glow);
+    box-shadow: 0 0 8px var(--accent-glow);
     animation: roadFill 2s ease-out forwards;
 }
 
@@ -118,6 +133,7 @@
     position: relative;
     top: auto;
     transform: none;
+    filter: drop-shadow(0 0 6px var(--accent-glow));
 }
 
 .scene-travel-group .scene-sprite--char {
@@ -158,6 +174,7 @@
 
 @keyframes restItemAppear {
     0%   { opacity: 0; transform: translateY(-40%) scale(0.5); }
+    60%  { opacity: 1; transform: translateY(-52%) scale(1.1); }
     100% { opacity: 0.85; transform: translateY(-50%) scale(1); }
 }
 
@@ -170,6 +187,7 @@
     opacity: 0;
     pointer-events: none;
     animation: floatUp 2s ease-out forwards;
+    text-shadow: 0 0 6px var(--accent-glow);
 }
 
 @keyframes floatUp {
@@ -191,12 +209,13 @@
 
 .scene-scavenge-result {
     opacity: 0;
-    animation: scavengeReveal 0.5s ease-out 1s forwards;
+    animation: scavengeReveal 0.6s ease-out 1s forwards;
 }
 
 @keyframes scavengeReveal {
     0%   { opacity: 0; transform: translateY(-50%) scale(0); }
-    60%  { opacity: 1; transform: translateY(-50%) scale(1.3); }
+    50%  { opacity: 1; transform: translateY(-50%) scale(1.4); }
+    70%  { transform: translateY(-50%) scale(0.9); }
     100% { opacity: 1; transform: translateY(-50%) scale(1); }
 }
 
@@ -210,6 +229,7 @@
     opacity: 0;
     pointer-events: none;
     animation: sparkle 0.8s ease-out forwards;
+    box-shadow: 0 0 6px currentColor;
 }
 
 @keyframes sparkle {
@@ -240,6 +260,7 @@
     opacity: 0;
     pointer-events: none;
     animation: codeFloat 1.6s ease-out forwards;
+    text-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
 }
 
 @keyframes codeFloat {
@@ -254,7 +275,7 @@
     position: absolute;
     top: 50%;
     display: flex;
-    gap: 4px;
+    gap: var(--space-xs);
     align-items: center;
 }
 
@@ -314,6 +335,7 @@
 
 .scene-pitch-success .scene-pitch-vs {
     color: var(--green);
+    text-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
 }
 
 @keyframes pitchJoy {
@@ -339,6 +361,7 @@
     background: var(--green);
     opacity: 0;
     pointer-events: none;
+    box-shadow: 0 0 4px rgba(34, 197, 94, 0.4);
 }
 
 /* Pitch failure */
@@ -352,6 +375,7 @@
 
 .scene-pitch-fail .scene-pitch-vs {
     color: var(--red);
+    text-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
 }
 
 @keyframes pitchDroop {
@@ -367,25 +391,35 @@
 /*  RESPONSIVE: scenes  */
 @media (max-width: 600px) {
     .action-stage {
-        height: 110px;
+        display: none;
     }
 
     .action-stage__scene {
-        height: 110px;
+        height: 70px;
     }
 
     .scene-sprite--char {
-        width: 28px;
-        height: 28px;
-    }
-
-    .scene-sprite--item {
         width: 22px;
         height: 22px;
     }
 
+    .scene-sprite--item {
+        width: 18px;
+        height: 18px;
+    }
+
     .scene-sprite--train {
-        width: 32px;
-        height: 32px;
+        width: 26px;
+        height: 26px;
+    }
+
+    .scene-label {
+        font-size: 0.6rem;
+    }
+
+    .scene-travel-group .scene-sprite--char {
+        width: 16px;
+        height: 16px;
+        margin-bottom: 6px;
     }
 }

@@ -46,7 +46,7 @@
     // -- Scene builders --
 
     function buildTravelScene(result) {
-        // City labels
+        // City labels: current location → next location
         var fromCity = '???';
         var toCity = '???';
 
@@ -54,10 +54,10 @@
             var js = result.journeyState;
             var locations = js.locations || [];
             var idx = js.currentLocationIndex || 0;
-            fromCity = (idx > 0 && locations[idx - 1])
-                ? (locations[idx - 1].name || locations[idx - 1]) : fromCity;
-            toCity = locations[idx]
-                ? (locations[idx].name || locations[idx]) : toCity;
+            fromCity = locations[idx]
+                ? (locations[idx].name || locations[idx]) : fromCity;
+            toCity = (locations[idx + 1])
+                ? (locations[idx + 1].name || locations[idx + 1]) : toCity;
         }
 
         var labelFrom = span(fromCity, 'scene-label scene-label--left');

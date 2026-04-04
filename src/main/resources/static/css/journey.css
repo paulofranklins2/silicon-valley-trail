@@ -6,12 +6,13 @@
 
 /*  JOURNEY PROGRESS VISUAL  */
 .journey-progress {
-    padding: 14px 20px 12px;
+    padding: var(--space-lg) var(--space-xl) var(--space-lg);
     background: linear-gradient(145deg, var(--bg-panel) 0%, var(--bg-panel-alt) 100%);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     position: relative;
     overflow: hidden;
+    box-shadow: var(--shadow-sm);
 }
 
 .journey-progress::before {
@@ -22,21 +23,28 @@
     right: 0;
     height: 2px;
     background: linear-gradient(90deg, var(--accent), var(--purple), var(--accent));
+    background-size: 200% 100%;
     opacity: 0.6;
-    animation: glowPulse 3s ease-in-out infinite;
+    animation: journeyGlowSlide 4s ease-in-out infinite;
+}
+
+@keyframes journeyGlowSlide {
+    0%, 100% { background-position: 0% center; opacity: 0.5; }
+    50% { background-position: 100% center; opacity: 0.8; }
 }
 
 .journey-progress__cities {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: var(--space-md);
 }
 
 .journey-progress__city {
     font-family: var(--font-arcade);
-    font-size: 0.85rem;
-    letter-spacing: 1px;
+    font-size: 0.9rem;
+    letter-spacing: 1.5px;
+    transition: color var(--duration-slow) ease, text-shadow var(--duration-slow) ease;
 }
 
 .journey-progress__city--current {
@@ -51,7 +59,7 @@
 .journey-progress__track {
     position: relative;
     height: 40px;
-    margin: 0 4px;
+    margin: 0 var(--space-xs);
 }
 
 .journey-progress__rail {
@@ -63,6 +71,7 @@
     background: var(--border);
     border-radius: 2px;
     transform: translateY(-50%);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .journey-progress__rail::after {
@@ -74,8 +83,8 @@
     width: var(--rail-progress, 0%);
     background: linear-gradient(90deg, var(--accent), var(--purple));
     border-radius: 2px;
-    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 0 8px var(--accent-glow);
+    transition: width 1s var(--ease-out);
+    box-shadow: 0 0 10px var(--accent-glow), 0 0 20px rgba(0, 212, 255, 0.15);
 }
 
 .journey-progress__dots {
@@ -96,19 +105,19 @@
     background: var(--border);
     border: 1px solid var(--bg-deep);
     transform: translate(-50%, -50%);
-    transition: background 0.4s, box-shadow 0.4s, transform 0.4s;
+    transition: background var(--duration-slow) ease, box-shadow var(--duration-slow) ease, transform var(--duration-slow) ease;
     z-index: 2;
 }
 
 .journey-dot--visited {
     background: var(--accent);
-    box-shadow: 0 0 6px var(--accent-glow);
+    box-shadow: 0 0 8px var(--accent-glow);
 }
 
 .journey-dot--current {
     background: var(--accent);
-    box-shadow: 0 0 10px var(--accent-glow);
-    transform: translate(-50%, -50%) scale(1.5);
+    box-shadow: 0 0 12px var(--accent-glow);
+    transform: translate(-50%, -50%) scale(1.6);
     animation: dotPulse 2s ease-in-out infinite;
 }
 
@@ -122,7 +131,7 @@
     color: var(--text-dim);
     white-space: nowrap;
     opacity: 0;
-    transition: opacity 0.3s;
+    transition: opacity var(--duration-normal) ease;
 }
 
 .journey-dot--current .journey-dot__label,
@@ -136,28 +145,52 @@
     left: 0%;
     transform: translate(-50%, -50%);
     z-index: 3;
-    transition: left 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    filter: drop-shadow(0 0 6px var(--accent-glow));
+    transition: left 1s var(--ease-out);
+    filter: drop-shadow(0 0 8px var(--accent-glow));
+}
+
+/* Train bob while moving */
+.journey-progress__train--moving {
+    animation: trainBobMoving 0.3s ease-in-out infinite alternate;
+}
+
+@keyframes trainBobMoving {
+    0% { transform: translate(-50%, -52%); }
+    100% { transform: translate(-50%, -48%); }
 }
 
 .journey-progress__train-img {
     width: 32px;
     height: 32px;
     image-rendering: pixelated;
+    transition: filter var(--duration-normal) ease;
+}
+
+.journey-progress__info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: var(--space-md);
 }
 
 .journey-progress__dist {
-    text-align: center;
-    margin-top: 6px;
     font-family: var(--font-arcade);
     font-size: 0.85rem;
     color: var(--text-muted);
     letter-spacing: 1px;
+    transition: color var(--duration-normal) ease;
+}
+
+.journey-progress__total {
+    font-family: var(--font-arcade);
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    letter-spacing: 1px;
 }
 
 @keyframes dotPulse {
-    0%, 100% { box-shadow: 0 0 6px var(--accent-glow); }
-    50% { box-shadow: 0 0 14px var(--accent-glow), 0 0 24px rgba(0, 212, 255, 0.15); }
+    0%, 100% { box-shadow: 0 0 8px var(--accent-glow); }
+    50% { box-shadow: 0 0 18px var(--accent-glow), 0 0 30px rgba(0, 212, 255, 0.2); }
 }
 
 /*  RESPONSIVE: journey  */
@@ -174,7 +207,15 @@
 
 @media (max-width: 600px) {
     .journey-progress {
-        padding: 8px 10px;
+        padding: var(--space-sm) var(--space-md) var(--space-sm);
+    }
+
+    .journey-progress::before {
+        height: 1px;
+    }
+
+    .journey-progress__cities {
+        margin-bottom: var(--space-xs);
     }
 
     .journey-progress__city {
@@ -182,20 +223,25 @@
     }
 
     .journey-progress__track {
-        height: 32px;
+        height: 24px;
     }
 
     .journey-progress__train-img {
-        width: 22px;
-        height: 22px;
+        width: 18px;
+        height: 18px;
     }
 
     .journey-dot {
-        width: 6px;
-        height: 6px;
+        width: 5px;
+        height: 5px;
     }
 
     .journey-dot__label {
         display: none;
+    }
+
+    .journey-progress__dist {
+        margin-top: var(--space-xs);
+        font-size: 0.75rem;
     }
 }

@@ -3,97 +3,105 @@
 <head th:replace="~{fragments/head :: head('Silicon Valley Trail - Game Over', 'end.css')}"></head>
 <body>
 <div class="container end-page">
-    <!-- Victory -->
-    <div th:if="${gameState.victory}">
-        <h1 class="victory">You Made It!</h1>
-        <div class="end-characters end-characters--victory">
+
+    <!-- Hero: title + characters + message -->
+    <div class="end-hero">
+        <div th:if="${gameState.victory}">
+            <h1 class="victory">You Made It!</h1>
+            <div class="pixel-border pixel-border--victory"></div>
+        </div>
+        <div th:unless="${gameState.victory}">
+            <h1 class="defeat">Game Over</h1>
+            <div class="pixel-border pixel-border--defeat"></div>
+        </div>
+
+        <div class="end-characters" th:classappend="${gameState.victory ? 'end-characters--victory' : 'end-characters--defeat'}">
             <img class="end-characters__sprite end-characters__sprite--1" src="/img/team-member-1.png" alt="Team member">
             <img class="end-characters__sprite end-characters__sprite--2" src="/img/team-member-2.png" alt="Team member">
             <img class="end-characters__sprite end-characters__sprite--3" src="/img/team-member-3.png" alt="Team member">
             <img class="end-characters__sprite end-characters__sprite--4" src="/img/team-member-4.png" alt="Team member">
         </div>
-        <p class="result-message">
-            Your team reached San Francisco in
-            <strong th:text="${gameState.turn}">0</strong> turns.
-            Time to ring that opening bell.
-        </p>
+
+        <!-- Score hero -->
+        <div class="end-score">
+            <span class="end-score__label">Score</span>
+            <span class="end-score__value" th:text="${score}">0</span>
+        </div>
+
+        <!-- Result message -->
+        <div th:if="${gameState.victory}">
+            <p class="result-message">
+                <span th:text="${gameState.teamName}">Team</span> reached San Francisco in
+                <strong th:text="${gameState.turn}">0</strong> turns.
+            </p>
+        </div>
+        <div th:unless="${gameState.victory}">
+            <div th:switch="${gameState.lossReason.name()}">
+                <p class="result-message" th:case="'POOR_HEALTH'">Your team's health collapsed. The startup dream is over.</p>
+                <p class="result-message" th:case="'POOR_MORALE'">Your team lost all morale and quit. Back to corporate jobs.</p>
+                <p class="result-message" th:case="'STARVATION'">Your team ran out of food. Hunger ended the journey.</p>
+                <p class="result-message" th:case="'NO_CASH'">Your startup burned through all its cash. Investors stopped calling.</p>
+            </div>
+        </div>
     </div>
 
-    <!-- Defeat -->
-    <div th:unless="${gameState.victory}">
-        <h1 class="defeat">Game Over</h1>
-        <div class="end-characters end-characters--defeat">
-            <img class="end-characters__sprite end-characters__sprite--1" src="/img/team-member-1.png" alt="Team member">
-            <img class="end-characters__sprite end-characters__sprite--2" src="/img/team-member-2.png" alt="Team member">
-            <img class="end-characters__sprite end-characters__sprite--3" src="/img/team-member-3.png" alt="Team member">
-            <img class="end-characters__sprite end-characters__sprite--4" src="/img/team-member-4.png" alt="Team member">
-        </div>
-        <div th:switch="${gameState.lossReason.name()}">
-            <p class="result-message" th:case="'POOR_HEALTH'">Your team's health collapsed. The startup dream is over.</p>
-            <p class="result-message" th:case="'POOR_MORALE'">Your team lost all morale and quit. Back to corporate jobs.</p>
-            <p class="result-message" th:case="'STARVATION'">Your team ran out of food. Hunger ended the journey.</p>
-            <p class="result-message" th:case="'NO_CASH'">Your startup burned through all its cash. Investors stopped calling.</p>
-        </div>
-    </div>
-
-    <!-- Final stats -->
+    <!-- Compact stats card -->
     <div class="final-stats">
-        <h3>Final Report</h3>
-        <div class="stat-line">
-            <span class="label">Team</span>
-            <span class="value" th:text="${gameState.teamName}">Team</span>
+        <div class="final-stats__meta">
+            <span class="final-stats__meta-item">
+                <span class="label">Location</span>
+                <span class="value" th:text="${gameState.journeyState.currentLocation.name}">Location</span>
+            </span>
+            <span class="final-stats__meta-item">
+                <span class="label">Turns</span>
+                <span class="value" th:text="${gameState.turn}">0</span>
+            </span>
         </div>
-        <div class="stat-line">
-            <span class="label">Turns Survived</span>
-            <span class="value" th:text="${gameState.turn}">0</span>
-        </div>
-        <div class="stat-line">
-            <span class="label">Last Location</span>
-            <span class="value" th:text="${gameState.journeyState.currentLocation.name}">Location</span>
-        </div>
-        <div class="stat-line">
-            <span class="label">Health</span>
-            <span class="value" th:text="${gameState.teamState.health}">0</span>
-        </div>
-        <div class="stat-line">
-            <span class="label">Energy</span>
-            <span class="value" th:text="${gameState.teamState.energy}">0</span>
-        </div>
-        <div class="stat-line">
-            <span class="label">Morale</span>
-            <span class="value" th:text="${gameState.teamState.morale}">0</span>
-        </div>
-        <div class="stat-line">
-            <span class="label">Cash</span>
-            <span class="value" th:text="'$' + ${gameState.resourceState.cash}">$0</span>
-        </div>
-        <div class="stat-line">
-            <span class="label">Food</span>
-            <span class="value" th:text="${gameState.resourceState.food}">0</span>
-        </div>
-        <div class="stat-line">
-            <span class="label">Compute Credits</span>
-            <span class="value" th:text="${gameState.resourceState.computeCredits}">0</span>
+        <div class="final-stats__grid">
+            <div class="final-stats__col">
+                <div class="stat-line">
+                    <span class="label">Health</span>
+                    <span class="value" th:text="${gameState.teamState.health}">0</span>
+                </div>
+                <div class="stat-line">
+                    <span class="label">Energy</span>
+                    <span class="value" th:text="${gameState.teamState.energy}">0</span>
+                </div>
+                <div class="stat-line">
+                    <span class="label">Morale</span>
+                    <span class="value" th:text="${gameState.teamState.morale}">0</span>
+                </div>
+            </div>
+            <div class="final-stats__col">
+                <div class="stat-line">
+                    <span class="label">Cash</span>
+                    <span class="value" th:text="'$' + ${gameState.resourceState.cash}">$0</span>
+                </div>
+                <div class="stat-line">
+                    <span class="label">Food</span>
+                    <span class="value" th:text="${gameState.resourceState.food}">0</span>
+                </div>
+                <div class="stat-line">
+                    <span class="label">Compute</span>
+                    <span class="value" th:text="${gameState.resourceState.computeCredits}">0</span>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Submit to leaderboard -->
-    <div class="leaderboard-submit" th:if="${!submitted}">
-        <h3>Enter the Hall of Fame</h3>
-        <form id="leaderboard-form" class="leaderboard-form">
+    <!-- Actions + submit inline -->
+    <div class="end-bottom">
+        <form id="leaderboard-form" class="leaderboard-form" th:if="${!submitted}">
             <input type="text" id="player-name" placeholder="Your name" maxlength="20" required
                    class="leaderboard-input">
-            <button type="submit" class="leaderboard-btn">Submit Score</button>
+            <button type="submit" class="leaderboard-btn">Submit</button>
         </form>
-    </div>
-    <div class="leaderboard-submit" th:if="${submitted}">
-        <p class="leaderboard-saved">Score saved!</p>
+        <div class="end-actions">
+            <a href="/">Play Again</a>
+            <a href="/leaderboard" class="end-actions__secondary">Leaderboard</a>
+        </div>
     </div>
 
-    <div class="end-actions">
-        <a href="/">Play Again</a>
-        <a href="/leaderboard" class="end-actions__secondary">Leaderboard</a>
-    </div>
 </div>
 <script>
 (function() {
@@ -109,7 +117,7 @@
             body: 'playerName=' + encodeURIComponent(name)
         }).then(function(res) {
             if (res.ok) {
-                form.parentElement.innerHTML = '<p class="leaderboard-saved">Score saved!</p>';
+                window.location.href = '/leaderboard';
             }
         });
     });
