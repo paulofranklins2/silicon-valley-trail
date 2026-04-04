@@ -65,17 +65,17 @@ class ActionHandlerTest {
         GameState gameState = new GameState(team, resources, journey, "Test Team Name");
         ActionHandler actionHandler = ActionHandler.create(mockRandom);
 
-        // health + 10, morale + 20, food - 1, energy + 5
+        // health + 5, energy + 10, morale + 10, food - 1
         actionHandler.handle(gameState, GameAction.REST);
 
         // should not change location index, distance should still say 20
         assertEquals(0, gameState.getJourneyState().getCurrentLocationIndex());
         assertEquals(20, gameState.getJourneyState().getDistanceToNextLocation());
 
-        // health 90, energy 75, morale 80, cash 100, food 9, computeCredit 5
-        assertEquals(90, gameState.getTeamState().getHealth());
-        assertEquals(75, gameState.getTeamState().getEnergy());
-        assertEquals(80, gameState.getTeamState().getMorale());
+        // health 85, energy 80, morale 70, cash 100, food 9, computeCredit 5
+        assertEquals(85, gameState.getTeamState().getHealth());
+        assertEquals(80, gameState.getTeamState().getEnergy());
+        assertEquals(70, gameState.getTeamState().getMorale());
         assertEquals(9, gameState.getResourceState().getFood());
 
     }
@@ -118,10 +118,10 @@ class ActionHandlerTest {
         assertEquals(0, gameState.getJourneyState().getCurrentLocationIndex());
         assertEquals(20, gameState.getJourneyState().getDistanceToNextLocation());
 
-        // compute credit + 10, energy -15, morale -5, food -1
+        // compute credit + 10, energy -15, morale -8, food -1
         assertEquals(15, gameState.getResourceState().getComputeCredits());
         assertEquals(85, gameState.getTeamState().getEnergy());
-        assertEquals(95, gameState.getTeamState().getMorale());
+        assertEquals(92, gameState.getTeamState().getMorale());
         assertEquals(9, gameState.getResourceState().getFood());
     }
 

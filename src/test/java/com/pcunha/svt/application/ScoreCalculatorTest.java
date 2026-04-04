@@ -39,7 +39,7 @@ class ScoreCalculatorTest {
     void victoryWithFullStatsScoresHigh() {
         GameState gameState = createGameState(100, 100, 100, 200, 15, 15, 14, 0);
         gameState.setVictory(true);
-        // only 10 turns — fast win
+        // only 10 turns - fast win
         int score = ScoreCalculator.calculate(gameState);
 
         // victory(1000) + turn bonus(~333) + stats(600) + resources(600) = ~2500+
