@@ -8,6 +8,9 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Getter
 @ToString
 public class GameState {
@@ -35,6 +38,17 @@ public class GameState {
     private int turnWithoutFood;
     @Setter
     private LossReason lossReason;
+
+    // market state (per city)
+    @Setter
+    private GameEvent currentMarketEvent;
+    @Setter
+    private int marketCityIndex = -1;
+    private Set<Integer> marketPurchased = new HashSet<>();
+
+    // leaderboard
+    @Setter
+    private boolean leaderboardSubmitted;
 
     public GameState(TeamState teamState, ResourceState resourceState, JourneyState journeyState, String teamName) {
         this.teamName = teamName;
@@ -68,5 +82,15 @@ public class GameState {
 
     public void resetTurnWithoutCash() {
         this.turnWithoutCash = 0;
+    }
+
+    public void resetMarket() {
+        this.currentMarketEvent = null;
+        this.marketCityIndex = -1;
+        this.marketPurchased = new HashSet<>();
+    }
+
+    public void addMarketPurchase(int index) {
+        this.marketPurchased.add(index);
     }
 }
