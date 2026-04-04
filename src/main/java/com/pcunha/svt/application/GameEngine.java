@@ -31,12 +31,19 @@ public class GameEngine {
 
         DistancePort distancePort = distancePorts.get(gameMode);
         List<Location> locations = GameDataLoader.loadLocations();
-        List<Double> distances = distancePort.calculateLegDistances(locations);
+        DistanceResult result = distancePort.calculateLegDistances(locations);
 
-        JourneyState journeyState = new JourneyState(locations, distances);
+        // if OSRM failed, downgrade to Fast mode so leaderboard ranking is fair
+        GameMode effectiveMode = gameMode;
+        if (result.usedFallback()) {
+            effectiveMode = GameMode.FAST;
+        }
+
+        JourneyState journeyState = new JourneyState(locations, result.distances());
 
         GameState gameState = new GameState(teamState, resourceState, journeyState, teamName);
-        gameState.setGameMode(gameMode);
+        gameState.setGameMode(effectiveMode);
+        gameState.setUsedFallbackDistances(result.usedFallback());
         turnProcessor.fetchInitialWeather(gameState);
         return gameState;
     }

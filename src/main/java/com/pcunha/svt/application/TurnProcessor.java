@@ -86,8 +86,8 @@ public class TurnProcessor {
 
     private WeatherSignal fetchWeather(GameState gameState) {
         WeatherSignal weatherSignal = weatherPort.getWeather(gameState.getJourneyState().getCurrentLocation());
-        gameState.setLastWeather(weatherSignal.getWeatherCategory());
-        gameState.setLastWeatherTemp(weatherSignal.getTemperature());
+        gameState.setLastWeather(weatherSignal.weatherCategory());
+        gameState.setLastWeatherTemp(weatherSignal.temperature());
         return weatherSignal;
     }
 
@@ -108,7 +108,7 @@ public class TurnProcessor {
     private void applyWeatherEffects(GameState gameState, WeatherSignal weatherSignal) {
         if (weatherSignal == null) return;
 
-        switch (weatherSignal.getWeatherCategory()) {
+        switch (weatherSignal.weatherCategory()) {
             case RAINY -> {
                 gameState.getTeamState().changeHealth(RAINY_CHANGE_HEALTH);
                 gameState.getTeamState().changeEnergy(RAINY_CHANGE_ENERGY);

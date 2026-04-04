@@ -44,6 +44,8 @@ public class GameState {
     private GameMode gameMode;
     @Setter
     private boolean leaderboardSubmitted;
+    @Setter
+    private boolean usedFallbackDistances;
 
     public GameState(TeamState teamState, ResourceState resourceState, JourneyState journeyState, String teamName) {
         this.teamName = teamName;

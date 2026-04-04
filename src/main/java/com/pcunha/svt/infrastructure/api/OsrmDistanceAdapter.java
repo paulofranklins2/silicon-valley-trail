@@ -2,6 +2,7 @@ package com.pcunha.svt.infrastructure.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.pcunha.svt.domain.model.DistanceResult;
 import com.pcunha.svt.domain.model.Location;
 import com.pcunha.svt.domain.port.DistancePort;
 
@@ -46,6 +47,7 @@ public class OsrmDistanceAdapter implements DistancePort {
             double meters = root.get("routes").get(0).get("distance").asDouble();
             return meters / 1000.0;
         } catch (Exception e) {
+            System.err.println("OSRM unavailable, falling back to estimated distances: " + e.getMessage());
             return fallback.getDistance(from, to);
         }
     }
@@ -55,7 +57,7 @@ public class OsrmDistanceAdapter implements DistancePort {
      * Falls back to Haversine on failure.
      */
     @Override
-    public List<Double> calculateLegDistances(List<Location> locations) {
+    public DistanceResult calculateLegDistances(List<Location> locations) {
         try {
             StringBuilder coords = new StringBuilder();
             for (int i = 0; i < locations.size(); i++) {
@@ -69,7 +71,7 @@ public class OsrmDistanceAdapter implements DistancePort {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
-                    .timeout(Duration.ofSeconds(10))
+                    .timeout(Duration.ofSeconds(5))
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -80,9 +82,10 @@ public class OsrmDistanceAdapter implements DistancePort {
             for (int i = 0; i < legs.size(); i++) {
                 distances.add(legs.get(i).get("distance").asDouble() / 1000.0);
             }
-            return distances;
+            return new DistanceResult(distances, false);
         } catch (Exception e) {
-            return fallback.calculateLegDistances(locations);
+            System.err.println("OSRM unavailable, falling back to estimated distances: " + e.getMessage());
+            return new DistanceResult(fallback.calculateLegDistances(locations).distances(), true);
         }
     }
 }
