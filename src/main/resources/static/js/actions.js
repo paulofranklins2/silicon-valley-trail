@@ -253,6 +253,17 @@
         showChoiceModal(window.__lastEvent);
     }
 
+    // Notify if road distances fell back to estimated
+    if (window.__gameConfig && window.__gameConfig.usedFallback) {
+        setTimeout(function () {
+            window.GameToast.show(
+                '<div class="toast__title">Road data unavailable</div>' +
+                '<div class="toast__body">Using estimated distances. Ranking as Fast mode.</div>',
+                'negative', 5000
+            );
+        }, 500);
+    }
+
     // Set buttons processing state
     function setButtonsProcessing(processing) {
         var buttons = document.querySelectorAll('.action-card button');
