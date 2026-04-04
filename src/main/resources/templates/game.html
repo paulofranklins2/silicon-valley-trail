@@ -241,7 +241,7 @@
                                 <th:block th:each="fx, iter : ${info.effects}">
                                     <span th:if="${fx.random && !iter.first}" class="or-text">or</span>
                                     <span th:classappend="${fx.positive} ? 'gain' : 'cost'"
-                                          th:text="${(fx.value > 0 ? '+' : '') + fx.value + ' ' + fx.stat.name().toLowerCase()}">effect</span>
+                                          th:text="${(fx.value > 0 ? '+' : '') + fx.value + ' ' + fx.stat.displayName}">effect</span>
                                 </th:block>
                             </span>
                         </button>
