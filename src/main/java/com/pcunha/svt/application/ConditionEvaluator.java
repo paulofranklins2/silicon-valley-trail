@@ -7,8 +7,8 @@ import com.pcunha.svt.domain.model.ResourceState;
 import com.pcunha.svt.domain.model.TeamState;
 
 public class ConditionEvaluator {
-    private static final int FOOD_GRACE_TURNS = 2;
-    private static final int CASH_GRACE_TURNS = 3;
+    public static final int FOOD_GRACE_TURNS = 2;
+    public static final int CASH_GRACE_TURNS = 3;
 
     public void evaluate(GameState gameState) {
         if (hasWon(gameState)) {

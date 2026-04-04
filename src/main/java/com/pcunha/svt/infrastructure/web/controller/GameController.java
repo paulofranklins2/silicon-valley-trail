@@ -1,7 +1,9 @@
 package com.pcunha.svt.infrastructure.web.controller;
 
+import com.pcunha.svt.application.ConditionEvaluator;
 import com.pcunha.svt.application.GameEngine;
 import com.pcunha.svt.domain.GameAction;
+import com.pcunha.svt.infrastructure.data.GameDataLoader;
 import com.pcunha.svt.domain.model.GameEvent;
 import com.pcunha.svt.domain.model.GameState;
 import jakarta.servlet.http.HttpSession;
@@ -48,7 +50,9 @@ public class GameController {
             return "redirect:/";
         }
         model.addAttribute("gameState", gameState);
-        model.addAttribute("actions", GameAction.values());
+        model.addAttribute("actions", GameDataLoader.loadActions());
+        model.addAttribute("foodGraceTurns", ConditionEvaluator.FOOD_GRACE_TURNS);
+        model.addAttribute("cashGraceTurns", ConditionEvaluator.CASH_GRACE_TURNS);
         return "game";
     }
 
