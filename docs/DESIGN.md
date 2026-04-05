@@ -243,7 +243,7 @@ The `DistancePort` interface made this painless. Each mode is just a different a
 
 **Pre-computed distances:** Originally I calculated distances when the player clicked "Start." That meant API calls blocked game creation. OSRM's public server is slow and unreliable, so Road mode could hang for 15+ seconds.
 
-I moved the computation to application startup. All distances are cached once when the server boots. Game creation is instant — just reads from the cache. If an API was down at startup, the player can retry from a modal without restarting the server.
+I moved the computation to application startup. All distances are cached once when the server boots. Game creation is instant - just reads from the cache. If an API was down at startup, the player can retry from a modal without restarting the server.
 
 **Batch requests:** Both OSRM and ORS support sending all 15 waypoints in a single request. I used this instead of 14 separate calls, which would have been painfully slow.
 
@@ -261,7 +261,7 @@ Each adapter follows the same pattern: try the API, fall back on failure.
 - `OsrmDistanceAdapter` → `OpenRouteServiceAdapter` (car profile) → `HaversineDistanceAdapter`
 - `OpenRouteServiceAdapter` → `HaversineDistanceAdapter`
 
-The key design choice: when OSRM fails but ORS car succeeds, `usedFallback` stays `false` because the player still gets real driving distances. The flag only becomes `true` when we end up at Haversine (estimated distances). This matters for fair leaderboard rankings — if the mode used estimated distances, the game downgrades to Fast mode so the player doesn't compete unfairly.
+The key design choice: when OSRM fails but ORS car succeeds, `usedFallback` stays `false` because the player still gets real driving distances. The flag only becomes `true` when we end up at Haversine (estimated distances). This matters for fair leaderboard rankings - if the mode used estimated distances, the game downgrades to Fast mode so the player doesn't compete unfairly.
 
 The fallback chain passes through the `DistanceResult.usedFallback` flag from the innermost adapter. `DistancePort.calculateLegDistances()` is a default method on the interface, so Haversine and Mock get it for free. OSRM and ORS override it with batch calls.
 
@@ -416,7 +416,7 @@ Tests are focused on logic, not framework internals. 74 tests across 15 test fil
 - database error → warn and continue, don't crash the game
 - domain stays clean, values are always valid because the model clamps them
 
-I found the invalid action edge case during a late review. Without the try-catch, sending `POST /api/action?action=GARBAGE` would crash the server with an `IllegalArgumentException`. Now it returns a clean error response. Same pattern for empty names — HTML `required` attributes are client-side only, so I validate server-side too.
+I found the invalid action edge case during a late review. Without the try-catch, sending `POST /api/action?action=GARBAGE` would crash the server with an `IllegalArgumentException`. Now it returns a clean error response. Same pattern for empty names - HTML `required` attributes are client-side only, so I validate server-side too.
 
 No defensive checks inside the game engine. The boundaries already guarantee clean data.
 
