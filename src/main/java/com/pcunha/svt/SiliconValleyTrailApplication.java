@@ -1,10 +1,10 @@
 package com.pcunha.svt;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.beans.factory.annotation.Value;
 
 @SpringBootApplication
 public class SiliconValleyTrailApplication {
@@ -18,7 +18,12 @@ public class SiliconValleyTrailApplication {
 
     @EventListener(ApplicationReadyEvent.class)
     public void onReady() {
-        String dbType = dbUrl.contains("postgresql") ? "PostgreSQL" : "H2 (in-memory)";
+        String dbType;
+        if (dbUrl.contains("postgresql")) {
+            dbType = "PostgreSQL";
+        } else {
+            dbType = "H2";
+        }
         System.out.println("\n  Silicon Valley Trail");
         System.out.println("  Database: " + dbType);
         System.out.println("  http://localhost:8080\n");
