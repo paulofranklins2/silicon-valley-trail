@@ -4,8 +4,9 @@ import lombok.Getter;
 
 @Getter
 public enum GameMode {
-    FAST("Fast", "Straight-line distance - shorter journey"),
-    ROAD("Road", "Real driving distance - longer journey");
+    FAST("Fast", "Straight-line distance"),
+    ROAD("Road", "Real driving distance"),
+    WALKING("Walking", "Walking distance");
 
     private final String displayName;
     private final String description;
