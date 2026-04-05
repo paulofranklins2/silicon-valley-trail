@@ -3,12 +3,13 @@ spring:
     name: silicon-valley-trail
 
   datasource:
-    url: jdbc:h2:mem:svt
-    driver-class-name: org.h2.Driver
+    url: ${DB_URL:jdbc:h2:mem:svt}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:}
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
 
   h2:
     console:
