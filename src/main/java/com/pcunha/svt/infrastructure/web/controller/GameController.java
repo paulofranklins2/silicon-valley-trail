@@ -8,6 +8,7 @@ import com.pcunha.svt.domain.GameMode;
 import com.pcunha.svt.domain.model.GameEvent;
 import com.pcunha.svt.domain.model.GameState;
 import com.pcunha.svt.domain.model.LeaderboardEntry;
+import com.pcunha.svt.domain.model.MarketResult;
 import com.pcunha.svt.domain.port.LeaderboardPort;
 import com.pcunha.svt.infrastructure.data.GameDataLoader;
 import jakarta.servlet.http.HttpSession;
@@ -31,7 +32,8 @@ public class GameController {
     }
 
     @GetMapping("/")
-    public String home() {
+    public String home(Model model) {
+        model.addAttribute("walkingAvailable", gameEngine.isModeAvailable(GameMode.WALKING));
         return "start";
     }
 
@@ -41,6 +43,25 @@ public class GameController {
         GameState gameState = gameEngine.createNewGame(teamName, mode);
         session.setAttribute("gameState", gameState);
         return "redirect:/game";
+    }
+
+    @PostMapping("/api/retry-distances")
+    @ResponseBody
+    public Object retryDistances(@RequestParam String gameMode, HttpSession session) {
+        GameState existing = getGameState(session);
+        if (existing == null) return Map.of("success", false, "error", "No game");
+
+        GameMode mode = GameMode.valueOf(gameMode);
+        boolean success = gameEngine.retryDistances(mode);
+
+        if (success) {
+            // recreate the game with the now-cached real distances
+            GameState gameState = gameEngine.createNewGame(existing.getTeamName(), mode);
+            session.setAttribute("gameState", gameState);
+            return Map.of("success", true);
+        }
+
+        return Map.of("success", false, "error", "API still unavailable");
     }
 
     @GetMapping("/game")
@@ -63,7 +84,10 @@ public class GameController {
             return "redirect:/";
         }
         gameEngine.processAction(gameState, GameAction.valueOf(action));
-        return gameState.isGameOver() ? "redirect:/end" : "redirect:/game";
+        if (gameState.isGameOver()) {
+            return "redirect:/end";
+        }
+        return "redirect:/game";
     }
 
     @PostMapping("/api/action")
@@ -94,42 +118,19 @@ public class GameController {
         GameState gameState = getGameState(session);
         if (gameState == null) return "redirect:/";
 
-        int cityIndex = gameState.getJourneyState().getCurrentLocationIndex();
-
-        if (gameState.getCurrentMarketEvent() == null || gameState.getMarketCityIndex() != cityIndex) {
-            gameState.resetMarket();
-            gameState.setCurrentMarketEvent(gameEngine.getCityMarketEvent());
-            gameState.setMarketCityIndex(cityIndex);
-        }
-
-        return Map.of("event", gameState.getCurrentMarketEvent(), "purchased", gameState.getMarketPurchased());
+        GameEvent market = gameEngine.getMarket(gameState);
+        return Map.of("event", market, "purchased", gameState.getMarketPurchased());
     }
 
     @PostMapping("/api/market")
     @ResponseBody
     public Object processMarketPurchase(@RequestParam int choiceIndex, HttpSession session) {
         GameState gameState = getGameState(session);
-        if (gameState == null) {
-            return "redirect:/";
-        }
+        if (gameState == null) return "redirect:/";
 
-        GameEvent marketEvent = gameState.getCurrentMarketEvent();
-        if (marketEvent == null) {
-            return Map.of("error", "No market available");
-        }
-
-        boolean isSkip = choiceIndex == marketEvent.getOutcomes().size() - 1;
-        if (!isSkip && gameState.getMarketPurchased().contains(choiceIndex)) {
-            return Map.of("state", gameState, "purchased", gameState.getMarketPurchased(), "error", "Already purchased");
-        }
-
-        boolean success = gameEngine.resolveMarketPurchase(gameState, marketEvent, choiceIndex);
-        if (!success) {
-            return Map.of("state", gameState, "purchased", gameState.getMarketPurchased(), "error", "Not enough cash");
-        }
-
-        if (!isSkip) {
-            gameState.addMarketPurchase(choiceIndex);
+        MarketResult marketResult = gameEngine.buyFromMarket(gameState, choiceIndex);
+        if (!marketResult.ok()) {
+            return Map.of("state", gameState, "purchased", gameState.getMarketPurchased(), "error", marketResult.error());
         }
 
         return Map.of("state", gameState, "purchased", gameState.getMarketPurchased());
@@ -166,6 +167,7 @@ public class GameController {
     public String leaderboard(Model model) {
         model.addAttribute("fastEntries", leaderboardPort.getTopScores(GameMode.FAST));
         model.addAttribute("roadEntries", leaderboardPort.getTopScores(GameMode.ROAD));
+        model.addAttribute("walkingEntries", leaderboardPort.getTopScores(GameMode.WALKING));
         return "leaderboard";
     }
 
