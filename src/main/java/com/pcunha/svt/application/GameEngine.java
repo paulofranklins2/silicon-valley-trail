@@ -34,11 +34,19 @@ public class GameEngine {
     private void preComputeDistances() {
         System.out.println("  Computing distances...");
 
+        // cache per port instance to avoid duplicate API calls for shared adapters
+        Map<DistancePort, DistanceResult> portCache = new java.util.IdentityHashMap<>();
+
         for (Map.Entry<GameMode, DistancePort> entry : distancePorts.entrySet()) {
             GameMode mode = entry.getKey();
             DistancePort port = entry.getValue();
 
-            DistanceResult result = port.calculateLegDistances(locations);
+            DistanceResult result = portCache.get(port);
+            if (result == null) {
+                result = port.calculateLegDistances(locations);
+                portCache.put(port, result);
+            }
+
             cachedDistances.put(mode, result);
 
             if (result.usedFallback()) {
@@ -61,7 +69,7 @@ public class GameEngine {
 
         GameMode effectiveMode = gameMode;
         if (result.usedFallback()) {
-            effectiveMode = GameMode.FAST;
+            effectiveMode = getFallbackMode(gameMode);
         }
 
         JourneyState journeyState = new JourneyState(locations, result.distances());
@@ -88,10 +96,14 @@ public class GameEngine {
     }
 
     /**
-     * Returns true if the game mode has distance data available.
+     * Map mode to its fallback when api not avaliable.
      */
-    public boolean isModeAvailable(GameMode mode) {
-        return cachedDistances.containsKey(mode);
+    private GameMode getFallbackMode(GameMode mode) {
+        return switch (mode) {
+            case ROAD -> GameMode.FAST;
+            case WALKING_ROAD -> GameMode.WALKING_FAST;
+            default -> GameMode.FAST;
+        };
     }
 
     /**

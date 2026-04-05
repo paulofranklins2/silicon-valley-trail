@@ -56,6 +56,7 @@ public class GameState {
         this.journeyState = journeyState;
         this.turn = 1;
         this.victory = false;
+        this.gameMode = GameMode.FAST;
     }
 
     public void nextTurn() {

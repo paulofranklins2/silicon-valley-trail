@@ -33,7 +33,6 @@ public class GameController {
 
     @GetMapping("/")
     public String home(Model model) {
-        model.addAttribute("walkingAvailable", gameEngine.isModeAvailable(GameMode.WALKING));
         return "start";
     }
 
@@ -167,7 +166,8 @@ public class GameController {
     public String leaderboard(Model model) {
         model.addAttribute("fastEntries", leaderboardPort.getTopScores(GameMode.FAST));
         model.addAttribute("roadEntries", leaderboardPort.getTopScores(GameMode.ROAD));
-        model.addAttribute("walkingEntries", leaderboardPort.getTopScores(GameMode.WALKING));
+        model.addAttribute("walkingFastEntries", leaderboardPort.getTopScores(GameMode.WALKING_FAST));
+        model.addAttribute("walkingRoadEntries", leaderboardPort.getTopScores(GameMode.WALKING_ROAD));
         return "leaderboard";
     }
 

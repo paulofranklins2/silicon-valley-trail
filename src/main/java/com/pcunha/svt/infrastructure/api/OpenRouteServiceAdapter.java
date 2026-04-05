@@ -20,16 +20,14 @@ public class OpenRouteServiceAdapter implements DistancePort {
     private final ObjectMapper objectMapper;
     private final DistancePort fallback;
     private final String apiKey;
-    private final String profile;
 
-    public OpenRouteServiceAdapter(DistancePort fallback, String apiKey, String profile) {
+    public OpenRouteServiceAdapter(DistancePort fallback, String apiKey) {
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(10))
                 .build();
         this.objectMapper = new ObjectMapper();
         this.fallback = fallback;
         this.apiKey = apiKey;
-        this.profile = profile;
     }
 
     @Override
@@ -53,7 +51,7 @@ public class OpenRouteServiceAdapter implements DistancePort {
             coords.append(']');
 
             String body = "{\"coordinates\":" + coords + "}";
-            String url = "https://api.openrouteservice.org/v2/directions/" + profile + "/json";
+            String url = "https://api.openrouteservice.org/v2/directions/driving-car/json";
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -73,7 +71,7 @@ public class OpenRouteServiceAdapter implements DistancePort {
             }
             return new DistanceResult(distances, false);
         } catch (Exception e) {
-            System.err.println("OpenRouteService (" + profile + ") unavailable: " + e.getMessage());
+            System.err.println("OpenRouteService unavailable: " + e.getMessage());
             return new DistanceResult(fallback.calculateLegDistances(locations).distances(), true);
         }
     }

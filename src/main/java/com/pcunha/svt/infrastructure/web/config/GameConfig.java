@@ -59,20 +59,15 @@ public class GameConfig {
 
     @Bean
     public GameEngine gameEngine(TurnProcessor turnProcessor) {
-        boolean hasOrsKey = orsApiKey != null && !orsApiKey.isBlank();
-
         HaversineDistanceAdapter haversine = new HaversineDistanceAdapter();
-        OpenRouteServiceAdapter orsCar = new OpenRouteServiceAdapter(haversine, orsApiKey, "driving-car");
-        OpenRouteServiceAdapter orsWalking = new OpenRouteServiceAdapter(haversine, orsApiKey, "foot-walking");
-        OsrmDistanceAdapter osrm = new OsrmDistanceAdapter(orsCar);
+        OpenRouteServiceAdapter ors = new OpenRouteServiceAdapter(haversine, orsApiKey);
+        OsrmDistanceAdapter osrm = new OsrmDistanceAdapter(ors);
 
         Map<GameMode, DistancePort> distancePorts = new EnumMap<>(GameMode.class);
         distancePorts.put(GameMode.FAST, haversine);
         distancePorts.put(GameMode.ROAD, osrm);
-
-        if (hasOrsKey) {
-            distancePorts.put(GameMode.WALKING, orsWalking);
-        }
+        distancePorts.put(GameMode.WALKING_ROAD, osrm);
+        distancePorts.put(GameMode.WALKING_FAST, haversine);
 
         return new GameEngine(turnProcessor, distancePorts);
     }
