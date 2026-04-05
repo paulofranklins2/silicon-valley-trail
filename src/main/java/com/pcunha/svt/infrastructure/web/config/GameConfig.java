@@ -1,22 +1,15 @@
 package com.pcunha.svt.infrastructure.web.config;
 
-import com.pcunha.svt.application.ActionHandler;
-import com.pcunha.svt.application.ConditionEvaluator;
-import com.pcunha.svt.application.EventProcessor;
-import com.pcunha.svt.application.GameEngine;
-import com.pcunha.svt.application.TurnProcessor;
+import com.pcunha.svt.application.*;
 import com.pcunha.svt.domain.GameMode;
 import com.pcunha.svt.domain.port.DistancePort;
 import com.pcunha.svt.domain.port.WeatherPort;
-import com.pcunha.svt.infrastructure.api.DemoWeatherAdapter;
-import com.pcunha.svt.infrastructure.api.HaversineDistanceAdapter;
-import com.pcunha.svt.infrastructure.api.MockWeatherAdapter;
-import com.pcunha.svt.infrastructure.api.OpenMeteoAdapter;
-import com.pcunha.svt.infrastructure.api.OsrmDistanceAdapter;
+import com.pcunha.svt.infrastructure.api.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.Random;
 
@@ -25,6 +18,9 @@ public class GameConfig {
 
     @Value("${game.weather.mode:api}")
     private String weatherMode;
+
+    @Value("${ORS_API_KEY:}")
+    private String orsApiKey;
 
     @Bean
     public Random random() {
@@ -56,19 +52,27 @@ public class GameConfig {
     }
 
     @Bean
-    public TurnProcessor turnProcessor(ActionHandler actionHandler, ConditionEvaluator conditionEvaluator, EventProcessor eventProcessor, Random random, WeatherPort weatherPort) {
+    public TurnProcessor turnProcessor(ActionHandler actionHandler, ConditionEvaluator conditionEvaluator,
+                                       EventProcessor eventProcessor, Random random, WeatherPort weatherPort) {
         return new TurnProcessor(actionHandler, conditionEvaluator, eventProcessor, random, weatherPort);
     }
 
     @Bean
     public GameEngine gameEngine(TurnProcessor turnProcessor) {
-        HaversineDistanceAdapter haversine = new HaversineDistanceAdapter();
-        OsrmDistanceAdapter osrm = new OsrmDistanceAdapter(haversine);
+        boolean hasOrsKey = orsApiKey != null && !orsApiKey.isBlank();
 
-        Map<GameMode, DistancePort> distancePorts = Map.of(
-                GameMode.FAST, haversine,
-                GameMode.ROAD, osrm
-        );
+        HaversineDistanceAdapter haversine = new HaversineDistanceAdapter();
+        OpenRouteServiceAdapter orsCar = new OpenRouteServiceAdapter(haversine, orsApiKey, "driving-car");
+        OpenRouteServiceAdapter orsWalking = new OpenRouteServiceAdapter(haversine, orsApiKey, "foot-walking");
+        OsrmDistanceAdapter osrm = new OsrmDistanceAdapter(orsCar);
+
+        Map<GameMode, DistancePort> distancePorts = new EnumMap<>(GameMode.class);
+        distancePorts.put(GameMode.FAST, haversine);
+        distancePorts.put(GameMode.ROAD, osrm);
+
+        if (hasOrsKey) {
+            distancePorts.put(GameMode.WALKING, orsWalking);
+        }
 
         return new GameEngine(turnProcessor, distancePorts);
     }

@@ -11,10 +11,10 @@ import java.util.Set;
 @Getter
 @ToString
 public class GameState {
-    private String teamName;
-    private TeamState teamState;
-    private ResourceState resourceState;
-    private JourneyState journeyState;
+    private final String teamName;
+    private final TeamState teamState;
+    private final ResourceState resourceState;
+    private final JourneyState journeyState;
     @Setter
     private GameEvent lastEvent;
     @Setter
@@ -46,6 +46,8 @@ public class GameState {
     private boolean leaderboardSubmitted;
     @Setter
     private boolean usedFallbackDistances;
+    @Setter
+    private GameMode requestedGameMode;
 
     public GameState(TeamState teamState, ResourceState resourceState, JourneyState journeyState, String teamName) {
         this.teamName = teamName;

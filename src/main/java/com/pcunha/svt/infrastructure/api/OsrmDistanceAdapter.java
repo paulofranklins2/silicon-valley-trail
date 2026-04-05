@@ -84,8 +84,8 @@ public class OsrmDistanceAdapter implements DistancePort {
             }
             return new DistanceResult(distances, false);
         } catch (Exception e) {
-            System.err.println("OSRM unavailable, falling back to estimated distances: " + e.getMessage());
-            return new DistanceResult(fallback.calculateLegDistances(locations).distances(), true);
+            System.err.println("OSRM unavailable, trying fallback: " + e.getMessage());
+            return fallback.calculateLegDistances(locations);
         }
     }
 }
