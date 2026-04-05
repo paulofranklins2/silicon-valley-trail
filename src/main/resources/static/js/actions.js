@@ -253,15 +253,53 @@
         showChoiceModal(window.__lastEvent);
     }
 
-    // Notify if road distances fell back to estimated
+    // Show fallback modal if routing API was unavailable — let player retry or accept
     if (window.__gameConfig && window.__gameConfig.usedFallback) {
-        setTimeout(function () {
-            window.GameToast.show(
-                '<div class="toast__title">Road data unavailable</div>' +
-                '<div class="toast__body">Using estimated distances. Ranking as Fast mode.</div>',
-                'negative', 5000
-            );
-        }, 500);
+        var fallbackModal = document.getElementById('fallback-modal');
+        if (fallbackModal) {
+            fallbackModal.style.display = 'flex';
+            setChoicePending(true);
+
+            var retryBtn = document.getElementById('fallback-retry');
+            var acceptBtn = document.getElementById('fallback-accept');
+            var fallbackDesc = document.getElementById('fallback-desc');
+            var originalMode = fallbackModal.getAttribute('data-game-mode');
+
+            retryBtn.addEventListener('click', function () {
+                retryBtn.disabled = true;
+                acceptBtn.disabled = true;
+                retryBtn.querySelector('.choice-modal__btn-label').textContent = 'Connecting...';
+                if (fallbackDesc) fallbackDesc.textContent = 'This may take a few seconds.';
+
+                fetch('/api/retry-distances', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: 'gameMode=' + encodeURIComponent(originalMode)
+                })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (data.success) {
+                        window.location.href = '/game';
+                    } else {
+                        retryBtn.disabled = false;
+                        acceptBtn.disabled = false;
+                        retryBtn.querySelector('.choice-modal__btn-label').textContent = 'Retry';
+                        if (fallbackDesc) fallbackDesc.textContent = 'Still unavailable. Try again or play with estimated distances.';
+                    }
+                })
+                .catch(function () {
+                    retryBtn.disabled = false;
+                    acceptBtn.disabled = false;
+                    retryBtn.querySelector('.choice-modal__btn-label').textContent = 'Retry';
+                    if (fallbackDesc) fallbackDesc.textContent = 'Connection failed. Try again or play with estimated distances.';
+                });
+            });
+
+            acceptBtn.addEventListener('click', function () {
+                fallbackModal.style.display = 'none';
+                setChoicePending(false);
+            });
+        }
     }
 
     // Set buttons processing state

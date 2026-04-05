@@ -277,6 +277,13 @@
     text-align: center;
 }
 
+.mode-option--disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    pointer-events: none;
+    filter: grayscale(0.5);
+}
+
 .start-leaderboard-link {
     display: inline-block;
     margin-top: var(--space-xl);

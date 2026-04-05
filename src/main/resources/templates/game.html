@@ -307,6 +307,24 @@
     </div>
 </div>
 
+<!-- Fallback modal (shown when OSRM fails) -->
+<div id="fallback-modal" class="choice-modal" style="display:none"
+     th:data-game-mode="${gameState.requestedGameMode}">
+    <div class="choice-modal__backdrop"></div>
+    <div class="choice-modal__content">
+        <h3 class="choice-modal__title">Routing data unavailable</h3>
+        <p class="choice-modal__desc" id="fallback-desc">The routing server was unreachable. You can retry or play with estimated distances (ranked as Fast mode).</p>
+        <div class="choice-modal__options">
+            <button id="fallback-retry" class="choice-modal__btn">
+                <span class="choice-modal__btn-label">Retry</span>
+            </button>
+            <button id="fallback-accept" class="choice-modal__btn">
+                <span class="choice-modal__btn-label">Play as Fast</span>
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Toast container (positioned fixed, managed by JS) -->
 <div th:replace="~{fragments/toast :: toast-container}"></div>
 
