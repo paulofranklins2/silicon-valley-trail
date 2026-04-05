@@ -314,9 +314,25 @@ The leaderboard is split by game mode (Fast vs Road) so the rankings are fair. R
 
 I went back and forth on whether market state and leaderboard submission should live in the HTTP session or on GameState. Originally I had them as session attributes, but that meant cleanup code in `POST /start` to clear stale data. Moving everything onto GameState was cleaner: new game = new object = everything resets automatically.
 
-### H2 Config
+### Database Config
 
-In-memory by default. Data resets on restart, which is fine for a demo. For production, I'd swap to Postgres with one config change and add a Flyway migration for the index on `score`.
+The app uses `${DB_URL:jdbc:h2:mem:svt}` in `application.yml`. The default is H2 in-memory, so reviewers can run the app with zero setup. To switch to Postgres, just set three env vars (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`).
+
+I added `spring-dotenv` so the app reads a `.env` file at the project root if one exists. This way you can drop a `.env` with your Postgres credentials and the app picks them up automatically. The `.env` file is gitignored, and `.env.example` shows the format.
+
+A `docker-compose.yml` is included for convenience. `docker compose up -d` starts a Postgres 16 container with the default credentials. No manual database setup needed.
+
+I considered Spring profiles (`application-postgres.yml`) but decided against it. One `application.yml` with env var defaults is simpler. No flags to remember, no profile switching. Just set the env vars and run.
+
+For production at scale, I'd add Flyway for schema migrations and a database index on the `score` column for O(1) leaderboard queries. With `ddl-auto: update` and a handful of entries, it's not needed here.
+
+### OSRM Fallback & Fair Rankings
+
+When a player selects Road mode, the OSRM adapter returns a `DistanceResult` that includes a `usedFallback` flag. If the OSRM public server is unavailable (it's free and rate-limited), the adapter falls back to Haversine distances and sets this flag to `true`.
+
+When fallback is triggered, the game mode automatically downgrades from ROAD to FAST. This way the player's score goes into the Fast leaderboard, not the Road leaderboard. Without this, a player could select Road mode, get Haversine distances (shorter), and compete unfairly against real Road mode players.
+
+The player sees a toast on game load explaining what happened: "Road data unavailable. Using estimated distances. Ranking as Fast mode."
 
 ---
 
@@ -484,8 +500,9 @@ Ports live in the domain because the domain defines what it needs. Adapters live
 ## 17. Dependencies
 
 - Spring Boot (web, thymeleaf, data-jpa, devtools)
-- H2
+- H2 (default) + PostgreSQL (via env var)
 - Jackson + jackson-dataformat-yaml (for YAML game data files)
+- spring-dotenv (reads .env file for database config)
 - JUnit 5, Mockito
 - Lombok (limited use)
 

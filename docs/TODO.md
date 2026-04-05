@@ -131,12 +131,19 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] Game balance: health/morale drain from actions and events
 - [x] Leaderboard with weighted score (victory, turn efficiency, stats, resources)
 - [x] Two game modes with separate leaderboards
-- [ ] Playtest full game and tune balance
-- [ ] Verify app runs from scratch with `./mvnw spring-boot:run`
-- [ ] Delete `PersistencePort` (unused)
+- [x] OSRM fallback detection with mode downgrade for fair rankings
+- [x] Delete `PersistencePort` (unused)
+- [x] Playtest full game and tune balance
+- [x] Verify app runs from scratch with `./mvnw spring-boot:run`
+
+### Infrastructure
+- [x] Postgres support via env var (`DB_URL`)
+- [x] spring-dotenv for `.env` file support
+- [x] docker-compose.yml for local Postgres
+- [x] `.env.example` with config documentation
 
 ### README - REQUIRED
-- [ ] Quick start from a fresh machine
+- [x] Quick start from a fresh machine
 - [ ] API keys / mock instructions
 - [ ] Architecture overview
 - [ ] Dependency list
@@ -146,5 +153,4 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 
 ### Documentation - REQUIRED
 - [ ] Live URL or screen recording
-- [ ] Update DESIGN.md with final state
-- [ ] Add `.env.example` file
+- [x] Update DESIGN.md with final state

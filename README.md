@@ -19,6 +19,27 @@ Then open `http://localhost:8080`.
 
 ---
 
+## Design Chart
+
+```mermaid
+flowchart LR
+    UI[Thymeleaf UI] --> Controller[GameController]
+    Controller --> Engine[GameEngine / TurnProcessor]
+    Engine --> Action[ActionHandler]
+    Engine --> Events[EventProcessor]
+    Engine --> Conditions[ConditionEvaluator]
+    Engine --> WeatherPort
+    Engine --> DistancePort
+    Engine --> LeaderboardPort
+    WeatherPort --> OpenMeteo
+    WeatherPort --> MockWeather
+    DistancePort --> OSRM
+    DistancePort --> Haversine
+    LeaderboardPort --> H2[(H2 Database)]
+```
+
+---
+
 ## Stack
 
 - **Backend:** Java 21 + Spring Boot
