@@ -3,7 +3,7 @@
 > [Design Document](DESIGN.md)
 
 ## Goal
-Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web UI, H2 persistence, and real API integration.
+Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web UI, H2/Postgres persistence, and real API integration.
 
 ---
 
@@ -15,9 +15,9 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] Create `domain/model/JourneyState` (currentLocationIndex, distanceToNext, totalDistance)
 - [x] Create `domain/model/Location` (name, lat, long)
 - [x] Create `domain/model/GameState` (composes above + turn, gameOver, victory, market state, game mode)
-- [x] Create `domain/model/GameEvent`, `EventOutcome`, `WeatherSignal`, `ActionInfo`
+- [x] Create `domain/model/GameEvent`, `EventOutcome`, `WeatherSignal`, `ActionInfo`, `MarketResult`, `DistanceResult`
 - [x] Create enums: `GameAction`, `EventCategory`, `ActionOutcome`, `WeatherCategory`, `LossReason`, `StatType`, `GameMode`
-- [x] Create ports: `WeatherPort`, `DistancePort`, `LeaderboardPort`
+- [x] Create ports: `WeatherPort`, `DistancePort` (with default `calculateLegDistances`), `LeaderboardPort`
 
 ### Tests
 - [x] Test TeamState clamping
@@ -33,7 +33,7 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] Create `application/ActionHandler` (energy gate, compute travel penalty, data-driven from YAML)
 - [x] Create `application/ConditionEvaluator` (grace period loss for food/cash, counter updates after checks)
 - [x] Create `application/TurnProcessor` (weather only on travel, fetchWeather helper)
-- [x] Create `application/GameEngine` (game mode support, batch distance calculation)
+- [x] Create `application/GameEngine` (pre-computed distances, market logic, retry support)
 - [x] Create `application/ScoreCalculator` (weighted scoring for leaderboard)
 
 ### Tests
@@ -55,6 +55,7 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] Add random event chance (20% per turn)
 - [x] Add events with player choices (5 choice events)
 - [x] Add 5 city market variants (voluntary, per-city, purchase limits)
+- [x] Market logic in GameEngine with MarketResult pattern
 
 ### Tests
 - [x] Test event deltas apply correctly
@@ -77,12 +78,17 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] Wire weather into gameplay (travel only, prevents resting exploit)
 - [x] Weather mode set to `api`
 
-### Distance API (Haversine + OSRM)
-- [x] Create `HaversineDistanceAdapter` (straight-line, pure math)
-- [x] Create `OsrmDistanceAdapter` (real driving distance, batch API call, Haversine fallback)
+### Distance APIs (3 modes)
+- [x] Create `HaversineDistanceAdapter` (Fast mode, pure math, always works)
+- [x] Create `OsrmDistanceAdapter` (Road mode, driving distance, falls back to ORS car then Haversine)
+- [x] Create `OpenRouteServiceAdapter` (Walking mode + Road fallback, supports car and foot profiles)
 - [x] Create `MockDistanceAdapter`
 - [x] `DistancePort.calculateLegDistances()` default method eliminates duplication
-- [x] Game mode selection: Fast (Haversine) vs Road (OSRM)
+- [x] Pre-compute all distances at startup, cache per game mode
+- [x] `DistanceResult` record signals whether fallback was used
+- [x] Fallback chain: OSRM → ORS car → Haversine (passes through usedFallback flag)
+- [x] Walking mode disabled when no ORS_API_KEY
+- [x] Retry endpoint for failed modes (`POST /api/retry-distances`)
 
 ### Data-driven content
 - [x] Create `GameDataLoader` (YAML deserialization)
@@ -105,17 +111,19 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 ## Day 5 - Web UI
 
 ### Must have
-- [x] GameController with AJAX endpoints (action, choice, market, leaderboard)
-- [x] Game mode selection on start page (Fast / Road)
+- [x] GameController (thin routing, delegates to GameEngine)
+- [x] Game mode selection on start page (Fast / Road / Walking)
+- [x] Walking mode disabled on UI when no API key
 - [x] Action cards rendered from backend data (no hardcoded frontend values)
-- [x] Energy costs read from `data-energy-cost` attribute
+- [x] Energy costs from `data-energy-cost` attribute
 - [x] Grace period thresholds from `window.__gameConfig`
 - [x] City market modal (voluntary, per-city persistence on GameState, sold-out tracking)
 - [x] Choice modal with outcome tags and current stats
+- [x] Fallback retry modal (retry API or accept Fast mode)
 - [x] Weather display with initial weather on game start
 - [x] Journey map with total distance and game mode label
 - [x] Grace period warnings (pulsing badges: starving X/2, broke X/3)
-- [x] Leaderboard page with separate Fast / Road rankings
+- [x] Leaderboard page with separate Fast / Road / Walking rankings
 - [x] End screen with score submission and loss reason
 - [x] Maven Wrapper for zero-install builds
 
@@ -126,13 +134,15 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 ### Gameplay
 - [x] Energy gate: actions blocked when insufficient energy
 - [x] Compute penalty: travel halved at 0 compute
-- [x] Market: cash validation, purchase limits
+- [x] Market logic in GameEngine (not controller)
 - [x] Weather only on travel (prevents exploit)
 - [x] Game balance: health/morale drain from actions and events
-- [x] Leaderboard with weighted score (victory, turn efficiency, stats, resources)
-- [x] Two game modes with separate leaderboards
-- [x] OSRM fallback detection with mode downgrade for fair rankings
-- [x] Delete `PersistencePort` (unused)
+- [x] Leaderboard with weighted score per game mode
+- [x] Four game modes (Fast, Road, Walking, Walking+) with speed multiplier
+- [x] OSRM fallback to ORS car with fair ranking detection
+- [x] Pre-computed distances at startup with shared port caching
+- [x] Input validation: empty names, invalid actions, duplicate submissions
+- [x] Deleted PersistencePort (unused)
 - [x] Playtest full game and tune balance
 - [x] Verify app runs from scratch with `./mvnw spring-boot:run`
 
@@ -141,9 +151,10 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] spring-dotenv for `.env` file support
 - [x] docker-compose.yml for local Postgres
 - [x] `.env.example` with config documentation
+- [x] Startup banner shows database type and mode status
 
 ### README - REQUIRED
-- [x] Quick start from a fresh machine
+- [ ] Quick start from a fresh machine
 - [ ] API keys / mock instructions
 - [ ] Architecture overview
 - [ ] Dependency list

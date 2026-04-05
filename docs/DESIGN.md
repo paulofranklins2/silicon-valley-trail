@@ -221,47 +221,51 @@ Weighted event selection based on weather and game state is supported but not ye
 
 ## 9. API Integration
 
-### Decision: Open-Meteo + Haversine + OSRM
+### Decision: Open-Meteo + Haversine + OSRM + OpenRouteService
 
-- **Weather (Open-Meteo):**
-    - no API key needed
-    - real weather data for real locations
-    - directly affects gameplay (rain to harder travel, heat to morale drop)
-    - weather effects only apply when traveling, not when resting. I added this restriction because without it, players could exploit clear weather by spamming REST to get free health and energy. Now resting is "indoors" and weather only hits you on the road.
+**Weather (Open-Meteo):**
+- no API key needed
+- real weather data for real locations
+- directly affects gameplay (rain to harder travel, heat to morale drop)
+- weather effects only apply when traveling, not when resting. I added this restriction because without it, players could exploit clear weather by spamming REST to get free health and energy. Now resting is "indoors" and weather only hits you on the road.
 
-- **Distance (Haversine + OSRM):**
+**Distance (3 APIs, 4 game modes):**
 
-I started with just Haversine for straight-line distances. Pure math, no API, always works. Good enough for a game.
+I started with just Haversine for straight-line distances. Then added OSRM for driving distances. Then realized I could make each API a game mode, so I added OpenRouteService for walking distances.
 
-But then I realized I could turn this into a game mode feature. Instead of choosing one distance method at config time, I made both available as player choices:
+| Mode | API | Key needed | Difficulty |
+|---|---|---|---|
+| Fast | Haversine (math) | No | Easy (~65 km) |
+| Road | OSRM driving → ORS car fallback | No (ORS key optional) | Medium (~106 km) |
+| Walking | ORS foot-walking | Yes (free tier) | Hard (~130 km) |
 
-**Fast mode:** Haversine (straight-line). Shorter distances, quicker game. Good for learning the mechanics.
+The `DistancePort` interface made this painless. Each mode is just a different adapter. GameEngine picks the right one based on the player's selection. Zero changes to game logic.
 
-**Road mode:** OSRM (Open Source Routing Machine). Real driving distances via API. Longer journey, more resource pressure, harder to survive.
+**Pre-computed distances:** Originally I calculated distances when the player clicked "Start." That meant API calls blocked game creation. OSRM's public server is slow and unreliable, so Road mode could hang for 15+ seconds.
 
-The key insight was that the `DistancePort` interface already existed. Adding OSRM was just a new adapter. The game engine picks the right one based on the player's mode selection. Zero changes to game logic.
+I moved the computation to application startup. All distances are cached once when the server boots. Game creation is instant — just reads from the cache. If an API was down at startup, the player can retry from a modal without restarting the server.
 
-OSRM has a nice feature: you can send all 15 waypoints in a single request and get all 14 leg distances back at once. I used this instead of making 14 separate API calls, which would have been painfully slow at game start. The batch approach starts the game in about 1 second.
+**Batch requests:** Both OSRM and ORS support sending all 15 waypoints in a single request. I used this instead of 14 separate calls, which would have been painfully slow.
 
-One gotcha I hit: `String.format("%f")` uses locale-specific decimal separators. On non-US systems, coordinates get commas instead of dots, which breaks the API URL. Fixed with `Locale.US` everywhere I format coordinates for API calls.
+**Locale bug:** `String.format("%f")` uses locale-specific decimal separators. On non-US systems, coordinates get commas instead of dots, breaking the API URL. Fixed with `Locale.US` everywhere I format coordinates.
 
-Both OSRM and Open-Meteo need no API key. Clone the repo and both modes work.
+Walking mode is disabled on the UI when no ORS key is configured. The start page checks `GameEngine.isModeAvailable()` and greys out the option.
 
 ---
 
 ### Fallback Strategy
 
-```
-try API (timeout)
-fallback to mock/haversine
-```
+Each adapter follows the same pattern: try the API, fall back on failure.
 
-Every external call follows this pattern:
-- `OpenMeteoAdapter` falls back to `MockWeatherAdapter`
-- `OsrmDistanceAdapter` falls back to `HaversineDistanceAdapter`
-- `DistancePort.calculateLegDistances()` is a default method on the interface, so Haversine and Mock get it for free. OSRM overrides it with the batch call.
+- `OpenMeteoAdapter` → `MockWeatherAdapter`
+- `OsrmDistanceAdapter` → `OpenRouteServiceAdapter` (car profile) → `HaversineDistanceAdapter`
+- `OpenRouteServiceAdapter` → `HaversineDistanceAdapter`
 
-If any API fails, the game still works. The engine doesn't know or care where the data came from.
+The key design choice: when OSRM fails but ORS car succeeds, `usedFallback` stays `false` because the player still gets real driving distances. The flag only becomes `true` when we end up at Haversine (estimated distances). This matters for fair leaderboard rankings — if the mode used estimated distances, the game downgrades to Fast mode so the player doesn't compete unfairly.
+
+The fallback chain passes through the `DistanceResult.usedFallback` flag from the innermost adapter. `DistancePort.calculateLegDistances()` is a default method on the interface, so Haversine and Mock get it for free. OSRM and ORS override it with batch calls.
+
+If the player gets the fallback modal, they can retry (calls the API live) or accept Fast mode. The retry updates the cache, so subsequent games on that mode use real distances without another API call.
 
 ---
 
@@ -406,12 +410,15 @@ Tests are focused on logic, not framework internals. 74 tests across 15 test fil
 
 ### Principle: handle issues at the boundary
 
-- API fails to fallback to mock
-- invalid input to blocked at controller level, templates only show valid options
-- database error to warn and continue, don't crash the game
+- API fails → fallback to mock/haversine
+- invalid action name → caught at controller, returns error (not a 500)
+- empty team name / player name → validated and rejected at controller
+- database error → warn and continue, don't crash the game
 - domain stays clean, values are always valid because the model clamps them
 
-No need for defensive checks inside the game engine. The boundaries already guarantee clean data.
+I found the invalid action edge case during a late review. Without the try-catch, sending `POST /api/action?action=GARBAGE` would crash the server with an `IllegalArgumentException`. Now it returns a clean error response. Same pattern for empty names — HTML `required` attributes are client-side only, so I validate server-side too.
+
+No defensive checks inside the game engine. The boundaries already guarantee clean data.
 
 ---
 
@@ -547,12 +554,16 @@ Keeping things simple and readable.
 | Hexagonal architecture | Easy to test, clean API boundary | More files and interfaces |
 | 6 stats / 5 actions | Better gameplay, real decisions | More balancing work |
 | Category-based events | API integration point, varied gameplay | More complex than flat random |
-| Open-Meteo + OSRM | Two APIs, no keys, real data | Extra adapter code |
-| H2 + JPA | Real database, leaderboard, zero setup | In-memory data lost on restart |
-| YAML data files | Content separate from code, easy to edit | Extra dependency (jackson-yaml), deserialization setup |
-| Game modes (Fast/Road) | Replayability, shows architecture flexibility | OSRM dependency for Road mode |
-| Score calculator | Fair rankings, weighted by difficulty | Balancing the formula is subjective |
+| 3 APIs (Open-Meteo, OSRM, ORS) | 3 game modes, real data, shows adapter pattern | More adapters, fallback chains |
+| H2 default + Postgres via env var | Zero setup for reviewer, real DB for deploy | spring-dotenv dependency |
+| YAML data files | Content separate from code, easy to edit | jackson-yaml dependency, lost final fields |
+| 4 game modes via speed multiplier | All modes work with no API key, difficulty from mechanics not data | More enum values, slightly complex fallback mapping |
+| Pre-computed distances at startup | Instant game creation, no API calls per player | Slower server boot, stale if locations change |
+| OSRM → ORS car fallback chain | Road mode works even when OSRM is down | Extra adapter, usedFallback flag complexity |
+| Score calculator | Fair per-mode rankings, weighted by difficulty | Formula balancing is subjective |
+| Market logic in GameEngine | Controller stays thin, business rules centralized | GameEngine has more methods |
 | Market on GameState | Single source of truth, no session cleanup | GameState grows larger |
+| MarketResult record | Typed success/error from engine to controller | One more file |
 
 All decisions aim for balance between simplicity and doing things right.
 

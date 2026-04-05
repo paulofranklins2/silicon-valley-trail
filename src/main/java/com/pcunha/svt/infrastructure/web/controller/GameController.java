@@ -38,8 +38,11 @@ public class GameController {
 
     @PostMapping("/start")
     public String createGame(@RequestParam String teamName, @RequestParam(defaultValue = "FAST") String gameMode, HttpSession session) {
+        if (teamName == null || teamName.trim().isEmpty()) {
+            return "redirect:/";
+        }
         GameMode mode = GameMode.valueOf(gameMode);
-        GameState gameState = gameEngine.createNewGame(teamName, mode);
+        GameState gameState = gameEngine.createNewGame(teamName.trim(), mode);
         session.setAttribute("gameState", gameState);
         return "redirect:/game";
     }
@@ -79,10 +82,14 @@ public class GameController {
     @PostMapping("/action")
     public String processAction(@RequestParam String action, HttpSession session) {
         GameState gameState = getGameState(session);
-        if (gameState == null) {
-            return "redirect:/";
+        if (gameState == null) return "redirect:/";
+
+        try {
+            gameEngine.processAction(gameState, GameAction.valueOf(action));
+        } catch (IllegalArgumentException e) {
+            return "redirect:/game";
         }
-        gameEngine.processAction(gameState, GameAction.valueOf(action));
+
         if (gameState.isGameOver()) {
             return "redirect:/end";
         }
@@ -93,10 +100,13 @@ public class GameController {
     @ResponseBody
     public Object processActionApi(@RequestParam String action, HttpSession session) {
         GameState gameState = getGameState(session);
-        if (gameState == null) {
-            return "redirect:/";
+        if (gameState == null) return "redirect:/";
+
+        try {
+            gameEngine.processAction(gameState, GameAction.valueOf(action));
+        } catch (IllegalArgumentException e) {
+            return Map.of("error", "Invalid action");
         }
-        gameEngine.processAction(gameState, GameAction.valueOf(action));
         return gameState;
     }
 
@@ -152,11 +162,14 @@ public class GameController {
         if (gameState == null) {
             return Map.of("error", "No game in progress");
         }
+        if (playerName == null || playerName.trim().isEmpty()) {
+            return Map.of("error", "Name required");
+        }
         if (gameState.isLeaderboardSubmitted()) {
             return Map.of("error", "Already submitted");
         }
 
-        LeaderboardEntry entry = LeaderboardEntry.fromGameState(gameState, playerName);
+        LeaderboardEntry entry = LeaderboardEntry.fromGameState(gameState, playerName.trim());
         leaderboardPort.save(entry);
         gameState.setLeaderboardSubmitted(true);
         return Map.of("success", true);
