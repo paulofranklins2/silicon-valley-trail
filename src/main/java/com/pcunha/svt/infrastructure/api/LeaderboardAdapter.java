@@ -23,6 +23,6 @@ public class LeaderboardAdapter implements LeaderboardPort {
 
     @Override
     public List<LeaderboardEntry> getTopScores(GameMode gameMode) {
-        return leaderboardRepository.findTop10ByGameModeOrderByScoreDesc(gameMode);
+        return leaderboardRepository.findTop5ByGameModeOrderByScoreDesc(gameMode);
     }
 }
