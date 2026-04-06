@@ -5,109 +5,29 @@
 <div class="container end-page">
     <h1 class="leaderboard-title">Leaderboard</h1>
 
-    <!-- Fast mode -->
-    <div class="leaderboard-section">
-        <h2 class="leaderboard-section__title">Fast Mode</h2>
-        <p class="leaderboard-section__desc">Straight-line distance</p>
-        <div class="leaderboard-table-wrap" th:if="${!fastEntries.isEmpty()}">
-            <table class="leaderboard-table">
-                <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Player</th>
-                    <th>Team</th>
-                    <th>Result</th>
-                    <th>Turns</th>
-                    <th>Score</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:classappend="${entry.victory} ? 'leaderboard-row--victory' : 'leaderboard-row--defeat'"
-                    th:each="entry, iter : ${fastEntries}">
-                    <td th:text="${iter.index + 1}">1</td>
-                    <td th:text="${entry.playerName}">Player</td>
-                    <td th:text="${entry.teamName}">Team</td>
-                    <td>
-                        <span class="badge badge--victory" th:if="${entry.victory}">WIN</span>
-                        <span class="badge badge--defeat" th:unless="${entry.victory}">LOST</span>
-                    </td>
-                    <td th:text="${entry.turns}">0</td>
-                    <td th:text="${entry.score}">0</td>
-                </tr>
-                </tbody>
-            </table>
+    <div class="leaderboard-grid">
+        <div class="leaderboard-section" th:each="entry : ${leaderboard}">
+            <h2 class="leaderboard-section__title" th:text="${entry.key.displayName}">Mode</h2>
+            <p class="leaderboard-section__desc" th:text="${entry.key.description}">Description</p>
+            <div class="leaderboard-table-wrap" th:if="${!entry.value.isEmpty()}">
+                <table class="leaderboard-table">
+                    <thead><tr><th>#</th><th>Player</th><th>Result</th><th>Score</th></tr></thead>
+                    <tbody>
+                    <tr th:each="score, iter : ${entry.value}"
+                        th:classappend="${score.victory} ? 'leaderboard-row--victory' : 'leaderboard-row--defeat'">
+                        <td th:text="${iter.index + 1}">1</td>
+                        <td th:text="${score.playerName}">Player</td>
+                        <td>
+                            <span th:if="${score.victory}" class="badge badge--victory">WIN</span>
+                            <span th:unless="${score.victory}" class="badge badge--defeat">LOST</span>
+                        </td>
+                        <td th:text="${score.score}">0</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="leaderboard-empty" th:if="${entry.value.isEmpty()}">No scores yet</p>
         </div>
-        <p class="leaderboard-empty" th:if="${fastEntries.isEmpty()}">No scores yet. Be the first!</p>
-    </div>
-
-    <!-- Road mode -->
-    <div class="leaderboard-section">
-        <h2 class="leaderboard-section__title">Road Mode</h2>
-        <p class="leaderboard-section__desc">Real driving distance</p>
-        <div class="leaderboard-table-wrap" th:if="${!roadEntries.isEmpty()}">
-            <table class="leaderboard-table">
-                <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Player</th>
-                    <th>Team</th>
-                    <th>Result</th>
-                    <th>Turns</th>
-                    <th>Score</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:classappend="${entry.victory} ? 'leaderboard-row--victory' : 'leaderboard-row--defeat'"
-                    th:each="entry, iter : ${roadEntries}">
-                    <td th:text="${iter.index + 1}">1</td>
-                    <td th:text="${entry.playerName}">Player</td>
-                    <td th:text="${entry.teamName}">Team</td>
-                    <td>
-                        <span class="badge badge--victory" th:if="${entry.victory}">WIN</span>
-                        <span class="badge badge--defeat" th:unless="${entry.victory}">LOST</span>
-                    </td>
-                    <td th:text="${entry.turns}">0</td>
-                    <td th:text="${entry.score}">0</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-        <p class="leaderboard-empty" th:if="${roadEntries.isEmpty()}">No scores yet. Be the first!</p>
-    </div>
-
-    <!-- Walking mode -->
-    <div class="leaderboard-section">
-        <h2 class="leaderboard-section__title">Walking Mode</h2>
-        <p class="leaderboard-section__desc">Walking distance - impossible mode</p>
-        <div class="leaderboard-table-wrap" th:if="${!walkingEntries.isEmpty()}">
-            <table class="leaderboard-table">
-                <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Player</th>
-                    <th>Team</th>
-                    <th>Result</th>
-                    <th>Turns</th>
-                    <th>Score</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:classappend="${entry.victory} ? 'leaderboard-row--victory' : 'leaderboard-row--defeat'"
-                    th:each="entry, iter : ${walkingEntries}">
-                    <td th:text="${iter.index + 1}">1</td>
-                    <td th:text="${entry.playerName}">Player</td>
-                    <td th:text="${entry.teamName}">Team</td>
-                    <td>
-                        <span class="badge badge--victory" th:if="${entry.victory}">WIN</span>
-                        <span class="badge badge--defeat" th:unless="${entry.victory}">LOST</span>
-                    </td>
-                    <td th:text="${entry.turns}">0</td>
-                    <td th:text="${entry.score}">0</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-        <p class="leaderboard-empty" th:if="${walkingEntries.isEmpty()}">No scores yet. Be the first!</p>
     </div>
 
     <div class="end-actions">

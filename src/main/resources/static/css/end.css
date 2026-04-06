@@ -1,4 +1,4 @@
-/*  END PAGE — compact, no-scroll layout  */
+/*  END PAGE - compact, no-scroll layout  */
 .end-page {
     text-align: center;
     padding: 4vh var(--space-lg) var(--space-2xl);
@@ -166,7 +166,7 @@
     margin-bottom: 0;
 }
 
-/*  FINAL STATS — compact 2-col card  */
+/*  FINAL STATS - compact 2-col card  */
 .final-stats {
     background: linear-gradient(145deg, var(--bg-panel) 0%, var(--bg-panel-alt) 100%);
     padding: var(--space-lg) var(--space-xl);
@@ -543,9 +543,31 @@
     margin-bottom: var(--space-2xl);
 }
 
-/*  LEADERBOARD SECTIONS (per game mode)  */
+/* Widen container for leaderboard grid */
+.end-page:has(.leaderboard-grid) {
+    max-width: 960px;
+}
+
+/*  LEADERBOARD GRID (2x2)  */
+.leaderboard-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    max-width: 900px;
+    margin: 0 auto 32px;
+}
+
+@media (max-width: 768px) {
+    .leaderboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .leaderboard-section {
-    margin-bottom: var(--space-2xl);
+    background: linear-gradient(145deg, var(--bg-panel) 0%, var(--bg-panel-alt) 100%);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
 }
 
 .leaderboard-section__title {

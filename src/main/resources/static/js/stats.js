@@ -371,6 +371,7 @@
     // Expose globally for other modules
     window.GameStats = {
         renderState: renderState,
+        renderStoryBeat: renderStoryBeat,
         updateResourceBars: updateResourceBars,
         buildCombinedToast: buildCombinedToast
     };

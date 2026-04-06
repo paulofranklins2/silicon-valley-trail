@@ -32,20 +32,12 @@
     <form action="/start" class="start-form" method="post">
         <input name="teamName" placeholder="Enter team name..." required type="text">
         <div class="mode-selector">
-            <label class="mode-option mode-option--active">
-                <input type="radio" name="gameMode" value="FAST" checked>
-                <span class="mode-option__name">Fast</span>
-                <span class="mode-option__desc">Straight-line</span>
-            </label>
-            <label class="mode-option">
-                <input type="radio" name="gameMode" value="ROAD">
-                <span class="mode-option__name">Road</span>
-                <span class="mode-option__desc">Driving distance</span>
-            </label>
-            <label class="mode-option" th:classappend="${!walkingAvailable} ? 'mode-option--disabled'">
-                <input type="radio" name="gameMode" value="WALKING" th:disabled="${!walkingAvailable}">
-                <span class="mode-option__name">Walking</span>
-                <span class="mode-option__desc" th:text="${walkingAvailable} ? 'Impossible mode' : 'Requires API key'">Impossible mode</span>
+            <label th:each="mode, iter : ${gameModes}"
+                   class="mode-option"
+                   th:classappend="${iter.first} ? 'mode-option--active'">
+                <input type="radio" name="gameMode" th:value="${mode}" th:checked="${iter.first}">
+                <span class="mode-option__name" th:text="${mode.displayName}">Mode</span>
+                <span class="mode-option__desc" th:text="${mode.description}">Description</span>
             </label>
         </div>
         <button type="submit">Launch</button>

@@ -253,7 +253,7 @@
         showChoiceModal(window.__lastEvent);
     }
 
-    // Show fallback modal if routing API was unavailable — let player retry or accept
+    // Show fallback modal if routing API was unavailable - let player retry or accept
     if (window.__gameConfig && window.__gameConfig.usedFallback) {
         var fallbackModal = document.getElementById('fallback-modal');
         if (fallbackModal) {
@@ -390,11 +390,22 @@
         updateActionAvailability(state.teamState.energy);
     }
 
+    // Sequenced turn resolution: story beat -> pause -> stats -> re-enable
+    var RESOLVE_DELAY_STORY = 80;   // ms before story text appears
+    var RESOLVE_DELAY_STATS = 350;  // ms after story before stats animate
+    var RESOLVE_DELAY_ENABLE = 250; // ms after stats before buttons re-enable
+
     // AJAX action handling
     function handleAction(actionValue, clickEvent) {
         if (isProcessing || waitingForChoice) return;
         isProcessing = true;
         setButtonsProcessing(true);
+
+        // Add resolving class to story beat for anticipation
+        var storyContainer = document.getElementById('story-beat-container');
+        if (storyContainer) {
+            storyContainer.classList.add('story-beat--resolving');
+        }
 
         fetch('/api/action', {
             method: 'POST',
@@ -412,30 +423,73 @@
                 }
 
                 var oldState = previousState;
-                applyStateUpdate(state, oldState);
 
-                // Play action animation
-                if (window.GameAnimations) {
-                    window.GameAnimations.playAction(actionValue, state);
-                    window.GameAnimations.updateTeamStatus(state.teamState);
-                }
+                // Phase 1: Update story beat text first (with typewriter entrance)
+                setTimeout(function () {
+                    if (storyContainer) {
+                        storyContainer.classList.remove('story-beat--resolving');
+                        storyContainer.classList.add('story-beat--revealing');
+                    }
 
-                // Single combined toast (only if not waiting for choice)
-                if (!state.waitingEventChoice) {
-                    window.GameStats.buildCombinedToast(oldState, state);
-                }
+                    // Update story beat only (not stats yet)
+                    window.GameStats.renderStoryBeat(state);
+
+                    // Update journey city label + distance text immediately for context
+                    var turnLabel = document.querySelector('.top-bar__turn');
+                    if (turnLabel) {
+                        turnLabel.textContent = 'Turn ' + state.turn;
+                        if (oldState && state.turn !== oldState.turn) {
+                            turnLabel.classList.remove('turn-tick');
+                            void turnLabel.offsetWidth;
+                            turnLabel.classList.add('turn-tick');
+                            setTimeout(function () { turnLabel.classList.remove('turn-tick'); }, 450);
+                        }
+                    }
+
+                    // Play action animation
+                    if (window.GameAnimations) {
+                        window.GameAnimations.playAction(actionValue, state);
+                    }
+
+                    // Phase 2: Animate stats after a beat
+                    setTimeout(function () {
+                        if (storyContainer) {
+                            storyContainer.classList.remove('story-beat--revealing');
+                        }
+
+                        // Now update stats with animation
+                        applyStateUpdate(state, oldState);
+
+                        if (window.GameAnimations) {
+                            window.GameAnimations.updateTeamStatus(state.teamState);
+                        }
+
+                        // Single combined toast (only if not waiting for choice)
+                        if (!state.waitingEventChoice) {
+                            window.GameStats.buildCombinedToast(oldState, state);
+                        }
+
+                        // Phase 3: Re-enable buttons after stats settle
+                        setTimeout(function () {
+                            isProcessing = false;
+                            setButtonsProcessing(false);
+                            if (!waitingForChoice) {
+                                applyCooldown();
+                            }
+                        }, RESOLVE_DELAY_ENABLE);
+
+                    }, RESOLVE_DELAY_STATS);
+
+                }, RESOLVE_DELAY_STORY);
             })
             .catch(function (err) {
                 console.error('Action failed, falling back to form submit:', err);
-                window.location.href = '/game';
-            })
-            .finally(function () {
+                if (storyContainer) {
+                    storyContainer.classList.remove('story-beat--resolving', 'story-beat--revealing');
+                }
                 isProcessing = false;
                 setButtonsProcessing(false);
-                // Apply brief cooldown after action completes (only if not waiting for choice)
-                if (!waitingForChoice) {
-                    applyCooldown();
-                }
+                window.location.href = '/game';
             });
     }
 

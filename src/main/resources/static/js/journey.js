@@ -14,6 +14,7 @@
 
     // Track previous position for movement animation
     var lastTrainPercent = -1;
+    var lastLocationIndex = data.currentIndex || 0;
 
     // Compute the total journey distance (sum of all segment distances)
     function totalJourneyDistance() {
@@ -118,19 +119,43 @@
             }
         }
 
-        // Update city label
+        // Update city label with transition animation on location change
         if (currentCityLabel && locations[currentIndex]) {
-            currentCityLabel.textContent = locations[currentIndex].name || locations[currentIndex];
-        }
-
-        // Update distance text
-        if (distLabel) {
-            if (currentIndex >= totalLocations - 1) {
-                distLabel.textContent = 'Destination reached!';
+            var newName = locations[currentIndex].name || locations[currentIndex];
+            if (currentIndex !== lastLocationIndex) {
+                // City changed: animate the name transition
+                currentCityLabel.classList.remove('journey-progress__city--transitioning');
+                void currentCityLabel.offsetWidth; // force reflow
+                currentCityLabel.textContent = newName;
+                currentCityLabel.classList.add('journey-progress__city--transitioning');
+                setTimeout(function () {
+                    currentCityLabel.classList.remove('journey-progress__city--transitioning');
+                }, 650);
             } else {
-                distLabel.textContent = 'Next stop: ' + distRemaining.toFixed(1) + ' km';
+                currentCityLabel.textContent = newName;
             }
         }
+
+        // Update distance text with pulse on change
+        if (distLabel) {
+            var newDistText;
+            if (currentIndex >= totalLocations - 1) {
+                newDistText = 'Destination reached!';
+            } else {
+                newDistText = 'Next stop: ' + distRemaining.toFixed(1) + ' km';
+            }
+            if (distLabel.textContent !== newDistText) {
+                distLabel.classList.remove('journey-progress__dist--updating');
+                void distLabel.offsetWidth;
+                distLabel.textContent = newDistText;
+                distLabel.classList.add('journey-progress__dist--updating');
+                setTimeout(function () {
+                    distLabel.classList.remove('journey-progress__dist--updating');
+                }, 550);
+            }
+        }
+
+        lastLocationIndex = currentIndex;
     }
 
     // Initialize

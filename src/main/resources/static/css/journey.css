@@ -50,6 +50,17 @@
 .journey-progress__city--current {
     color: var(--accent);
     text-shadow: 0 0 8px var(--accent-glow);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* City name transition when arriving at a new location */
+.journey-progress__city--transitioning {
+    animation: cityNameTransition 0.6s ease-out;
+}
+
+@keyframes cityNameTransition {
+    0%   { opacity: 0; transform: translateX(12px); }
+    100% { opacity: 1; transform: translateX(0); }
 }
 
 .journey-progress__city--dest {
@@ -157,6 +168,16 @@
 @keyframes trainBobMoving {
     0% { transform: translate(-50%, -52%); }
     100% { transform: translate(-50%, -48%); }
+}
+
+/* Distance text pulse when updating */
+.journey-progress__dist--updating {
+    animation: distPulse 0.5s ease-out;
+}
+
+@keyframes distPulse {
+    0% { color: var(--accent); transform: scale(1.08); }
+    100% { color: var(--text-muted); transform: scale(1); }
 }
 
 .journey-progress__train-img {

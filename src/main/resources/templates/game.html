@@ -242,7 +242,8 @@
         <div class="game-body__actions">
             <div class="actions" th:classappend="${gameState.waitingEventChoice ? 'actions--choice-pending' : ''}">
                 <div class="actions__grid">
-                    <form th:each="info : ${actions}" action="/action" class="action-card" method="post">
+                    <form th:each="info : ${actions}" action="/action" class="action-card" method="post"
+                          th:data-action-type="${info.action}">
                         <input name="action" type="hidden" th:value="${info.action}">
                         <button type="submit" th:data-energy-cost="${info.energyCost}">
                             <span class="action-card__name" th:text="${info.displayName}">Action</span>
