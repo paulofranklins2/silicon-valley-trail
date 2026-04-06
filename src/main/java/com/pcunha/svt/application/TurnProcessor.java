@@ -44,13 +44,13 @@ public class TurnProcessor {
         // if action was blocked (e.g. exhausted), skip the rest of the turn
         if (gameState.getLastActionResult() == ActionOutcome.EXHAUSTED) {
             // still fetch weather for display
-            fetchWeather(gameState);
+            loadWeather(gameState);
             gameState.setLastEvent(null);
             return;
         }
 
         // fetch weather
-        WeatherSignal weatherSignal = fetchWeather(gameState);
+        WeatherSignal weatherSignal = loadWeather(gameState);
 
         // weather effects only apply when traveling,
         // this prevents users to find a good weather and exploit it
@@ -80,11 +80,11 @@ public class TurnProcessor {
         }
     }
 
-    public void fetchInitialWeather(GameState gameState) {
-        fetchWeather(gameState);
+    public void loadInitialWeather(GameState gameState) {
+        loadWeather(gameState);
     }
 
-    private WeatherSignal fetchWeather(GameState gameState) {
+    private WeatherSignal loadWeather(GameState gameState) {
         WeatherSignal weatherSignal = weatherPort.getWeather(gameState.getJourneyState().getCurrentLocation());
         gameState.setLastWeather(weatherSignal.weatherCategory());
         gameState.setLastWeatherTemp(weatherSignal.temperature());

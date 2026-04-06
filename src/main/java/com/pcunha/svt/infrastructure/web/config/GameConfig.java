@@ -5,6 +5,7 @@ import com.pcunha.svt.domain.GameMode;
 import com.pcunha.svt.domain.port.DistancePort;
 import com.pcunha.svt.domain.port.WeatherPort;
 import com.pcunha.svt.infrastructure.api.*;
+import com.pcunha.svt.infrastructure.data.GameDataLoader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,7 +33,11 @@ public class GameConfig {
         return switch (weatherMode) {
             case "mock" -> new MockWeatherAdapter(random);
             case "demo" -> new DemoWeatherAdapter();
-            default -> new OpenMeteoAdapter(new MockWeatherAdapter(random));
+            default -> {
+                OpenMeteoAdapter adapter = new OpenMeteoAdapter(new MockWeatherAdapter(random));
+                adapter.preloadWeather(GameDataLoader.loadLocations());
+                yield adapter;
+            }
         };
     }
 

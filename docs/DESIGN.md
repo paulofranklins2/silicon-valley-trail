@@ -26,7 +26,7 @@ Python would be faster to prototype, and TypeScript is also a solid option, but 
 |---|---|---|
 | **Java 8** | Universal compatibility | Missing modern features (records, pattern matching) |
 | **Java 17 (LTS)** | Widely adopted, stable | Missing some newer features |
-| **Java 21 (LTS)** | Latest LTS, modern features, virtual threads | Slightly newer adoption |
+| **Java 21 (LTS)** | modern features, virtual threads | Slightly newer adoption |
 
 ### Decision: Java 21
 
@@ -249,7 +249,9 @@ I moved the computation to application startup. All distances are cached once wh
 
 **Locale bug:** `String.format("%f")` uses locale-specific decimal separators. On non-US systems, coordinates get commas instead of dots, breaking the API URL. Fixed with `Locale.US` everywhere I format coordinates.
 
-Walking mode is disabled on the UI when no ORS key is configured. The start page checks `GameEngine.isModeAvailable()` and greys out the option.
+**Weather caching:** Weather is also pre-loaded at startup for all 15 cities and cached for 1 hour. During gameplay, `loadWeather()` reads from the in-memory cache, no API calls mid-game. After the TTL expires, the next request for that city refreshes the cache.
+
+All 4 game modes work with no API key. Walking modes use the same road distances as their normal-speed equivalents but with a 0.4x speed multiplier, difficulty comes from game mechanics, not from a different API.
 
 ---
 

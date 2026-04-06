@@ -77,6 +77,7 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] Fallback to mock on failure
 - [x] Wire weather into gameplay (travel only, prevents resting exploit)
 - [x] Weather mode set to `api`
+- [x] Weather pre-loaded at startup and cached for 1 hour per city
 
 ### Distance APIs (3 modes)
 - [x] Create `HaversineDistanceAdapter` (Fast mode, pure math, always works)
@@ -152,6 +153,7 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] docker-compose.yml for local Postgres
 - [x] `.env.example` with config documentation
 - [x] Startup banner shows database type and mode status
+- [x] Start page and leaderboard render modes dynamically from GameMode enum
 
 ### README - REQUIRED
 - [ ] Quick start from a fresh machine

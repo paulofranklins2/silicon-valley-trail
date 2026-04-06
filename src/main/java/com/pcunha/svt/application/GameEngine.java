@@ -32,7 +32,7 @@ public class GameEngine {
      * Pre-compute distances for all available modes at startup.
      */
     private void preComputeDistances() {
-        System.out.println("  Computing distances...");
+        System.out.println("Computing distances...");
 
         // cache per port instance to avoid duplicate API calls for shared adapters
         Map<DistancePort, DistanceResult> portCache = new java.util.IdentityHashMap<>();
@@ -50,9 +50,9 @@ public class GameEngine {
             cachedDistances.put(mode, result);
 
             if (result.usedFallback()) {
-                System.out.println("  " + mode.getDisplayName() + " mode: unavailable");
+                System.out.println("" + mode.getDisplayName() + " mode: unavailable");
             } else {
-                System.out.println("  " + mode.getDisplayName() + " mode: ready");
+                System.out.println("" + mode.getDisplayName() + " mode: ready");
             }
         }
     }
@@ -78,7 +78,7 @@ public class GameEngine {
         gameState.setGameMode(effectiveMode);
         gameState.setRequestedGameMode(gameMode);
         gameState.setUsedFallbackDistances(result.usedFallback());
-        turnProcessor.fetchInitialWeather(gameState);
+        turnProcessor.loadInitialWeather(gameState);
         return gameState;
     }
 

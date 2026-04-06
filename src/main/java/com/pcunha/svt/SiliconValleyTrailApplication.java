@@ -25,7 +25,7 @@ public class SiliconValleyTrailApplication {
             dbType = "H2";
         }
         System.out.println("\n  Silicon Valley Trail");
-        System.out.println("  Database: " + dbType);
-        System.out.println("  http://localhost:8080\n");
+        System.out.println("Database: " + dbType);
+        System.out.println("http://localhost:8080\n");
     }
 }

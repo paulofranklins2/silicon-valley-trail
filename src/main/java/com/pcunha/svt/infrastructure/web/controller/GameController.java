@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -33,6 +35,7 @@ public class GameController {
 
     @GetMapping("/")
     public String home(Model model) {
+        model.addAttribute("gameModes", GameMode.values());
         return "start";
     }
 
@@ -177,10 +180,11 @@ public class GameController {
 
     @GetMapping("/leaderboard")
     public String leaderboard(Model model) {
-        model.addAttribute("fastEntries", leaderboardPort.getTopScores(GameMode.FAST));
-        model.addAttribute("roadEntries", leaderboardPort.getTopScores(GameMode.ROAD));
-        model.addAttribute("walkingFastEntries", leaderboardPort.getTopScores(GameMode.WALKING_FAST));
-        model.addAttribute("walkingRoadEntries", leaderboardPort.getTopScores(GameMode.WALKING_ROAD));
+        Map<GameMode, List<LeaderboardEntry>> leaderboard = new LinkedHashMap<>();
+        for (GameMode mode : GameMode.values()) {
+            leaderboard.put(mode, leaderboardPort.getTopScores(mode));
+        }
+        model.addAttribute("leaderboard", leaderboard);
         return "leaderboard";
     }
 
