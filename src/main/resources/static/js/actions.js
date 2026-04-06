@@ -295,6 +295,10 @@
                 });
             });
 
+            document.getElementById('fallback-close').addEventListener('click', function () {
+                window.location.href = '/';
+            });
+
             acceptBtn.addEventListener('click', function () {
                 fallbackModal.style.display = 'none';
                 setChoicePending(false);
@@ -379,9 +383,11 @@
             window.GameWeather.update(state.lastWeather, state.lastWeatherTemp);
         }
 
-        // Handle choice-pending state via modal
+        // Handle choice-pending state via modal — delay so player sees action result first
         if (state.waitingEventChoice && state.lastEvent) {
-            showChoiceModal(state.lastEvent);
+            setTimeout(function () {
+                showChoiceModal(state.lastEvent);
+            }, 800);
         } else {
             setChoicePending(false);
         }
@@ -464,10 +470,8 @@
                             window.GameAnimations.updateTeamStatus(state.teamState);
                         }
 
-                        // Single combined toast (only if not waiting for choice)
-                        if (!state.waitingEventChoice) {
-                            window.GameStats.buildCombinedToast(oldState, state);
-                        }
+                        // Show action result toast (even if choice event is pending)
+                        window.GameStats.buildCombinedToast(oldState, state);
 
                         // Phase 3: Re-enable buttons after stats settle
                         setTimeout(function () {

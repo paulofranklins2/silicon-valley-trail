@@ -290,6 +290,7 @@
 
     var foodWarn = document.getElementById('food-warn');
     var cashWarn = document.getElementById('cash-warn');
+    var computeWarn = document.getElementById('compute-warn');
     var config = window.__gameConfig || {};
     var FOOD_GRACE = config.foodGraceTurns || 2;
     var CASH_GRACE = config.cashGraceTurns || 3;
@@ -299,24 +300,24 @@
         var cashTurns = state.turnWithoutCash || 0;
 
         if (foodWarn) {
+            foodWarn.style.display = 'inline';
             if (foodTurns > 0) {
-                foodWarn.textContent = foodTurns >= FOOD_GRACE
-                    ? 'STARVING!'
-                    : 'starving ' + foodTurns + '/' + FOOD_GRACE;
-                foodWarn.style.display = 'inline';
+                foodWarn.textContent = foodTurns + '/' + FOOD_GRACE;
+                foodWarn.className = 'res-item__warn res-item__warn--danger';
             } else {
-                foodWarn.style.display = 'none';
+                foodWarn.textContent = '0/' + FOOD_GRACE;
+                foodWarn.className = 'res-item__warn res-item__warn--safe';
             }
         }
 
         if (cashWarn) {
+            cashWarn.style.display = 'inline';
             if (cashTurns > 0) {
-                cashWarn.textContent = cashTurns >= CASH_GRACE
-                    ? 'BANKRUPT!'
-                    : 'broke ' + cashTurns + '/' + CASH_GRACE;
-                cashWarn.style.display = 'inline';
+                cashWarn.textContent = cashTurns + '/' + CASH_GRACE;
+                cashWarn.className = 'res-item__warn res-item__warn--danger';
             } else {
-                cashWarn.style.display = 'none';
+                cashWarn.textContent = '0/' + CASH_GRACE;
+                cashWarn.className = 'res-item__warn res-item__warn--safe';
             }
         }
     }
@@ -361,12 +362,30 @@
         // Update resource bars
         updateResourceBars(state.resourceState);
 
-        // Grace period warnings
+        // Warnings
         updateGraceWarnings(state);
+        updateStatWarnings(state);
 
         // Story beat section
         renderStoryBeat(state);
     }
+
+    function updateStatWarnings(state) {
+        if (computeWarn) {
+            computeWarn.style.display = 'inline';
+            if (state.resourceState.computeCredits <= 0) {
+                computeWarn.textContent = 'slow';
+                computeWarn.className = 'res-item__warn res-item__warn--danger';
+            } else {
+                computeWarn.textContent = 'slow';
+                computeWarn.className = 'res-item__warn res-item__warn--disabled';
+            }
+        }
+    }
+
+    // Show warnings on initial page load
+    updateGraceWarnings({turnWithoutFood: 0, turnWithoutCash: 0});
+    updateStatWarnings({resourceState: {computeCredits: parseInt(document.querySelector('.compute-val').textContent) || 0}});
 
     // Expose globally for other modules
     window.GameStats = {

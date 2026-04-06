@@ -22,6 +22,27 @@
     backdrop-filter: blur(6px);
 }
 
+.fallback-close {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.4rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    transition: color 0.2s ease, background 0.2s ease;
+    z-index: 2;
+}
+
+.fallback-close:hover {
+    color: var(--red);
+    background: rgba(239, 68, 68, 0.1);
+}
+
 .choice-modal__content {
     position: relative;
     z-index: 1;
