@@ -4,12 +4,12 @@ import lombok.Getter;
 
 @Getter
 public enum StatType {
-    HEALTH("HEALTH"),
-    ENERGY("ENERGY"),
-    MORALE("MORALE"),
-    CASH("CASH"),
-    FOOD("FOOD"),
-    COMPUTE_CREDIT("COMPUTE CREDIT");
+    HEALTH("Health"),
+    ENERGY("Energy"),
+    MORALE("Morale"),
+    CASH("Cash"),
+    FOOD("Food"),
+    COMPUTE_CREDIT("Cpu");
 
     private final String displayName;
 

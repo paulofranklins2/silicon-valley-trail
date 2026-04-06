@@ -28,17 +28,16 @@ public class ConditionEvaluator {
             return;
         }
 
-        if (gameState.getTurnWithoutFood() >= FOOD_GRACE_TURNS) {
+        updateResourceCounters(gameState);
+
+        if (gameState.getTurnWithoutFood() > FOOD_GRACE_TURNS) {
             lose(gameState, LossReason.STARVATION);
             return;
         }
 
-        if (gameState.getTurnWithoutCash() >= CASH_GRACE_TURNS) {
+        if (gameState.getTurnWithoutCash() > CASH_GRACE_TURNS) {
             lose(gameState, LossReason.NO_CASH);
-            return;
         }
-
-        updateResourceCounters(gameState);
     }
 
     private void updateResourceCounters(GameState gameState) {

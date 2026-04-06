@@ -166,6 +166,14 @@ public class GameEngine {
             gameState.addMarketPurchase(choiceIndex);
         }
 
+        // reset grace counters if player recovered resources via market
+        if (gameState.getResourceState().getFood() > 0) {
+            gameState.resetTurnWithoutFood();
+        }
+        if (gameState.getResourceState().getCash() > 0) {
+            gameState.resetTurnWithoutCash();
+        }
+
         return MarketResult.success();
     }
 }
