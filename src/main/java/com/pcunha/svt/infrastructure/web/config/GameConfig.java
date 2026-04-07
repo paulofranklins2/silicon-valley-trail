@@ -3,6 +3,7 @@ package com.pcunha.svt.infrastructure.web.config;
 import com.pcunha.svt.application.*;
 import com.pcunha.svt.domain.GameMode;
 import com.pcunha.svt.domain.port.DistancePort;
+import com.pcunha.svt.domain.port.LeaderboardPort;
 import com.pcunha.svt.domain.port.WeatherPort;
 import com.pcunha.svt.infrastructure.api.*;
 import com.pcunha.svt.infrastructure.data.GameDataLoader;
@@ -75,5 +76,10 @@ public class GameConfig {
         distancePorts.put(GameMode.WALKING_FAST, haversine);
 
         return new GameEngine(turnProcessor, distancePorts);
+    }
+
+    @Bean
+    public LeaderboardService leaderboardService(LeaderboardPort leaderboardPort) {
+        return new LeaderboardService(leaderboardPort);
     }
 }

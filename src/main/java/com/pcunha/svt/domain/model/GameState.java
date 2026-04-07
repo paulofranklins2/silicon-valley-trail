@@ -1,6 +1,7 @@
 package com.pcunha.svt.domain.model;
 
-import com.pcunha.svt.domain.*;
+import com.pcunha.svt.domain.GameMode;
+import com.pcunha.svt.domain.LossReason;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -15,22 +16,10 @@ public class GameState {
     private final TeamState teamState;
     private final ResourceState resourceState;
     private final JourneyState journeyState;
-    @Setter
-    private GameEvent lastEvent;
-    @Setter
-    private GameAction lastAction;
-    @Setter
-    private WeatherCategory lastWeather;
-    @Setter
-    private double lastWeatherTemp;
     private int turn;
     private boolean victory;
     @Setter
     private boolean gameOver;
-    @Setter
-    private ActionOutcome lastActionResult;
-    @Setter
-    private boolean waitingEventChoice;
     private int turnWithoutCash;
     private int turnWithoutFood;
     @Setter
@@ -42,12 +31,13 @@ public class GameState {
     private Set<Integer> marketPurchased = new HashSet<>();
     @Setter
     private GameMode gameMode;
-    @Setter
-    private boolean leaderboardSubmitted;
+    private boolean isLeaderboardSubmitted;
     @Setter
     private boolean usedFallbackDistances;
     @Setter
     private GameMode requestedGameMode;
+    @Setter
+    private TurnResult lastTurnResult;
 
     public GameState(TeamState teamState, ResourceState resourceState, JourneyState journeyState, String teamName) {
         this.teamName = teamName;
@@ -57,6 +47,7 @@ public class GameState {
         this.turn = 1;
         this.victory = false;
         this.gameMode = GameMode.FAST;
+        this.lastTurnResult = new TurnResult();
     }
 
     public void nextTurn() {
@@ -88,6 +79,10 @@ public class GameState {
         this.currentMarketEvent = null;
         this.marketCityIndex = -1;
         this.marketPurchased = new HashSet<>();
+    }
+
+    public void markLeaderboardSubmitted() {
+        this.isLeaderboardSubmitted = true;
     }
 
     public void addMarketPurchase(int index) {
