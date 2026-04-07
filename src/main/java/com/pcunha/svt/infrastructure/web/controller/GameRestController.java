@@ -30,9 +30,9 @@ public class GameRestController {
     }
 
     @PostMapping("/api/retry-distances")
-    public Object retryDistances(@RequestParam String gameMode, HttpSession session) {
+    public ResponseEntity<?> retryDistances(@RequestParam String gameMode, HttpSession session) {
         GameState existing = getGameState(session);
-        if (existing == null) return Map.of("success", false, "error", "No game");
+        if (existing == null) return ResponseEntity.status(404).body(Map.of("success", false, "error", "No game"));
 
         GameMode mode = GameMode.valueOf(gameMode);
         boolean success = gameEngine.retryDistances(mode);
@@ -41,10 +41,10 @@ public class GameRestController {
             // recreate the game with the now-cached real distances
             GameState gameState = gameEngine.createNewGame(existing.getTeamName(), mode);
             session.setAttribute("gameState", gameState);
-            return Map.of("success", true);
+            return ResponseEntity.ok(Map.of("success", true));
         }
 
-        return Map.of("success", false, "error", "API still unavailable");
+        return ResponseEntity.status(503).body(Map.of("success", false, "error", "API still unavailable"));
     }
 
     @PostMapping("/api/action")
@@ -91,15 +91,15 @@ public class GameRestController {
     }
 
     @PostMapping("/api/leaderboard")
-    public Object submitScore(@RequestParam String playerName, HttpSession session) {
+    public ResponseEntity<?> submitScore(@RequestParam String playerName, HttpSession session) {
         GameState gameState = getGameState(session);
-        if (gameState == null) return NO_GAME_ERROR;
+        if (gameState == null) return ResponseEntity.status(404).body(NO_GAME_ERROR);
 
         SubmissionResult result = leaderboardService.submitResult(gameState, playerName);
         if (result.ok()) {
-            return Map.of("success", true);
+            return ResponseEntity.ok(Map.of("success", true));
         }
-        return Map.of("error", result.error());
+        return ResponseEntity.badRequest().body(Map.of("error", result.error()));
     }
 
     private GameState getGameState(HttpSession session) {
