@@ -1,0 +1,18 @@
+eventChance: 0.2
+
+foodGraceTurns: 2
+cashGraceTurns: 3
+
+weather:
+  rainy:
+    health: -5
+    energy: -2
+  stormy:
+    energy: -10
+    food: -1
+  heatwave:
+    morale: -5
+    health: -3
+  clear:
+    health: 2
+    energy: 5

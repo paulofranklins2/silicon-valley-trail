@@ -4,6 +4,7 @@ import com.pcunha.svt.domain.GameAction;
 import com.pcunha.svt.domain.WeatherCategory;
 import com.pcunha.svt.domain.model.*;
 import com.pcunha.svt.domain.port.WeatherPort;
+import com.pcunha.svt.infrastructure.data.GameDataLoader;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -13,6 +14,7 @@ import java.util.Random;
 import static org.junit.jupiter.api.Assertions.*;
 
 class TurnProcessorTest {
+    private static final GameTunables TUNABLES = GameDataLoader.loadTunables();
     private final Random mockRandom = Mockito.mock(Random.class);
     private final WeatherPort mockWeatherPort = Mockito.mock(WeatherPort.class);
 
@@ -37,10 +39,11 @@ class TurnProcessorTest {
 
         GameState gameState = createGameState();
         TurnProcessor turnProcessor = new TurnProcessor(
-                ActionHandler.create(mockRandom), new ConditionEvaluator(),
+                ActionHandler.create(mockRandom), new ConditionEvaluator(TUNABLES),
                 EventProcessor.create(mockRandom),
                 mockRandom,
-                mockWeatherPort
+                mockWeatherPort,
+                TUNABLES
         );
         turnProcessor.processTurn(gameState, GameAction.TRAVEL);
         turnProcessor.processTurn(gameState, GameAction.TRAVEL);
@@ -59,10 +62,11 @@ class TurnProcessorTest {
 
         TurnProcessor turnProcessor = new TurnProcessor(
                 ActionHandler.create(mockRandom),
-                new ConditionEvaluator(),
+                new ConditionEvaluator(TUNABLES),
                 EventProcessor.create(mockRandom),
                 mockRandom,
-                mockWeatherPort
+                mockWeatherPort,
+                TUNABLES
         );
         turnProcessor.processTurn(gameState, GameAction.TRAVEL);
 
@@ -82,10 +86,11 @@ class TurnProcessorTest {
         GameState gameState = createGameState();
         TurnProcessor turnProcessor = new TurnProcessor(
                 ActionHandler.create(mockRandom),
-                new ConditionEvaluator(),
+                new ConditionEvaluator(TUNABLES),
                 EventProcessor.create(mockRandom),
                 mockRandom,
-                mockWeatherPort
+                mockWeatherPort,
+                TUNABLES
         );
         turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 5
         turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 10
@@ -109,10 +114,11 @@ class TurnProcessorTest {
         GameState gameState = createGameState();
         TurnProcessor turnProcessor = new TurnProcessor(
                 ActionHandler.create(mockRandom),
-                new ConditionEvaluator(),
+                new ConditionEvaluator(TUNABLES),
                 EventProcessor.create(mockRandom),
                 mockRandom,
-                mockWeatherPort
+                mockWeatherPort,
+                TUNABLES
         );
         turnProcessor.processTurn(gameState, GameAction.REST);
 
@@ -128,10 +134,11 @@ class TurnProcessorTest {
         GameState gameState = createGameState();
         TurnProcessor turnProcessor = new TurnProcessor(
                 ActionHandler.create(mockRandom),
-                new ConditionEvaluator(),
+                new ConditionEvaluator(TUNABLES),
                 EventProcessor.create(mockRandom),
                 mockRandom,
-                mockWeatherPort
+                mockWeatherPort,
+                TUNABLES
         );
         turnProcessor.processTurn(gameState, GameAction.REST);
 
@@ -147,10 +154,11 @@ class TurnProcessorTest {
         GameState gameState = createGameState();
         TurnProcessor turnProcessor = new TurnProcessor(
                 ActionHandler.create(mockRandom),
-                new ConditionEvaluator(),
+                new ConditionEvaluator(TUNABLES),
                 EventProcessor.create(mockRandom),
                 mockRandom,
-                mockWeatherPort
+                mockWeatherPort,
+                TUNABLES
         );
         turnProcessor.processTurn(gameState, GameAction.TRAVEL);
 
@@ -173,10 +181,11 @@ class TurnProcessorTest {
         GameState gameState = createGameState();
         TurnProcessor turnProcessor = new TurnProcessor(
                 ActionHandler.create(mockRandom),
-                new ConditionEvaluator(),
+                new ConditionEvaluator(TUNABLES),
                 EventProcessor.create(mockRandom),
                 mockRandom,
-                mockedWeatherPort
+                mockedWeatherPort,
+                TUNABLES
         );
         turnProcessor.processTurn(gameState, GameAction.TRAVEL);
 

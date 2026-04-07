@@ -2,10 +2,7 @@ package com.pcunha.svt.application;
 
 import com.pcunha.svt.domain.ActionOutcome;
 import com.pcunha.svt.domain.GameAction;
-import com.pcunha.svt.domain.model.GameEvent;
-import com.pcunha.svt.domain.model.GameState;
-import com.pcunha.svt.domain.model.TurnResult;
-import com.pcunha.svt.domain.model.WeatherSignal;
+import com.pcunha.svt.domain.model.*;
 import com.pcunha.svt.domain.port.WeatherPort;
 import lombok.Getter;
 
@@ -17,25 +14,16 @@ public class TurnProcessor {
     @Getter
     private final EventProcessor eventProcessor;
     private final Random random;
-    private final static double EVENT_CHANCE = 0.2;
     private final WeatherPort weatherPort;
+    private final GameTunables tunables;
 
-    // const weather change
-    private static final int RAINY_CHANGE_HEALTH = -5;
-    private static final int RAINY_CHANGE_ENERGY = -2;
-    private static final int STORMY_CHANGE_ENERGY = -10;
-    private static final int STORMY_CHANGE_FOOD = -1;
-    private static final int HEATWAVE_CHANGE_MORALE = -5;
-    private static final int HEATWAVE_CHANGE_HEALTH = -3;
-    private static final int CLEAR_CHANGE_HEALTH = 2;
-    private static final int CLEAR_CHANGE_ENERGY = 5;
-
-    public TurnProcessor(ActionHandler actionHandler, ConditionEvaluator conditionEvaluator, EventProcessor eventProcessor, Random random, WeatherPort weatherPort) {
+    public TurnProcessor(ActionHandler actionHandler, ConditionEvaluator conditionEvaluator, EventProcessor eventProcessor, Random random, WeatherPort weatherPort, GameTunables tunables) {
         this.actionHandler = actionHandler;
         this.conditionEvaluator = conditionEvaluator;
         this.eventProcessor = eventProcessor;
         this.random = random;
         this.weatherPort = weatherPort;
+        this.tunables = tunables;
     }
 
     public TurnResult processTurn(GameState gameState, GameAction gameAction) {
@@ -63,7 +51,7 @@ public class TurnProcessor {
         }
 
         // random events
-        if (random.nextDouble() < EVENT_CHANCE) {
+        if (random.nextDouble() < tunables.eventChance()) {
             GameEvent event = eventProcessor.generateEvent(gameState, weatherSignal);
             turnResult.setGameEvent(event);
 
@@ -113,23 +101,16 @@ public class TurnProcessor {
     private void applyWeatherEffects(GameState gameState, WeatherSignal weatherSignal) {
         if (weatherSignal == null) return;
 
-        switch (weatherSignal.weatherCategory()) {
-            case RAINY -> {
-                gameState.getTeamState().changeHealth(RAINY_CHANGE_HEALTH);
-                gameState.getTeamState().changeEnergy(RAINY_CHANGE_ENERGY);
-            }
-            case STORMY -> {
-                gameState.getTeamState().changeEnergy(STORMY_CHANGE_ENERGY);
-                gameState.getResourceState().changeFood(STORMY_CHANGE_FOOD);
-            }
-            case HEATWAVE -> {
-                gameState.getTeamState().changeMorale(HEATWAVE_CHANGE_MORALE);
-                gameState.getTeamState().changeHealth(HEATWAVE_CHANGE_HEALTH);
-            }
-            case CLEAR -> {
-                gameState.getTeamState().changeHealth(CLEAR_CHANGE_HEALTH);
-                gameState.getTeamState().changeEnergy(CLEAR_CHANGE_ENERGY);
-            }
-        }
+        StatDelta delta = switch (weatherSignal.weatherCategory()) {
+            case RAINY -> tunables.weather().rainy();
+            case STORMY -> tunables.weather().stormy();
+            case HEATWAVE -> tunables.weather().heatwave();
+            case CLEAR -> tunables.weather().clear();
+        };
+
+        gameState.getTeamState().changeHealth(delta.health());
+        gameState.getTeamState().changeEnergy(delta.energy());
+        gameState.getTeamState().changeMorale(delta.morale());
+        gameState.getResourceState().changeFood(delta.food());
     }
 }

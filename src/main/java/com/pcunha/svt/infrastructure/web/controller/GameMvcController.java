@@ -1,7 +1,7 @@
 package com.pcunha.svt.infrastructure.web.controller;
 
-import com.pcunha.svt.application.ConditionEvaluator;
 import com.pcunha.svt.application.GameEngine;
+import com.pcunha.svt.application.GameTunables;
 import com.pcunha.svt.application.LeaderboardService;
 import com.pcunha.svt.application.ScoreCalculator;
 import com.pcunha.svt.domain.GameAction;
@@ -20,10 +20,12 @@ public class GameMvcController {
 
     private final GameEngine gameEngine;
     private final LeaderboardService leaderboardService;
+    private final GameTunables tunables;
 
-    public GameMvcController(GameEngine gameEngine, LeaderboardService leaderboardService) {
+    public GameMvcController(GameEngine gameEngine, LeaderboardService leaderboardService, GameTunables tunables) {
         this.gameEngine = gameEngine;
         this.leaderboardService = leaderboardService;
+        this.tunables = tunables;
     }
 
     @GetMapping("/")
@@ -51,8 +53,8 @@ public class GameMvcController {
         }
         model.addAttribute("gameState", gameState);
         model.addAttribute("actions", GameDataLoader.loadActions());
-        model.addAttribute("foodGraceTurns", ConditionEvaluator.FOOD_GRACE_TURNS);
-        model.addAttribute("cashGraceTurns", ConditionEvaluator.CASH_GRACE_TURNS);
+        model.addAttribute("foodGraceTurns", tunables.foodGraceTurns());
+        model.addAttribute("cashGraceTurns", tunables.cashGraceTurns());
         return "game";
     }
 

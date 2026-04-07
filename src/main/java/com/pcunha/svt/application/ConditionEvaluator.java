@@ -1,15 +1,14 @@
 package com.pcunha.svt.application;
 
 import com.pcunha.svt.domain.LossReason;
-import com.pcunha.svt.domain.model.GameState;
-import com.pcunha.svt.domain.model.JourneyState;
-import com.pcunha.svt.domain.model.ResourceGraceState;
-import com.pcunha.svt.domain.model.ResourceState;
-import com.pcunha.svt.domain.model.TeamState;
+import com.pcunha.svt.domain.model.*;
 
 public class ConditionEvaluator {
-    public static final int FOOD_GRACE_TURNS = 2;
-    public static final int CASH_GRACE_TURNS = 3;
+    private final GameTunables tunables;
+
+    public ConditionEvaluator(GameTunables tunables) {
+        this.tunables = tunables;
+    }
 
     public void evaluate(GameState gameState) {
         if (hasWon(gameState)) {
@@ -32,12 +31,12 @@ public class ConditionEvaluator {
         updateResourceCounters(gameState);
 
         ResourceGraceState graceState = gameState.getGraceState();
-        if (graceState.getTurnWithoutFood() > FOOD_GRACE_TURNS) {
+        if (graceState.getTurnWithoutFood() > tunables.foodGraceTurns()) {
             lose(gameState, LossReason.STARVATION);
             return;
         }
 
-        if (graceState.getTurnWithoutCash() > CASH_GRACE_TURNS) {
+        if (graceState.getTurnWithoutCash() > tunables.cashGraceTurns()) {
             lose(gameState, LossReason.NO_CASH);
         }
     }

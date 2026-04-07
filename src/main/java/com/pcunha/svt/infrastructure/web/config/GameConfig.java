@@ -30,6 +30,11 @@ public class GameConfig {
     }
 
     @Bean
+    public GameTunables gameTunables() {
+        return GameDataLoader.loadTunables();
+    }
+
+    @Bean
     public WeatherPort weatherPort(Random random) {
         return switch (weatherMode) {
             case "mock" -> new MockWeatherAdapter(random);
@@ -48,8 +53,8 @@ public class GameConfig {
     }
 
     @Bean
-    public ConditionEvaluator conditionEvaluator() {
-        return new ConditionEvaluator();
+    public ConditionEvaluator conditionEvaluator(GameTunables gameTunables) {
+        return new ConditionEvaluator(gameTunables);
     }
 
     @Bean
@@ -59,22 +64,27 @@ public class GameConfig {
 
     @Bean
     public TurnProcessor turnProcessor(ActionHandler actionHandler, ConditionEvaluator conditionEvaluator,
-                                       EventProcessor eventProcessor, Random random, WeatherPort weatherPort) {
-        return new TurnProcessor(actionHandler, conditionEvaluator, eventProcessor, random, weatherPort);
+                                       EventProcessor eventProcessor, Random random, WeatherPort weatherPort,
+                                       GameTunables gameTunables) {
+        return new TurnProcessor(actionHandler, conditionEvaluator, eventProcessor, random, weatherPort, gameTunables);
     }
 
     @Bean
-    public GameEngine gameEngine(TurnProcessor turnProcessor) {
+    public Map<GameMode, DistancePort> distancePorts() {
         HaversineDistanceAdapter haversine = new HaversineDistanceAdapter();
         OpenRouteServiceAdapter ors = new OpenRouteServiceAdapter(haversine, orsApiKey);
         OsrmDistanceAdapter osrm = new OsrmDistanceAdapter(ors);
 
-        Map<GameMode, DistancePort> distancePorts = new EnumMap<>(GameMode.class);
-        distancePorts.put(GameMode.FAST, haversine);
-        distancePorts.put(GameMode.ROAD, osrm);
-        distancePorts.put(GameMode.WALKING_ROAD, osrm);
-        distancePorts.put(GameMode.WALKING_FAST, haversine);
+        Map<GameMode, DistancePort> ports = new EnumMap<>(GameMode.class);
+        ports.put(GameMode.FAST, haversine);
+        ports.put(GameMode.ROAD, osrm);
+        ports.put(GameMode.WALKING_ROAD, osrm);
+        ports.put(GameMode.WALKING_FAST, haversine);
+        return ports;
+    }
 
+    @Bean
+    public GameEngine gameEngine(TurnProcessor turnProcessor, Map<GameMode, DistancePort> distancePorts) {
         return new GameEngine(turnProcessor, distancePorts);
     }
 
