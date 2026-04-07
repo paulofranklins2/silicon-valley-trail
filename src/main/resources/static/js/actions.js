@@ -378,15 +378,17 @@
             );
         }
 
+        var tr = state.lastTurnResult || {};
+
         // Update weather display
-        if (window.GameWeather && state.lastWeather) {
-            window.GameWeather.update(state.lastWeather, state.lastWeatherTemp);
+        if (window.GameWeather && tr.weatherCategory) {
+            window.GameWeather.update(tr.weatherCategory, tr.weatherTemperature);
         }
 
         // Handle choice-pending state via modal — delay so player sees action result first
-        if (state.waitingEventChoice && state.lastEvent) {
+        if (tr.waitingEventChoice && tr.gameEvent) {
             setTimeout(function () {
-                showChoiceModal(state.lastEvent);
+                showChoiceModal(tr.gameEvent);
             }, 800);
         } else {
             setChoicePending(false);

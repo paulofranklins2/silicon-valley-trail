@@ -144,10 +144,9 @@
         // Determine result: food or cash
         var gotFood = false;
         var gotCash = false;
-        if (result && result.lastActionResult) {
-            if (result.lastActionResult === 'FOOD') gotFood = true;
-            if (result.lastActionResult === 'CASH') gotCash = true;
-        }
+        var outcome = result && result.lastTurnResult && result.lastTurnResult.actionOutcome;
+        if (outcome === 'FOOD') gotFood = true;
+        if (outcome === 'CASH') gotCash = true;
 
         // Show result item
         var resultItem;
@@ -234,7 +233,7 @@
         scene.appendChild(vcGroup);
 
         // Determine success/failure after entrance animation
-        var pitchSuccess = result && result.lastActionResult === 'PITCH_SUCCESS';
+        var pitchSuccess = result && result.lastTurnResult && result.lastTurnResult.actionOutcome === 'PITCH_SUCCESS';
 
         setTimeout(function () {
             if (!scene.parentNode) return;

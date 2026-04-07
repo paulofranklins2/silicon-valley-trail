@@ -212,8 +212,9 @@
             triggerScreenFlash('gain');
         }
 
-        var actionName = (newState.lastAction || '').replace(/_/g, ' ');
-        var evt = newState.lastEvent;
+        var newTr = newState.lastTurnResult || {};
+        var actionName = (newTr.gameAction || '').replace(/_/g, ' ');
+        var evt = newTr.gameEvent;
         var type = net >= 0 ? 'positive' : 'negative';
 
         var html = '<div class="toast__title">' + window.GameToast.escapeHtml(actionName);
@@ -242,21 +243,23 @@
         var container = document.getElementById('story-beat-container');
         if (!container) return;
 
+        var tr = state.lastTurnResult || {};
+
         // If waiting for a choice, show waiting state
-        if (state.waitingEventChoice && state.lastEvent) {
+        if (tr.waitingEventChoice && tr.gameEvent) {
             container.innerHTML = '<div class="story-beat__empty"><span class="story-beat__action-label">A decision awaits...</span></div>';
             return;
         }
 
-        if (!state.lastAction) {
+        if (!tr.gameAction) {
             container.innerHTML = '<div class="story-beat__empty"><span class="story-beat__action-label">Waiting for orders...</span></div>';
             return;
         }
 
         var html = '<div class="story-beat__action"><span class="story-beat__action-label">' +
-            state.lastAction.replace(/_/g, ' ') + '</span></div>';
+            tr.gameAction.replace(/_/g, ' ') + '</span></div>';
 
-        var evt = state.lastEvent;
+        var evt = tr.gameEvent;
         if (evt) {
             html += '<div class="story-beat__event">';
             html += '<p class="story-beat__title">' + escapeHtml(evt.title) + '</p>';
