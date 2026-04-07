@@ -75,7 +75,7 @@ public class GameRestController {
         if (gameState == null) return NO_GAME_ERROR;
 
         GameEvent market = gameEngine.getMarket(gameState);
-        return Map.of("event", market, "purchased", gameState.getMarketPurchased());
+        return Map.of("event", market, "purchased", gameState.getMarketState().getMarketPurchased());
     }
 
     @PostMapping("/api/market")

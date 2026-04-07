@@ -49,7 +49,7 @@ public class TurnProcessor {
         if (turnResult.getActionOutcome() == ActionOutcome.EXHAUSTED) {
             // still fetch weather for display
             loadWeather(gameState, turnResult);
-            gameState.setLastTurnResult(turnResult);
+            gameState.getProgressState().setLastTurnResult(turnResult);
             return turnResult;
         }
 
@@ -70,7 +70,7 @@ public class TurnProcessor {
             // if event has choices, pause and wait for player decision
             if (event.getOutcomes() != null && !event.getOutcomes().isEmpty()) {
                 turnResult.setWaitingEventChoice(true);
-                gameState.setLastTurnResult(turnResult);
+                gameState.getProgressState().setLastTurnResult(turnResult);
                 return turnResult;
             }
 
@@ -78,15 +78,15 @@ public class TurnProcessor {
         }
 
         conditionEvaluator.evaluate(gameState);
-        if (!gameState.isGameOver()) {
-            gameState.nextTurn();
+        if (!gameState.getEndingState().isGameOver()) {
+            gameState.getProgressState().nextTurn();
         }
-        gameState.setLastTurnResult(turnResult);
+        gameState.getProgressState().setLastTurnResult(turnResult);
         return turnResult;
     }
 
     public void loadInitialWeather(GameState gameState) {
-        loadWeather(gameState, gameState.getLastTurnResult());
+        loadWeather(gameState, gameState.getProgressState().getLastTurnResult());
     }
 
     private WeatherSignal loadWeather(GameState gameState, TurnResult turnResult) {
@@ -97,16 +97,16 @@ public class TurnProcessor {
     }
 
     public void resolveChoice(GameState gameState, int choiceIndex) {
-        GameEvent event = gameState.getLastTurnResult().getGameEvent();
+        GameEvent event = gameState.getProgressState().getLastTurnResult().getGameEvent();
         if (event == null || event.getOutcomes() == null) return;
         if (choiceIndex < 0 || choiceIndex >= event.getOutcomes().size()) return;
 
         eventProcessor.applyOutcome(gameState, event.getOutcomes().get(choiceIndex));
-        gameState.getLastTurnResult().setWaitingEventChoice(false);
+        gameState.getProgressState().getLastTurnResult().setWaitingEventChoice(false);
 
         conditionEvaluator.evaluate(gameState);
-        if (!gameState.isGameOver()) {
-            gameState.nextTurn();
+        if (!gameState.getEndingState().isGameOver()) {
+            gameState.getProgressState().nextTurn();
         }
     }
 

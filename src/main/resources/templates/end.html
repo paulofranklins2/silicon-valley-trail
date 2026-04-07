@@ -6,16 +6,16 @@
 
     <!-- Hero: title + characters + message -->
     <div class="end-hero">
-        <div th:if="${gameState.victory}">
+        <div th:if="${gameState.endingState.victory}">
             <h1 class="victory">You Made It!</h1>
             <div class="pixel-border pixel-border--victory"></div>
         </div>
-        <div th:unless="${gameState.victory}">
+        <div th:unless="${gameState.endingState.victory}">
             <h1 class="defeat">Game Over</h1>
             <div class="pixel-border pixel-border--defeat"></div>
         </div>
 
-        <div class="end-characters" th:classappend="${gameState.victory ? 'end-characters--victory' : 'end-characters--defeat'}">
+        <div class="end-characters" th:classappend="${gameState.endingState.victory ? 'end-characters--victory' : 'end-characters--defeat'}">
             <img class="end-characters__sprite end-characters__sprite--1" src="/img/team-member-1.png" alt="Team member">
             <img class="end-characters__sprite end-characters__sprite--2" src="/img/team-member-2.png" alt="Team member">
             <img class="end-characters__sprite end-characters__sprite--3" src="/img/team-member-3.png" alt="Team member">
@@ -29,14 +29,14 @@
         </div>
 
         <!-- Result message -->
-        <div th:if="${gameState.victory}">
+        <div th:if="${gameState.endingState.victory}">
             <p class="result-message">
                 <span th:text="${gameState.teamName}">Team</span> reached San Francisco in
-                <strong th:text="${gameState.turn}">0</strong> turns.
+                <strong th:text="${gameState.progressState.turn}">0</strong> turns.
             </p>
         </div>
-        <div th:unless="${gameState.victory}">
-            <div th:switch="${gameState.lossReason.name()}">
+        <div th:unless="${gameState.endingState.victory}">
+            <div th:switch="${gameState.endingState.lossReason.name()}">
                 <p class="result-message" th:case="'POOR_HEALTH'">Your team's health collapsed. The startup dream is over.</p>
                 <p class="result-message" th:case="'POOR_MORALE'">Your team lost all morale and quit. Back to corporate jobs.</p>
                 <p class="result-message" th:case="'STARVATION'">Your team ran out of food. Hunger ended the journey.</p>
@@ -54,7 +54,7 @@
             </span>
             <span class="final-stats__meta-item">
                 <span class="label">Turns</span>
-                <span class="value" th:text="${gameState.turn}">0</span>
+                <span class="value" th:text="${gameState.progressState.turn}">0</span>
             </span>
         </div>
         <div class="final-stats__grid">

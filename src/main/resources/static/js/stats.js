@@ -212,7 +212,7 @@
             triggerScreenFlash('gain');
         }
 
-        var newTr = newState.lastTurnResult || {};
+        var newTr = (newState.progressState && newState.progressState.lastTurnResult) || {};
         var actionName = (newTr.gameAction || '').replace(/_/g, ' ');
         var evt = newTr.gameEvent;
         var type = net >= 0 ? 'positive' : 'negative';
@@ -243,7 +243,7 @@
         var container = document.getElementById('story-beat-container');
         if (!container) return;
 
-        var tr = state.lastTurnResult || {};
+        var tr = (state.progressState && state.progressState.lastTurnResult) || {};
 
         // If waiting for a choice, show waiting state
         if (tr.waitingEventChoice && tr.gameEvent) {
@@ -299,8 +299,9 @@
     var CASH_GRACE = config.cashGraceTurns || 3;
 
     function updateGraceWarnings(state) {
-        var foodTurns = state.turnWithoutFood || 0;
-        var cashTurns = state.turnWithoutCash || 0;
+        var grace = state.graceState || {};
+        var foodTurns = grace.turnWithoutFood || 0;
+        var cashTurns = grace.turnWithoutCash || 0;
 
         if (foodWarn) {
             foodWarn.style.display = 'inline';
@@ -331,10 +332,12 @@
         var locationName = document.querySelector('.journey-progress__city--current');
         var distanceText = document.querySelector('.journey-progress__dist');
 
+        var currentTurn = state.progressState && state.progressState.turn;
+        var oldTurn = oldState && oldState.progressState && oldState.progressState.turn;
         if (turnLabel) {
-            turnLabel.textContent = 'Turn ' + state.turn;
+            turnLabel.textContent = 'Turn ' + currentTurn;
             // Animate the turn counter
-            if (oldState && state.turn !== oldState.turn) {
+            if (oldTurn !== undefined && currentTurn !== oldTurn) {
                 turnLabel.classList.remove('turn-tick');
                 void turnLabel.offsetWidth;
                 turnLabel.classList.add('turn-tick');
@@ -387,7 +390,7 @@
     }
 
     // Show warnings on initial page load
-    updateGraceWarnings({turnWithoutFood: 0, turnWithoutCash: 0});
+    updateGraceWarnings({graceState: {turnWithoutFood: 0, turnWithoutCash: 0}});
     updateStatWarnings({resourceState: {computeCredits: parseInt(document.querySelector('.compute-val').textContent) || 0}});
 
     // Expose globally for other modules

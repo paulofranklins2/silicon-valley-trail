@@ -67,7 +67,7 @@ public class GameMvcController {
             return "redirect:/game";
         }
 
-        if (gameState.isGameOver()) {
+        if (gameState.getEndingState().isGameOver()) {
             return "redirect:/end";
         }
         return "redirect:/game";
@@ -79,7 +79,7 @@ public class GameMvcController {
         if (gameState == null) return "redirect:/";
         model.addAttribute("gameState", gameState);
         model.addAttribute("score", ScoreCalculator.calculate(gameState));
-        model.addAttribute("submitted", gameState.isLeaderboardSubmitted());
+        model.addAttribute("submitted", gameState.getEndingState().isLeaderboardSubmitted());
         return "end";
     }
 

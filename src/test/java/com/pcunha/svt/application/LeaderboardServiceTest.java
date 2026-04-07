@@ -47,7 +47,7 @@ class LeaderboardServiceTest {
         assertTrue(result.ok());
         assertEquals(1, port.saved.size());
         assertEquals("Alice", port.saved.getFirst().getPlayerName());
-        assertTrue(gameState.isLeaderboardSubmitted());
+        assertTrue(gameState.getEndingState().isLeaderboardSubmitted());
     }
 
     @Test
@@ -65,7 +65,7 @@ class LeaderboardServiceTest {
         assertFalse(result.ok());
         assertEquals("Name required", result.error());
         assertEquals(0, port.saved.size());
-        assertFalse(gameState.isLeaderboardSubmitted());
+        assertFalse(gameState.getEndingState().isLeaderboardSubmitted());
     }
 
     @Test
@@ -75,7 +75,7 @@ class LeaderboardServiceTest {
         assertFalse(result.ok());
         assertEquals("Name required", result.error());
         assertEquals(0, port.saved.size());
-        assertFalse(gameState.isLeaderboardSubmitted());
+        assertFalse(gameState.getEndingState().isLeaderboardSubmitted());
     }
 
     @Test

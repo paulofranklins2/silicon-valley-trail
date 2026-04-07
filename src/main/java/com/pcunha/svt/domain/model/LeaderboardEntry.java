@@ -35,8 +35,8 @@ public class LeaderboardEntry {
         LeaderboardEntry leaderboardEntry = new LeaderboardEntry();
         leaderboardEntry.playerName = playerName;
         leaderboardEntry.teamName = gameState.getTeamName();
-        leaderboardEntry.turns = gameState.getTurn();
-        leaderboardEntry.victory = gameState.isVictory();
+        leaderboardEntry.turns = gameState.getProgressState().getTurn();
+        leaderboardEntry.victory = gameState.getEndingState().isVictory();
         leaderboardEntry.lastLocation = gameState.getJourneyState().getCurrentLocation().getName();
         leaderboardEntry.health = gameState.getTeamState().getHealth();
         leaderboardEntry.energy = gameState.getTeamState().getEnergy();
@@ -45,7 +45,7 @@ public class LeaderboardEntry {
         leaderboardEntry.food = gameState.getResourceState().getFood();
         leaderboardEntry.computeCredits = gameState.getResourceState().getComputeCredits();
         leaderboardEntry.score = ScoreCalculator.calculate(gameState);
-        leaderboardEntry.gameMode = gameState.getGameMode();
+        leaderboardEntry.gameMode = gameState.getConfigState().getGameMode();
         leaderboardEntry.createdAt = LocalDateTime.now();
         return leaderboardEntry;
     }

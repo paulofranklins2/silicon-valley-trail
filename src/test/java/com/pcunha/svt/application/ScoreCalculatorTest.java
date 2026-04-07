@@ -38,7 +38,7 @@ class ScoreCalculatorTest {
     @Test
     void victoryWithFullStatsScoresHigh() {
         GameState gameState = createGameState(100, 100, 100, 200, 15, 15, 14, 0);
-        gameState.setVictory(true);
+        gameState.getEndingState().markVictory();
         // only 10 turns - fast win
         int score = ScoreCalculator.calculate(gameState);
 
@@ -49,7 +49,7 @@ class ScoreCalculatorTest {
     @Test
     void defeatHalfwayScoresMedium() {
         GameState gameState = createGameState(50, 50, 50, 50, 5, 5, 7, 2.5);
-        gameState.setGameOver(true);
+        gameState.getEndingState().setGameOver(true);
         int score = ScoreCalculator.calculate(gameState);
 
         // journey(150) + stats(300) + resources(~250) = ~700
@@ -60,7 +60,7 @@ class ScoreCalculatorTest {
     @Test
     void earlyDeathScoresLow() {
         GameState gameState = createGameState(0, 0, 0, 0, 0, 0, 0, 5.0);
-        gameState.setGameOver(true);
+        gameState.getEndingState().setGameOver(true);
         int score = ScoreCalculator.calculate(gameState);
 
         // journey(0) + stats(0) + resources(0) = 0
@@ -70,7 +70,7 @@ class ScoreCalculatorTest {
     @Test
     void scoreIsNeverNegative() {
         GameState gameState = createGameState(0, 0, 0, 0, 0, 0, 0, 5.0);
-        gameState.setGameOver(true);
+        gameState.getEndingState().setGameOver(true);
         int score = ScoreCalculator.calculate(gameState);
 
         assertTrue(score >= 0, "Score should never be negative");
@@ -79,14 +79,14 @@ class ScoreCalculatorTest {
     @Test
     void fasterVictoryScoresHigherThanSlowVictory() {
         GameState fast = createGameState(80, 80, 80, 100, 10, 10, 14, 0);
-        fast.setVictory(true);
+        fast.getEndingState().markVictory();
         // simulate 15 turns
-        for (int i = 0; i < 14; i++) fast.nextTurn();
+        for (int i = 0; i < 14; i++) fast.getProgressState().nextTurn();
 
         GameState slow = createGameState(80, 80, 80, 100, 10, 10, 14, 0);
-        slow.setVictory(true);
+        slow.getEndingState().markVictory();
         // simulate 29 turns
-        for (int i = 0; i < 28; i++) slow.nextTurn();
+        for (int i = 0; i < 28; i++) slow.getProgressState().nextTurn();
 
         int fastScore = ScoreCalculator.calculate(fast);
         int slowScore = ScoreCalculator.calculate(slow);

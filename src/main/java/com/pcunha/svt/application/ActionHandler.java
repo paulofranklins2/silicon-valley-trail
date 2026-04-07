@@ -48,7 +48,7 @@ public class ActionHandler {
 
     private void travel(GameState gameState, ActionInfo info) {
         double distance = info.getTravelDistance();
-        distance *= gameState.getGameMode().getSpeedMultiplier();
+        distance *= gameState.getConfigState().getGameMode().getSpeedMultiplier();
         if (gameState.getResourceState().getComputeCredits() <= 0 && info.getComputePenaltyFactor() > 0) {
             distance *= info.getComputePenaltyFactor();
         }

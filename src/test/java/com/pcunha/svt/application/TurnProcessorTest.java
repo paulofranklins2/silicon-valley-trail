@@ -44,7 +44,7 @@ class TurnProcessorTest {
         );
         turnProcessor.processTurn(gameState, GameAction.TRAVEL);
         turnProcessor.processTurn(gameState, GameAction.TRAVEL);
-        assertEquals(3, gameState.getTurn());
+        assertEquals(3, gameState.getProgressState().getTurn());
     }
 
     @Test
@@ -67,11 +67,11 @@ class TurnProcessorTest {
         turnProcessor.processTurn(gameState, GameAction.TRAVEL);
 
         // turn counter
-        assertEquals(1, gameState.getTurn());
+        assertEquals(1, gameState.getProgressState().getTurn());
 
         // game over should be true, and victory should be false.
-        assertTrue(gameState.isGameOver());
-        assertFalse(gameState.isVictory());
+        assertTrue(gameState.getEndingState().isGameOver());
+        assertFalse(gameState.getEndingState().isVictory());
     }
 
     @Test
@@ -93,11 +93,11 @@ class TurnProcessorTest {
         turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 20
 
         // turn counter
-        assertEquals(4, gameState.getTurn());
+        assertEquals(4, gameState.getProgressState().getTurn());
 
         // victory should be true, and game over should be true.
-        assertTrue(gameState.isVictory());
-        assertTrue(gameState.isGameOver());
+        assertTrue(gameState.getEndingState().isVictory());
+        assertTrue(gameState.getEndingState().isGameOver());
     }
 
     @Test
@@ -117,7 +117,7 @@ class TurnProcessorTest {
         turnProcessor.processTurn(gameState, GameAction.REST);
 
         // event should have fired
-        assertNotNull(gameState.getLastTurnResult().getGameEvent());
+        assertNotNull(gameState.getProgressState().getLastTurnResult().getGameEvent());
     }
 
     @Test
@@ -136,7 +136,7 @@ class TurnProcessorTest {
         turnProcessor.processTurn(gameState, GameAction.REST);
 
         // no event
-        assertNull(gameState.getLastTurnResult().getGameEvent());
+        assertNull(gameState.getProgressState().getLastTurnResult().getGameEvent());
     }
 
     @Test

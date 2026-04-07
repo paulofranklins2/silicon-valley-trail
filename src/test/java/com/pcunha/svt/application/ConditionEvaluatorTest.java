@@ -33,7 +33,7 @@ class ConditionEvaluatorTest {
         // evaluate game state
         evaluator.evaluate(gameState);
         // should be a victory
-        assertTrue(gameState.isVictory());
+        assertTrue(gameState.getEndingState().isVictory());
     }
 
     @Test
@@ -48,9 +48,9 @@ class ConditionEvaluatorTest {
         // evaluate game state
         evaluator.evaluate(gameState);
         // should be a game over
-        assertTrue(gameState.isGameOver());
+        assertTrue(gameState.getEndingState().isGameOver());
         // should not be a victory
-        assertFalse(gameState.isVictory());
+        assertFalse(gameState.getEndingState().isVictory());
     }
 
     @Test
@@ -65,9 +65,9 @@ class ConditionEvaluatorTest {
         // evaluate game State
         evaluator.evaluate(gameState);
         // should be a game over
-        assertTrue(gameState.isGameOver());
+        assertTrue(gameState.getEndingState().isGameOver());
         // should not be a victory
-        assertFalse(gameState.isVictory());
+        assertFalse(gameState.getEndingState().isVictory());
     }
 
     @Test
@@ -89,7 +89,7 @@ class ConditionEvaluatorTest {
         // evaluate game state
         evaluator.evaluate(gameState);
         // should be a victory
-        assertTrue(gameState.isVictory());
+        assertTrue(gameState.getEndingState().isVictory());
     }
 
     @Test
@@ -101,9 +101,9 @@ class ConditionEvaluatorTest {
         // evaluate game state
         evaluator.evaluate(gameState);
         // should not be a victory
-        assertFalse(gameState.isVictory());
+        assertFalse(gameState.getEndingState().isVictory());
         // should not be a game over
-        assertFalse(gameState.isGameOver());
+        assertFalse(gameState.getEndingState().isGameOver());
     }
 
     @Test
@@ -120,8 +120,8 @@ class ConditionEvaluatorTest {
         evaluator.evaluate(gameState);
 
         // should be a game over due to starvation
-        assertTrue(gameState.isGameOver());
-        assertEquals(LossReason.STARVATION, gameState.getLossReason());
+        assertTrue(gameState.getEndingState().isGameOver());
+        assertEquals(LossReason.STARVATION, gameState.getEndingState().getLossReason());
     }
 
     @Test
@@ -136,7 +136,7 @@ class ConditionEvaluatorTest {
         evaluator.evaluate(gameState);
 
         // should not be a game over yet
-        assertFalse(gameState.isGameOver());
+        assertFalse(gameState.getEndingState().isGameOver());
     }
 
     @Test
@@ -154,8 +154,8 @@ class ConditionEvaluatorTest {
         evaluator.evaluate(gameState);
 
         // should be a game over due to no cash
-        assertTrue(gameState.isGameOver());
-        assertEquals(LossReason.NO_CASH, gameState.getLossReason());
+        assertTrue(gameState.getEndingState().isGameOver());
+        assertEquals(LossReason.NO_CASH, gameState.getEndingState().getLossReason());
     }
 
     @Test
@@ -171,7 +171,7 @@ class ConditionEvaluatorTest {
         evaluator.evaluate(gameState);
 
         // should not be a game over yet
-        assertFalse(gameState.isGameOver());
+        assertFalse(gameState.getEndingState().isGameOver());
     }
 
     @Test
@@ -192,6 +192,6 @@ class ConditionEvaluatorTest {
         evaluator.evaluate(gameState);
 
         // should not be a game over (counter is 1, not accumulated to 2)
-        assertFalse(gameState.isGameOver());
+        assertFalse(gameState.getEndingState().isGameOver());
     }
 }

@@ -21,12 +21,12 @@ public class LeaderboardService {
         if (playerName == null || playerName.trim().isEmpty()) {
             return SubmissionResult.error("Name required");
         }
-        if (gameState.isLeaderboardSubmitted()) {
+        if (gameState.getEndingState().isLeaderboardSubmitted()) {
             return SubmissionResult.error("Already submitted");
         }
         LeaderboardEntry leaderboardEntry = LeaderboardEntry.fromGameState(gameState, playerName.trim());
         leaderboardPort.save(leaderboardEntry);
-        gameState.markLeaderboardSubmitted();
+        gameState.getEndingState().markLeaderboardSubmitted();
         return SubmissionResult.success();
     }
 

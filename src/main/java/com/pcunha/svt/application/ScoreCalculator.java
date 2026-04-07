@@ -26,9 +26,9 @@ public class ScoreCalculator {
     public static int calculate(GameState gameState) {
         int score = 0;
 
-        if (gameState.isVictory()) {
+        if (gameState.getEndingState().isVictory()) {
             score += VICTORY_BONUS;
-            score += turnEfficiencyBonus(gameState.getTurn());
+            score += turnEfficiencyBonus(gameState.getProgressState().getTurn());
         } else {
             score += journeyProgressBonus(gameState);
         }

@@ -75,9 +75,10 @@ public class GameEngine {
         JourneyState journeyState = new JourneyState(locations, result.distances());
 
         GameState gameState = new GameState(teamState, resourceState, journeyState, teamName);
-        gameState.setGameMode(effectiveMode);
-        gameState.setRequestedGameMode(gameMode);
-        gameState.setUsedFallbackDistances(result.usedFallback());
+        ConfigState configState = gameState.getConfigState();
+        configState.setGameMode(effectiveMode);
+        configState.setRequestedGameMode(gameMode);
+        configState.setUsedFallbackDistances(result.usedFallback());
         turnProcessor.loadInitialWeather(gameState);
         return gameState;
     }
@@ -126,21 +127,23 @@ public class GameEngine {
      */
     public GameEvent getMarket(GameState gameState) {
         int cityIndex = gameState.getJourneyState().getCurrentLocationIndex();
+        MarketState marketState = gameState.getMarketState();
 
-        if (gameState.getCurrentMarketEvent() == null || gameState.getMarketCityIndex() != cityIndex) {
-            gameState.resetMarket();
-            gameState.setCurrentMarketEvent(turnProcessor.getEventProcessor().getCityMarketEvent());
-            gameState.setMarketCityIndex(cityIndex);
+        if (marketState.getCurrentMarketEvent() == null || marketState.getMarketCityIndex() != cityIndex) {
+            marketState.resetMarket();
+            marketState.setCurrentMarketEvent(turnProcessor.getEventProcessor().getCityMarketEvent());
+            marketState.setMarketCityIndex(cityIndex);
         }
 
-        return gameState.getCurrentMarketEvent();
+        return marketState.getCurrentMarketEvent();
     }
 
     /**
      * Attempts a market purchase. Returns a result with success/error status.
      */
     public MarketResult buyFromMarket(GameState gameState, int choiceIndex) {
-        GameEvent market = gameState.getCurrentMarketEvent();
+        MarketState marketState = gameState.getMarketState();
+        GameEvent market = marketState.getCurrentMarketEvent();
         if (market == null || market.getOutcomes() == null) {
             return MarketResult.error("No market available");
         }
@@ -150,7 +153,7 @@ public class GameEngine {
 
         boolean isSkip = choiceIndex == market.getOutcomes().size() - 1;
 
-        if (!isSkip && gameState.getMarketPurchased().contains(choiceIndex)) {
+        if (!isSkip && marketState.getMarketPurchased().contains(choiceIndex)) {
             return MarketResult.error("Already purchased");
         }
 
@@ -163,15 +166,16 @@ public class GameEngine {
         turnProcessor.getEventProcessor().applyOutcome(gameState, outcome);
 
         if (!isSkip) {
-            gameState.addMarketPurchase(choiceIndex);
+            marketState.addMarketPurchase(choiceIndex);
         }
 
         // reset grace counters if player recovered resources via market
+        ResourceGraceState graceState = gameState.getGraceState();
         if (gameState.getResourceState().getFood() > 0) {
-            gameState.resetTurnWithoutFood();
+            graceState.resetTurnWithoutFood();
         }
         if (gameState.getResourceState().getCash() > 0) {
-            gameState.resetTurnWithoutCash();
+            graceState.resetTurnWithoutCash();
         }
 
         return MarketResult.success();

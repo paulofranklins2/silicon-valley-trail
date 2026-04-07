@@ -189,7 +189,7 @@
                 return response.json();
             })
             .then(function (state) {
-                if (state.gameOver) {
+                if (state.endingState && state.endingState.gameOver) {
                     window.location.href = '/end';
                     return;
                 }
@@ -355,8 +355,9 @@
 
     // Common state update after any response (action or choice)
     function applyStateUpdate(state, oldState, toastOverrideHtml) {
+        var progress = state.progressState || {};
         previousState = {
-            turn: state.turn,
+            progressState: { turn: progress.turn },
             teamState: {
                 health: state.teamState.health, energy: state.teamState.energy, morale: state.teamState.morale
             }, resourceState: {
@@ -378,7 +379,7 @@
             );
         }
 
-        var tr = state.lastTurnResult || {};
+        var tr = (state.progressState && state.progressState.lastTurnResult) || {};
 
         // Update weather display
         if (window.GameWeather && tr.weatherCategory) {
@@ -425,7 +426,7 @@
                 return response.json();
             })
             .then(function (state) {
-                if (state.gameOver) {
+                if (state.endingState && state.endingState.gameOver) {
                     window.location.href = '/end';
                     return;
                 }
@@ -444,9 +445,11 @@
 
                     // Update journey city label + distance text immediately for context
                     var turnLabel = document.querySelector('.top-bar__turn');
+                    var currentTurn = state.progressState && state.progressState.turn;
+                    var oldTurn = oldState && oldState.progressState && oldState.progressState.turn;
                     if (turnLabel) {
-                        turnLabel.textContent = 'Turn ' + state.turn;
-                        if (oldState && state.turn !== oldState.turn) {
+                        turnLabel.textContent = 'Turn ' + currentTurn;
+                        if (oldTurn !== undefined && currentTurn !== oldTurn) {
                             turnLabel.classList.remove('turn-tick');
                             void turnLabel.offsetWidth;
                             turnLabel.classList.add('turn-tick');

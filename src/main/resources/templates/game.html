@@ -7,12 +7,12 @@
     <!-- Top bar: title, weather, turn -->
     <div class="top-bar">
         <span class="top-bar__title">Silicon Valley Trail</span>
-        <div class="top-bar__weather weather-display" th:data-weather="${gameState.lastTurnResult.weatherCategory}">
+        <div class="top-bar__weather weather-display" th:data-weather="${gameState.progressState.lastTurnResult.weatherCategory}">
             <span class="weather-display__icon" id="weather-icon"></span>
             <span class="weather-display__label" id="weather-label"></span>
             <span class="weather-display__effects" id="weather-effects"></span>
         </div>
-        <span class="top-bar__turn" th:text="'Turn ' + ${gameState.turn}">Turn 1</span>
+        <span class="top-bar__turn" th:text="'Turn ' + ${gameState.progressState.turn}">Turn 1</span>
     </div>
 
     <!-- Weather overlay (CSS animations + DOM particles) -->
@@ -45,7 +45,7 @@
                 10 km
             </span>
             <span class="journey-progress__total"
-                  th:text="'Total: ' + ${#numbers.formatDecimal(gameState.journeyState.totalDistance, 1, 1)} + ' km (' + ${gameState.gameMode.displayName} + ')'">
+                  th:text="'Total: ' + ${#numbers.formatDecimal(gameState.journeyState.totalDistance, 1, 1)} + ' km (' + ${gameState.configState.gameMode.displayName} + ')'">
                 Total: 65 km
             </span>
         </div>
@@ -58,36 +58,36 @@
 
     <!-- Story beat (always present, above the two-column grid) -->
     <div class="story-beat" id="story-beat-container">
-        <div th:if="${gameState.lastTurnResult.gameAction != null and !gameState.lastTurnResult.waitingEventChoice}">
+        <div th:if="${gameState.progressState.lastTurnResult.gameAction != null and !gameState.progressState.lastTurnResult.waitingEventChoice}">
             <div class="story-beat__action">
-                <span class="story-beat__action-label" th:text="${gameState.lastTurnResult.gameAction}">TRAVEL</span>
+                <span class="story-beat__action-label" th:text="${gameState.progressState.lastTurnResult.gameAction}">TRAVEL</span>
             </div>
-            <div class="story-beat__event" th:if="${gameState.lastTurnResult.gameEvent != null}">
-                <p class="story-beat__title" th:text="${gameState.lastTurnResult.gameEvent.title}">Event Title</p>
-                <p class="story-beat__desc" th:text="${gameState.lastTurnResult.gameEvent.description}">Event description</p>
+            <div class="story-beat__event" th:if="${gameState.progressState.lastTurnResult.gameEvent != null}">
+                <p class="story-beat__title" th:text="${gameState.progressState.lastTurnResult.gameEvent.title}">Event Title</p>
+                <p class="story-beat__desc" th:text="${gameState.progressState.lastTurnResult.gameEvent.description}">Event description</p>
                 <div class="story-beat__impacts">
-                    <span th:classappend="${gameState.lastTurnResult.gameEvent.healthChange > 0 ? 'positive' : 'negative'}"
-                          th:if="${gameState.lastTurnResult.gameEvent.healthChange != 0}"
-                          th:text="'Health ' + (${gameState.lastTurnResult.gameEvent.healthChange > 0} ? '+' : '') + ${gameState.lastTurnResult.gameEvent.healthChange}">Health</span>
-                    <span th:classappend="${gameState.lastTurnResult.gameEvent.energyChange > 0 ? 'positive' : 'negative'}"
-                          th:if="${gameState.lastTurnResult.gameEvent.energyChange != 0}"
-                          th:text="'Energy ' + (${gameState.lastTurnResult.gameEvent.energyChange > 0} ? '+' : '') + ${gameState.lastTurnResult.gameEvent.energyChange}">Energy</span>
-                    <span th:classappend="${gameState.lastTurnResult.gameEvent.moraleChange > 0 ? 'positive' : 'negative'}"
-                          th:if="${gameState.lastTurnResult.gameEvent.moraleChange != 0}"
-                          th:text="'Morale ' + (${gameState.lastTurnResult.gameEvent.moraleChange > 0} ? '+' : '') + ${gameState.lastTurnResult.gameEvent.moraleChange}">Morale</span>
-                    <span th:classappend="${gameState.lastTurnResult.gameEvent.cashChange > 0 ? 'positive' : 'negative'}"
-                          th:if="${gameState.lastTurnResult.gameEvent.cashChange != 0}"
-                          th:text="'Cash ' + (${gameState.lastTurnResult.gameEvent.cashChange > 0} ? '+' : '') + ${gameState.lastTurnResult.gameEvent.cashChange}">Cash</span>
-                    <span th:classappend="${gameState.lastTurnResult.gameEvent.foodChange > 0 ? 'positive' : 'negative'}"
-                          th:if="${gameState.lastTurnResult.gameEvent.foodChange != 0}"
-                          th:text="'Food ' + (${gameState.lastTurnResult.gameEvent.foodChange > 0} ? '+' : '') + ${gameState.lastTurnResult.gameEvent.foodChange}">Food</span>
-                    <span th:classappend="${gameState.lastTurnResult.gameEvent.computeCreditsChange > 0 ? 'positive' : 'negative'}"
-                          th:if="${gameState.lastTurnResult.gameEvent.computeCreditsChange != 0}"
-                          th:text="'Compute ' + (${gameState.lastTurnResult.gameEvent.computeCreditsChange > 0} ? '+' : '') + ${gameState.lastTurnResult.gameEvent.computeCreditsChange}">Compute</span>
+                    <span th:classappend="${gameState.progressState.lastTurnResult.gameEvent.healthChange > 0 ? 'positive' : 'negative'}"
+                          th:if="${gameState.progressState.lastTurnResult.gameEvent.healthChange != 0}"
+                          th:text="'Health ' + (${gameState.progressState.lastTurnResult.gameEvent.healthChange > 0} ? '+' : '') + ${gameState.progressState.lastTurnResult.gameEvent.healthChange}">Health</span>
+                    <span th:classappend="${gameState.progressState.lastTurnResult.gameEvent.energyChange > 0 ? 'positive' : 'negative'}"
+                          th:if="${gameState.progressState.lastTurnResult.gameEvent.energyChange != 0}"
+                          th:text="'Energy ' + (${gameState.progressState.lastTurnResult.gameEvent.energyChange > 0} ? '+' : '') + ${gameState.progressState.lastTurnResult.gameEvent.energyChange}">Energy</span>
+                    <span th:classappend="${gameState.progressState.lastTurnResult.gameEvent.moraleChange > 0 ? 'positive' : 'negative'}"
+                          th:if="${gameState.progressState.lastTurnResult.gameEvent.moraleChange != 0}"
+                          th:text="'Morale ' + (${gameState.progressState.lastTurnResult.gameEvent.moraleChange > 0} ? '+' : '') + ${gameState.progressState.lastTurnResult.gameEvent.moraleChange}">Morale</span>
+                    <span th:classappend="${gameState.progressState.lastTurnResult.gameEvent.cashChange > 0 ? 'positive' : 'negative'}"
+                          th:if="${gameState.progressState.lastTurnResult.gameEvent.cashChange != 0}"
+                          th:text="'Cash ' + (${gameState.progressState.lastTurnResult.gameEvent.cashChange > 0} ? '+' : '') + ${gameState.progressState.lastTurnResult.gameEvent.cashChange}">Cash</span>
+                    <span th:classappend="${gameState.progressState.lastTurnResult.gameEvent.foodChange > 0 ? 'positive' : 'negative'}"
+                          th:if="${gameState.progressState.lastTurnResult.gameEvent.foodChange != 0}"
+                          th:text="'Food ' + (${gameState.progressState.lastTurnResult.gameEvent.foodChange > 0} ? '+' : '') + ${gameState.progressState.lastTurnResult.gameEvent.foodChange}">Food</span>
+                    <span th:classappend="${gameState.progressState.lastTurnResult.gameEvent.computeCreditsChange > 0 ? 'positive' : 'negative'}"
+                          th:if="${gameState.progressState.lastTurnResult.gameEvent.computeCreditsChange != 0}"
+                          th:text="'Compute ' + (${gameState.progressState.lastTurnResult.gameEvent.computeCreditsChange > 0} ? '+' : '') + ${gameState.progressState.lastTurnResult.gameEvent.computeCreditsChange}">Compute</span>
                 </div>
             </div>
         </div>
-        <div th:if="${gameState.lastTurnResult.gameAction == null}" class="story-beat__empty">
+        <div th:if="${gameState.progressState.lastTurnResult.gameAction == null}" class="story-beat__empty">
             <span class="story-beat__action-label">Waiting for orders...</span>
         </div>
     </div>
@@ -194,14 +194,14 @@
             <!-- Event choice fallback (no-JS form submission, hidden when JS takes over via modal) -->
             <noscript>
             <div class="event-choice" id="event-choice-container"
-                 th:if="${gameState.lastTurnResult.waitingEventChoice and gameState.lastTurnResult.gameEvent != null}">
+                 th:if="${gameState.progressState.lastTurnResult.waitingEventChoice and gameState.progressState.lastTurnResult.gameEvent != null}">
                 <div class="event-choice__header">
                     <span class="event-choice__badge">CHOICE</span>
-                    <p class="event-choice__title" th:text="${gameState.lastTurnResult.gameEvent.title}">Event Title</p>
+                    <p class="event-choice__title" th:text="${gameState.progressState.lastTurnResult.gameEvent.title}">Event Title</p>
                 </div>
-                <p class="event-choice__desc" th:text="${gameState.lastTurnResult.gameEvent.description}">A decision must be made...</p>
+                <p class="event-choice__desc" th:text="${gameState.progressState.lastTurnResult.gameEvent.description}">A decision must be made...</p>
                 <div class="event-choice__options">
-                    <form th:each="outcome, iter : ${gameState.lastTurnResult.gameEvent.choices}"
+                    <form th:each="outcome, iter : ${gameState.progressState.lastTurnResult.gameEvent.choices}"
                           action="/choice" method="post" style="display:contents">
                         <input type="hidden" name="choiceIndex" th:value="${iter.index}">
                         <button class="event-choice__btn" type="submit">
@@ -241,7 +241,7 @@
 
         <!-- Right column: actions -->
         <div class="game-body__actions">
-            <div class="actions" th:classappend="${gameState.lastTurnResult.waitingEventChoice ? 'actions--choice-pending' : ''}">
+            <div class="actions" th:classappend="${gameState.progressState.lastTurnResult.waitingEventChoice ? 'actions--choice-pending' : ''}">
                 <div class="actions__grid">
                     <form th:each="info : ${actions}" action="/action" class="action-card" method="post"
                           th:data-action-type="${info.action}">
@@ -297,12 +297,12 @@
         currentIndex: /*[[${gameState.journeyState.currentLocationIndex}]]*/ 0,
         distanceRemaining: /*[[${gameState.journeyState.distanceToNextLocation}]]*/ 0
     };
-    window.__waitingEventChoice = /*[[${gameState.lastTurnResult.waitingEventChoice}]]*/ false;
-    window.__lastEvent = /*[[${gameState.lastTurnResult.gameEvent}]]*/ null;
+    window.__waitingEventChoice = /*[[${gameState.progressState.lastTurnResult.waitingEventChoice}]]*/ false;
+    window.__lastEvent = /*[[${gameState.progressState.lastTurnResult.gameEvent}]]*/ null;
     window.__gameConfig = {
         foodGraceTurns: /*[[${foodGraceTurns}]]*/ 2,
         cashGraceTurns: /*[[${cashGraceTurns}]]*/ 3,
-        usedFallback: /*[[${gameState.usedFallbackDistances}]]*/ false
+        usedFallback: /*[[${gameState.configState.usedFallbackDistances}]]*/ false
     };
 </script>
 
