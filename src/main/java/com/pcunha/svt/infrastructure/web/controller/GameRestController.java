@@ -4,23 +4,27 @@ import com.pcunha.svt.application.GameEngine;
 import com.pcunha.svt.application.LeaderboardService;
 import com.pcunha.svt.domain.GameAction;
 import com.pcunha.svt.domain.GameMode;
+import com.pcunha.svt.domain.model.ActionResponse;
+import com.pcunha.svt.domain.model.ApiError;
 import com.pcunha.svt.domain.model.GameEvent;
 import com.pcunha.svt.domain.model.GameState;
 import com.pcunha.svt.domain.model.MarketResult;
 import com.pcunha.svt.domain.model.SubmissionResult;
+import com.pcunha.svt.domain.model.TurnResult;
+import com.pcunha.svt.infrastructure.web.exception.NoGameInSessionException;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
 @RestController
+@RequestMapping("/api")
 public class GameRestController {
-    private static final Map<String, Object> NO_GAME_ERROR = Map.of("error", "No game in progress");
-
     private final GameEngine gameEngine;
     private final LeaderboardService leaderboardService;
 
@@ -29,10 +33,9 @@ public class GameRestController {
         this.leaderboardService = leaderboardService;
     }
 
-    @PostMapping("/api/retry-distances")
+    @PostMapping("/retry-distances")
     public ResponseEntity<?> retryDistances(@RequestParam String gameMode, HttpSession session) {
-        GameState existing = getGameState(session);
-        if (existing == null) return ResponseEntity.status(404).body(Map.of("success", false, "error", "No game"));
+        GameState existing = requireGame(session);
 
         GameMode mode = GameMode.valueOf(gameMode);
         boolean success = gameEngine.retryDistances(mode);
@@ -47,62 +50,61 @@ public class GameRestController {
         return ResponseEntity.status(503).body(Map.of("success", false, "error", "API still unavailable"));
     }
 
-    @PostMapping("/api/action")
+    @PostMapping("/action")
     public ResponseEntity<?> processActionApi(@RequestParam String action, HttpSession session) {
-        GameState gameState = getGameState(session);
-        if (gameState == null) return ResponseEntity.status(404).body(NO_GAME_ERROR);
+        GameState gameState = requireGame(session);
 
+        TurnResult result;
         try {
-            gameEngine.processAction(gameState, GameAction.valueOf(action));
+            result = gameEngine.processAction(gameState, GameAction.valueOf(action));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid action"));
+            return ResponseEntity.badRequest().body(new ApiError("Invalid action"));
         }
-        return ResponseEntity.ok(gameState);
+        return ResponseEntity.ok(new ActionResponse(gameState, result));
     }
 
-    @PostMapping("/api/choice")
-    public ResponseEntity<?> processChoice(@RequestParam int choiceIndex, HttpSession session) {
-        GameState gameState = getGameState(session);
-        if (gameState == null) return ResponseEntity.status(404).body(NO_GAME_ERROR);
-
-        gameEngine.resolveChoice(gameState, choiceIndex);
-        return ResponseEntity.ok(gameState);
+    @PostMapping("/choice")
+    public ResponseEntity<ActionResponse> processChoice(@RequestParam int choiceIndex, HttpSession session) {
+        GameState gameState = requireGame(session);
+        TurnResult result = gameEngine.resolveChoice(gameState, choiceIndex);
+        return ResponseEntity.ok(new ActionResponse(gameState, result));
     }
 
-    @GetMapping("/api/market")
-    public Object getMarket(HttpSession session) {
-        GameState gameState = getGameState(session);
-        if (gameState == null) return NO_GAME_ERROR;
-
+    @GetMapping("/market")
+    public Map<String, Object> getMarket(HttpSession session) {
+        GameState gameState = requireGame(session);
         GameEvent market = gameEngine.getMarket(gameState);
         return Map.of("event", market, "purchased", gameState.getMarketState().getMarketPurchased());
     }
 
-    @PostMapping("/api/market")
+    @PostMapping("/market")
     public ResponseEntity<?> processMarketPurchase(@RequestParam int choiceIndex, HttpSession session) {
-        GameState gameState = getGameState(session);
-        if (gameState == null) return ResponseEntity.status(404).body(NO_GAME_ERROR);
+        GameState gameState = requireGame(session);
 
         MarketResult marketResult = gameEngine.buyFromMarket(gameState, choiceIndex);
         if (!marketResult.ok()) {
-            return ResponseEntity.badRequest().body(Map.of("error", marketResult.error()));
+            return ResponseEntity.badRequest().body(new ApiError(marketResult.error()));
         }
         return ResponseEntity.ok(gameState);
     }
 
-    @PostMapping("/api/leaderboard")
+    @PostMapping("/leaderboard")
     public ResponseEntity<?> submitScore(@RequestParam String playerName, HttpSession session) {
-        GameState gameState = getGameState(session);
-        if (gameState == null) return ResponseEntity.status(404).body(NO_GAME_ERROR);
+        GameState gameState = requireGame(session);
 
         SubmissionResult result = leaderboardService.submitResult(gameState, playerName);
         if (result.ok()) {
             return ResponseEntity.ok(Map.of("success", true));
         }
-        return ResponseEntity.badRequest().body(Map.of("error", result.error()));
+        return ResponseEntity.badRequest().body(new ApiError(result.error()));
     }
 
-    private GameState getGameState(HttpSession session) {
-        return (GameState) session.getAttribute("gameState");
+    /**
+     * Get game from session or throws if missing.
+     */
+    private GameState requireGame(HttpSession session) {
+        GameState gameState = (GameState) session.getAttribute("gameState");
+        if (gameState == null) throw new NoGameInSessionException();
+        return gameState;
     }
 }

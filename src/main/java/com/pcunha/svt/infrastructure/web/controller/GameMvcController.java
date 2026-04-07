@@ -7,13 +7,16 @@ import com.pcunha.svt.application.ScoreCalculator;
 import com.pcunha.svt.domain.GameAction;
 import com.pcunha.svt.domain.GameMode;
 import com.pcunha.svt.domain.model.GameState;
+import com.pcunha.svt.domain.model.TurnResult;
 import com.pcunha.svt.infrastructure.data.GameDataLoader;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class GameMvcController {
@@ -46,7 +49,7 @@ public class GameMvcController {
     }
 
     @GetMapping("/game")
-    public String getGame(HttpSession session, Model model) {
+    public String getGame(HttpSession session, Model model, @ModelAttribute("turnResult") TurnResult turnResult) {
         GameState gameState = getGameState(session);
         if (gameState == null) {
             return "redirect:/";
@@ -55,16 +58,18 @@ public class GameMvcController {
         model.addAttribute("actions", GameDataLoader.loadActions());
         model.addAttribute("foodGraceTurns", tunables.foodGraceTurns());
         model.addAttribute("cashGraceTurns", tunables.cashGraceTurns());
+        model.addAttribute("turnResult", turnResult);
         return "game";
     }
 
     @PostMapping("/action")
-    public String processAction(@RequestParam String action, HttpSession session) {
+    public String processAction(@RequestParam String action, HttpSession session, RedirectAttributes redirectAttributes) {
         GameState gameState = getGameState(session);
         if (gameState == null) return "redirect:/";
 
+        TurnResult result;
         try {
-            gameEngine.processAction(gameState, GameAction.valueOf(action));
+            result = gameEngine.processAction(gameState, GameAction.valueOf(action));
         } catch (IllegalArgumentException e) {
             return "redirect:/game";
         }
@@ -72,6 +77,7 @@ public class GameMvcController {
         if (gameState.getEndingState().isGameOver()) {
             return "redirect:/end";
         }
+        redirectAttributes.addFlashAttribute("turnResult", result);
         return "redirect:/game";
     }
 

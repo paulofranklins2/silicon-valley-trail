@@ -110,15 +110,15 @@ public class GameEngine {
     /**
      * Run one turn with the given action.
      */
-    public void processAction(GameState gameState, GameAction gameAction) {
-        turnProcessor.processTurn(gameState, gameAction);
+    public TurnResult processAction(GameState gameState, GameAction gameAction) {
+        return turnProcessor.processTurn(gameState, gameAction);
     }
 
     /**
      * Resolves a player's choice for a pending event.
      */
-    public void resolveChoice(GameState gameState, int choiceIndex) {
-        turnProcessor.resolveChoice(gameState, choiceIndex);
+    public TurnResult resolveChoice(GameState gameState, int choiceIndex) {
+        return turnProcessor.resolveChoice(gameState, choiceIndex);
     }
 
     /**

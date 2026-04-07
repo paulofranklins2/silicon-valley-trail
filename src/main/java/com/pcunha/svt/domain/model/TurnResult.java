@@ -14,6 +14,4 @@ public class TurnResult {
     private GameEvent gameEvent;
     private WeatherCategory weatherCategory;
     private double weatherTemperature;
-    private boolean waitingEventChoice;
-
 }

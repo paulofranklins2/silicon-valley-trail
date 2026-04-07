@@ -45,13 +45,13 @@
 
     // -- Scene builders --
 
-    function buildTravelScene(result) {
+    function buildTravelScene(state, turnResult) {
         // City labels: current location → next location
         var fromCity = '???';
         var toCity = '???';
 
-        if (result && result.journeyState) {
-            var js = result.journeyState;
+        if (state && state.journeyState) {
+            var js = state.journeyState;
             var locations = js.locations || [];
             var idx = js.currentLocationIndex || 0;
             fromCity = locations[idx]
@@ -130,7 +130,7 @@
         });
     }
 
-    function buildScavengeScene(result) {
+    function buildScavengeScene(state, turnResult) {
         var label = span('Scavenging...', 'scene-label scene-label--center');
         scene.appendChild(label);
 
@@ -144,7 +144,7 @@
         // Determine result: food or cash
         var gotFood = false;
         var gotCash = false;
-        var outcome = result && result.lastTurnResult && result.lastTurnResult.actionOutcome;
+        var outcome = turnResult && turnResult.actionOutcome;
         if (outcome === 'FOOD') gotFood = true;
         if (outcome === 'CASH') gotCash = true;
 
@@ -210,7 +210,7 @@
         });
     }
 
-    function buildPitchScene(result) {
+    function buildPitchScene(state, turnResult) {
         var label = span('Pitch Meeting', 'scene-label scene-label--center');
         scene.appendChild(label);
 
@@ -233,7 +233,7 @@
         scene.appendChild(vcGroup);
 
         // Determine success/failure after entrance animation
-        var pitchSuccess = result && result.lastTurnResult && result.lastTurnResult.actionOutcome === 'PITCH_SUCCESS';
+        var pitchSuccess = turnResult && turnResult.actionOutcome === 'PITCH_SUCCESS';
 
         setTimeout(function () {
             if (!scene.parentNode) return;
@@ -268,7 +268,7 @@
         'PITCH_VCS': buildPitchScene
     };
 
-    function playAction(action, result) {
+    function playAction(action, state, turnResult) {
         if (!stage || !scene) return;
 
         // Clear any running scene
@@ -285,7 +285,7 @@
         scene.className = 'action-stage__scene';
         stage.className = 'action-stage action-stage--active';
 
-        builder(result);
+        builder(state, turnResult);
 
         // Fade out after duration
         activeTimeout = setTimeout(function () {

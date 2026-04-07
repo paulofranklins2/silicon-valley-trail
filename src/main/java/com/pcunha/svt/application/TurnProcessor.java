@@ -34,10 +34,9 @@ public class TurnProcessor {
         turnResult.setActionOutcome(actionOutcome);
 
         // if action was blocked (e.g. exhausted), skip the rest of the turn
-        if (turnResult.getActionOutcome() == ActionOutcome.EXHAUSTED) {
+        if (actionOutcome == ActionOutcome.EXHAUSTED) {
             // still fetch weather for display
             loadWeather(gameState, turnResult);
-            gameState.getProgressState().setLastTurnResult(turnResult);
             return turnResult;
         }
 
@@ -57,8 +56,7 @@ public class TurnProcessor {
 
             // if event has choices, pause and wait for player decision
             if (event.getOutcomes() != null && !event.getOutcomes().isEmpty()) {
-                turnResult.setWaitingEventChoice(true);
-                gameState.getProgressState().setLastTurnResult(turnResult);
+                gameState.getProgressState().setPendingEvent(event);
                 return turnResult;
             }
 
@@ -69,33 +67,44 @@ public class TurnProcessor {
         if (!gameState.getEndingState().isGameOver()) {
             gameState.getProgressState().nextTurn();
         }
-        gameState.getProgressState().setLastTurnResult(turnResult);
         return turnResult;
     }
 
     public void loadInitialWeather(GameState gameState) {
-        loadWeather(gameState, gameState.getProgressState().getLastTurnResult());
+        WeatherSignal signal = weatherPort.getWeather(gameState.getJourneyState().getCurrentLocation());
+        ProgressState progress = gameState.getProgressState();
+        progress.setCurrentWeather(signal.weatherCategory());
+        progress.setCurrentWeatherTemperature(signal.temperature());
     }
 
     private WeatherSignal loadWeather(GameState gameState, TurnResult turnResult) {
         WeatherSignal weatherSignal = weatherPort.getWeather(gameState.getJourneyState().getCurrentLocation());
         turnResult.setWeatherCategory(weatherSignal.weatherCategory());
         turnResult.setWeatherTemperature(weatherSignal.temperature());
+        // cache on state so the UI can render current weather on non-turn page loads
+        ProgressState progress = gameState.getProgressState();
+        progress.setCurrentWeather(weatherSignal.weatherCategory());
+        progress.setCurrentWeatherTemperature(weatherSignal.temperature());
         return weatherSignal;
     }
 
-    public void resolveChoice(GameState gameState, int choiceIndex) {
-        GameEvent event = gameState.getProgressState().getLastTurnResult().getGameEvent();
-        if (event == null || event.getOutcomes() == null) return;
-        if (choiceIndex < 0 || choiceIndex >= event.getOutcomes().size()) return;
+    public TurnResult resolveChoice(GameState gameState, int choiceIndex) {
+        ProgressState progress = gameState.getProgressState();
+        GameEvent event = progress.getPendingEvent();
+        if (event == null || event.getOutcomes() == null) return new TurnResult();
+        if (choiceIndex < 0 || choiceIndex >= event.getOutcomes().size()) return new TurnResult();
 
         eventProcessor.applyOutcome(gameState, event.getOutcomes().get(choiceIndex));
-        gameState.getProgressState().getLastTurnResult().setWaitingEventChoice(false);
+        progress.clearPendingEvent();
+
+        TurnResult result = new TurnResult();
+        result.setGameEvent(event);
 
         conditionEvaluator.evaluate(gameState);
         if (!gameState.getEndingState().isGameOver()) {
-            gameState.getProgressState().nextTurn();
+            progress.nextTurn();
         }
+        return result;
     }
 
     private void applyWeatherEffects(GameState gameState, WeatherSignal weatherSignal) {

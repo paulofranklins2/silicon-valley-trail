@@ -120,10 +120,10 @@ class TurnProcessorTest {
                 mockWeatherPort,
                 TUNABLES
         );
-        turnProcessor.processTurn(gameState, GameAction.REST);
+        TurnResult turnResult = turnProcessor.processTurn(gameState, GameAction.REST);
 
         // event should have fired
-        assertNotNull(gameState.getProgressState().getLastTurnResult().getGameEvent());
+        assertNotNull(turnResult.getGameEvent());
     }
 
     @Test
@@ -140,10 +140,10 @@ class TurnProcessorTest {
                 mockWeatherPort,
                 TUNABLES
         );
-        turnProcessor.processTurn(gameState, GameAction.REST);
+        TurnResult turnResult = turnProcessor.processTurn(gameState, GameAction.REST);
 
         // no event
-        assertNull(gameState.getProgressState().getLastTurnResult().getGameEvent());
+        assertNull(turnResult.getGameEvent());
     }
 
     @Test

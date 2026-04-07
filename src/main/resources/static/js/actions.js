@@ -188,7 +188,9 @@
                 if (!response.ok) throw new Error('Choice request failed: ' + response.status);
                 return response.json();
             })
-            .then(function (state) {
+            .then(function (body) {
+                var state = body.state;
+                var turnResult = body.turnResult;
                 if (state.endingState && state.endingState.gameOver) {
                     window.location.href = '/end';
                     return;
@@ -200,7 +202,7 @@
                 hideChoiceModal();
                 setChoicePending(false);
 
-                applyStateUpdate(state, oldState);
+                applyStateUpdate(state, turnResult, oldState);
 
                 // Update team status animations
                 if (window.GameAnimations) {
@@ -249,8 +251,8 @@
     }
 
     // On page load, check if we are already waiting for a choice (server-rendered state)
-    if (window.__waitingEventChoice && window.__lastEvent) {
-        showChoiceModal(window.__lastEvent);
+    if (window.__pendingEvent) {
+        showChoiceModal(window.__pendingEvent);
     }
 
     // Show fallback modal if routing API was unavailable - let player retry or accept
@@ -354,7 +356,7 @@
     }
 
     // Common state update after any response (action or choice)
-    function applyStateUpdate(state, oldState, toastOverrideHtml) {
+    function applyStateUpdate(state, turnResult, oldState, toastOverrideHtml) {
         var progress = state.progressState || {};
         previousState = {
             progressState: { turn: progress.turn },
@@ -369,7 +371,7 @@
             }
         };
 
-        window.GameStats.renderState(state, oldState);
+        window.GameStats.renderState(state, turnResult, oldState);
 
         // Update journey progress map
         if (window.GameJourney) {
@@ -379,17 +381,15 @@
             );
         }
 
-        var tr = (state.progressState && state.progressState.lastTurnResult) || {};
-
-        // Update weather display
-        if (window.GameWeather && tr.weatherCategory) {
-            window.GameWeather.update(tr.weatherCategory, tr.weatherTemperature);
+        // Update weather display from state (current weather at current location)
+        if (window.GameWeather && progress.currentWeather) {
+            window.GameWeather.update(progress.currentWeather, progress.currentWeatherTemperature);
         }
 
         // Handle choice-pending state via modal — delay so player sees action result first
-        if (tr.waitingEventChoice && tr.gameEvent) {
+        if (progress.pendingEvent) {
             setTimeout(function () {
-                showChoiceModal(tr.gameEvent);
+                showChoiceModal(progress.pendingEvent);
             }, 800);
         } else {
             setChoicePending(false);
@@ -425,7 +425,9 @@
                 if (!response.ok) throw new Error('Request failed: ' + response.status);
                 return response.json();
             })
-            .then(function (state) {
+            .then(function (body) {
+                var state = body.state;
+                var turnResult = body.turnResult;
                 if (state.endingState && state.endingState.gameOver) {
                     window.location.href = '/end';
                     return;
@@ -441,7 +443,7 @@
                     }
 
                     // Update story beat only (not stats yet)
-                    window.GameStats.renderStoryBeat(state);
+                    window.GameStats.renderStoryBeat(state, turnResult);
 
                     // Update journey city label + distance text immediately for context
                     var turnLabel = document.querySelector('.top-bar__turn');
@@ -459,7 +461,7 @@
 
                     // Play action animation
                     if (window.GameAnimations) {
-                        window.GameAnimations.playAction(actionValue, state);
+                        window.GameAnimations.playAction(actionValue, state, turnResult);
                     }
 
                     // Phase 2: Animate stats after a beat
@@ -469,14 +471,14 @@
                         }
 
                         // Now update stats with animation
-                        applyStateUpdate(state, oldState);
+                        applyStateUpdate(state, turnResult, oldState);
 
                         if (window.GameAnimations) {
                             window.GameAnimations.updateTeamStatus(state.teamState);
                         }
 
                         // Show action result toast (even if choice event is pending)
-                        window.GameStats.buildCombinedToast(oldState, state);
+                        window.GameStats.buildCombinedToast(oldState, state, turnResult);
 
                         // Phase 3: Re-enable buttons after stats settle
                         setTimeout(function () {

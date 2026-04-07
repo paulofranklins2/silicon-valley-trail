@@ -170,7 +170,7 @@
         if (computeFill) computeFill.style.width = resourceBarPercent(res.computeCredits, 20) + '%';
     }
 
-    function buildCombinedToast(oldState, newState) {
+    function buildCombinedToast(oldState, newState, turnResult) {
         if (!oldState) return;
 
         var parts = [];
@@ -212,9 +212,9 @@
             triggerScreenFlash('gain');
         }
 
-        var newTr = (newState.progressState && newState.progressState.lastTurnResult) || {};
-        var actionName = (newTr.gameAction || '').replace(/_/g, ' ');
-        var evt = newTr.gameEvent;
+        var tr = turnResult || {};
+        var actionName = (tr.gameAction || '').replace(/_/g, ' ');
+        var evt = tr.gameEvent;
         var type = net >= 0 ? 'positive' : 'negative';
 
         var html = '<div class="toast__title">' + window.GameToast.escapeHtml(actionName);
@@ -239,14 +239,15 @@
         window.GameToast.show(html, type, window.GameToast.TOAST_DURATION);
     }
 
-    function renderStoryBeat(state) {
+    function renderStoryBeat(state, turnResult) {
         var container = document.getElementById('story-beat-container');
         if (!container) return;
 
-        var tr = (state.progressState && state.progressState.lastTurnResult) || {};
+        var tr = turnResult || {};
+        var pendingEvent = state.progressState && state.progressState.pendingEvent;
 
         // If waiting for a choice, show waiting state
-        if (tr.waitingEventChoice && tr.gameEvent) {
+        if (pendingEvent) {
             container.innerHTML = '<div class="story-beat__empty"><span class="story-beat__action-label">A decision awaits...</span></div>';
             return;
         }
@@ -326,7 +327,7 @@
         }
     }
 
-    function renderState(state, oldState) {
+    function renderState(state, turnResult, oldState) {
         // Turn counter with tick animation
         var turnLabel = document.querySelector('.top-bar__turn');
         var locationName = document.querySelector('.journey-progress__city--current');
@@ -373,7 +374,7 @@
         updateStatWarnings(state);
 
         // Story beat section
-        renderStoryBeat(state);
+        renderStoryBeat(state, turnResult);
     }
 
     function updateStatWarnings(state) {
