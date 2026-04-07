@@ -236,7 +236,7 @@ I started with just Haversine for straight-line distances. Then added OSRM for d
 | Mode | API | Key needed | Difficulty |
 |---|---|---|---|
 | Fast | Haversine (math) | No | Easy (~65 km) |
-| Road | OSRM driving → ORS car fallback | No (ORS key optional) | Medium (~106 km) |
+| Road | OSRM driving to ORS car fallback | No (ORS key optional) | Medium (~106 km) |
 | Walking | ORS foot-walking | Yes (free tier) | Hard (~130 km) |
 
 The `DistancePort` interface made this painless. Each mode is just a different adapter. GameEngine picks the right one based on the player's selection. Zero changes to game logic.
@@ -259,9 +259,9 @@ All 4 game modes work with no API key. Walking modes use the same road distances
 
 Each adapter follows the same pattern: try the API, fall back on failure.
 
-- `OpenMeteoAdapter` → `MockWeatherAdapter`
-- `OsrmDistanceAdapter` → `OpenRouteServiceAdapter` (car profile) → `HaversineDistanceAdapter`
-- `OpenRouteServiceAdapter` → `HaversineDistanceAdapter`
+- `OpenMeteoAdapter` to `MockWeatherAdapter`
+- `OsrmDistanceAdapter` to `OpenRouteServiceAdapter` (car profile) to `HaversineDistanceAdapter`
+- `OpenRouteServiceAdapter` to `HaversineDistanceAdapter`
 
 The key design choice: when OSRM fails but ORS car succeeds, `usedFallback` stays `false` because the player still gets real driving distances. The flag only becomes `true` when we end up at Haversine (estimated distances). This matters for fair leaderboard rankings - if the mode used estimated distances, the game downgrades to Fast mode so the player doesn't compete unfairly.
 
@@ -412,10 +412,10 @@ Tests are focused on logic, not framework internals. 74 tests across 15 test fil
 
 ### Principle: handle issues at the boundary
 
-- API fails → fallback to mock/haversine
-- invalid action name → caught at controller, returns error (not a 500)
-- empty team name / player name → validated and rejected at controller
-- database error → warn and continue, don't crash the game
+- API fails to fallback to mock/haversine
+- invalid action name to caught at controller, returns error (not a 500)
+- empty team name / player name to validated and rejected at controller
+- database error to warn and continue, don't crash the game
 - domain stays clean, values are always valid because the model clamps them
 
 I found the invalid action edge case during a late review. Without the try-catch, sending `POST /api/action?action=GARBAGE` would crash the server with an `IllegalArgumentException`. Now it returns a clean error response. Same pattern for empty names - HTML `required` attributes are client-side only, so I validate server-side too.
@@ -561,7 +561,7 @@ Keeping things simple and readable.
 | YAML data files | Content separate from code, easy to edit | jackson-yaml dependency, lost final fields |
 | 4 game modes via speed multiplier | All modes work with no API key, difficulty from mechanics not data | More enum values, slightly complex fallback mapping |
 | Pre-computed distances at startup | Instant game creation, no API calls per player | Slower server boot, stale if locations change |
-| OSRM → ORS car fallback chain | Road mode works even when OSRM is down | Extra adapter, usedFallback flag complexity |
+| OSRM to ORS car fallback chain | Road mode works even when OSRM is down | Extra adapter, usedFallback flag complexity |
 | Score calculator | Fair per-mode rankings, weighted by difficulty | Formula balancing is subjective |
 | Market logic in GameEngine | Controller stays thin, business rules centralized | GameEngine has more methods |
 | Market on GameState | Single source of truth, no session cleanup | GameState grows larger |

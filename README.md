@@ -138,19 +138,19 @@ Distances are pre-computed at startup and cached. Road/Walking+ fall back to the
 ## Example Gameplay
 
 ```
-Turn 1:  Select TRAVEL → move 5km toward Santa Clara, lose 15 energy, 1 food, 1 compute
-         Weather: Clear → +2 health, +5 energy (travel only)
+Turn 1:  Select TRAVEL to move 5km toward Santa Clara, lose 15 energy, 1 food, 1 compute
+         Weather: Clear to +2 health, +5 energy (travel only)
 
-Turn 2:  Select TRAVEL → arrive at Santa Clara
-         Event (20% chance): "Team Argument" → morale -15
+Turn 2:  Select TRAVEL to arrive at Santa Clara
+         Event (20% chance): "Team Argument" to morale -15
 
-Turn 3:  Open Market → "Food Truck Rally" → buy meals (-$25, +5 food)
-         Select REST → +5 health, +10 energy, +10 morale, -1 food
+Turn 3:  Open Market to "Food Truck Rally" to buy meals (-$25, +5 food)
+         Select REST to +5 health, +10 energy, +10 morale, -1 food
 
-Turn 4:  Energy too low for travel → REST forced
+Turn 4:  Energy too low for travel to REST forced
          Grace warning appears: "starving 1/2" (food at 0)
 
-Turn 5:  Select SCAVENGE → -10 energy, found food (+2)
+Turn 5:  Select SCAVENGE to -10 energy, found food (+2)
          Grace counter resets - crisis averted
 ```
 

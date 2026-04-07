@@ -4,10 +4,8 @@ import com.pcunha.svt.domain.model.StatDelta;
 
 /**
  * Game balance config.
- * Loaded from data/tunables.yaml on startup.
  */
-public record GameTunables(
-        double eventChance,
+public record Tunables(
         int foodGraceTurns,
         int cashGraceTurns,
         WeatherEffects weather

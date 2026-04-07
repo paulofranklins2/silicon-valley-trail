@@ -87,7 +87,7 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] `DistancePort.calculateLegDistances()` default method eliminates duplication
 - [x] Pre-compute all distances at startup, cache per game mode
 - [x] `DistanceResult` record signals whether fallback was used
-- [x] Fallback chain: OSRM → ORS car → Haversine (passes through usedFallback flag)
+- [x] Fallback chain: OSRM to ORS car to Haversine (passes through usedFallback flag)
 - [x] Walking mode disabled when no ORS_API_KEY
 - [x] Retry endpoint for failed modes (`POST /api/retry-distances`)
 

@@ -3,7 +3,7 @@ package com.pcunha.svt.infrastructure.data;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.pcunha.svt.application.GameTunables;
+import com.pcunha.svt.application.Tunables;
 import com.pcunha.svt.domain.EventCategory;
 import com.pcunha.svt.domain.GameAction;
 import com.pcunha.svt.domain.model.ActionInfo;
@@ -48,7 +48,7 @@ public class GameDataLoader {
         return markets;
     }
 
-    public static GameTunables loadTunables() {
+    public static Tunables loadTunables() {
         return load(PATH_TUNABLES, new TypeReference<>() {
         });
     }

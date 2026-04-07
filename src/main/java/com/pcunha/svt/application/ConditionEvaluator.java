@@ -4,9 +4,9 @@ import com.pcunha.svt.domain.LossReason;
 import com.pcunha.svt.domain.model.*;
 
 public class ConditionEvaluator {
-    private final GameTunables tunables;
+    private final Tunables tunables;
 
-    public ConditionEvaluator(GameTunables tunables) {
+    public ConditionEvaluator(Tunables tunables) {
         this.tunables = tunables;
     }
 

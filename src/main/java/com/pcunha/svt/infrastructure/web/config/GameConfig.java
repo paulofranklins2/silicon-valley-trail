@@ -30,7 +30,7 @@ public class GameConfig {
     }
 
     @Bean
-    public GameTunables gameTunables() {
+    public Tunables tunables() {
         return GameDataLoader.loadTunables();
     }
 
@@ -53,8 +53,8 @@ public class GameConfig {
     }
 
     @Bean
-    public ConditionEvaluator conditionEvaluator(GameTunables gameTunables) {
-        return new ConditionEvaluator(gameTunables);
+    public ConditionEvaluator conditionEvaluator(Tunables tunables) {
+        return new ConditionEvaluator(tunables);
     }
 
     @Bean
@@ -64,9 +64,9 @@ public class GameConfig {
 
     @Bean
     public TurnProcessor turnProcessor(ActionHandler actionHandler, ConditionEvaluator conditionEvaluator,
-                                       EventProcessor eventProcessor, Random random, WeatherPort weatherPort,
-                                       GameTunables gameTunables) {
-        return new TurnProcessor(actionHandler, conditionEvaluator, eventProcessor, random, weatherPort, gameTunables);
+                                       EventProcessor eventProcessor, WeatherPort weatherPort,
+                                       Tunables tunables) {
+        return new TurnProcessor(actionHandler, conditionEvaluator, eventProcessor, weatherPort, tunables);
     }
 
     @Bean

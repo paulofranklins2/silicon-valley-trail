@@ -14,9 +14,19 @@ import java.util.Random;
 import static org.junit.jupiter.api.Assertions.*;
 
 class TurnProcessorTest {
-    private static final GameTunables TUNABLES = GameDataLoader.loadTunables();
+    private static final Tunables TUNABLES = GameDataLoader.loadTunables();
     private final Random mockRandom = Mockito.mock(Random.class);
     private final WeatherPort mockWeatherPort = Mockito.mock(WeatherPort.class);
+
+    private TurnProcessor createProcessor() {
+        return new TurnProcessor(
+                ActionHandler.create(mockRandom),
+                new ConditionEvaluator(TUNABLES),
+                EventProcessor.create(mockRandom),
+                mockWeatherPort,
+                TUNABLES
+        );
+    }
 
     private GameState createGameState() {
         Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(1);
@@ -33,18 +43,27 @@ class TurnProcessorTest {
         return new GameState(team, resources, journey, "Test Team Name");
     }
 
+    private GameState createThreeCityGameState() {
+        Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(1);
+        Mockito.when(mockWeatherPort.getWeather(Mockito.any()))
+                .thenReturn(new WeatherSignal(WeatherCategory.CLEAR, 20.0));
+        TeamState team = new TeamState(100, 100, 100);
+        ResourceState resources = new ResourceState(100, 10, 5);
+        JourneyState journey = new JourneyState(
+                List.of(
+                        new Location("A", 0, 0),
+                        new Location("B", 0, 0),
+                        new Location("C", 0, 0)),
+                List.of(5.0, 20.0)
+        );
+        return new GameState(team, resources, journey, "Test Team Name");
+    }
+
     @Test
     public void travelTurnGoesUpByOne() {
-        Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(1);
-
         GameState gameState = createGameState();
-        TurnProcessor turnProcessor = new TurnProcessor(
-                ActionHandler.create(mockRandom), new ConditionEvaluator(TUNABLES),
-                EventProcessor.create(mockRandom),
-                mockRandom,
-                mockWeatherPort,
-                TUNABLES
-        );
+        TurnProcessor turnProcessor = createProcessor();
+
         turnProcessor.processTurn(gameState, GameAction.TRAVEL);
         turnProcessor.processTurn(gameState, GameAction.TRAVEL);
         assertEquals(3, gameState.getProgressState().getTurn());
@@ -60,14 +79,7 @@ class TurnProcessorTest {
         Mockito.when(mockWeatherPort.getWeather(Mockito.any()))
                 .thenReturn(new WeatherSignal(WeatherCategory.RAINY, 15.0));
 
-        TurnProcessor turnProcessor = new TurnProcessor(
-                ActionHandler.create(mockRandom),
-                new ConditionEvaluator(TUNABLES),
-                EventProcessor.create(mockRandom),
-                mockRandom,
-                mockWeatherPort,
-                TUNABLES
-        );
+        TurnProcessor turnProcessor = createProcessor();
         turnProcessor.processTurn(gameState, GameAction.TRAVEL);
 
         // turn counter
@@ -80,22 +92,13 @@ class TurnProcessorTest {
 
     @Test
     public void travelTurnShouldCauseVictory() {
-        Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(1);
-
-        // required 20
         GameState gameState = createGameState();
-        TurnProcessor turnProcessor = new TurnProcessor(
-                ActionHandler.create(mockRandom),
-                new ConditionEvaluator(TUNABLES),
-                EventProcessor.create(mockRandom),
-                mockRandom,
-                mockWeatherPort,
-                TUNABLES
-        );
+        TurnProcessor turnProcessor = createProcessor();
+
         turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 5
         turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 10
         turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 15
-        turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 20
+        turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 20 to arrived at B (destination)
 
         // turn counter
         assertEquals(4, gameState.getProgressState().getTurn());
@@ -106,60 +109,65 @@ class TurnProcessorTest {
     }
 
     @Test
-    public void turnWithEventAppliesEvent() {
-        // nextDouble returns 0.1, below EVENT_CHANCE (0.2), so event fires
-        Mockito.when(mockRandom.nextDouble()).thenReturn(0.1);
-        Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(1);
+    public void arrivingAtIntermediateCityTriggersEvent() {
+        // Three-city journey: A to B is 5km (crossed in 1 travel), BtoC is 20km.
+        GameState gameState = createThreeCityGameState();
+        TurnProcessor turnProcessor = createProcessor();
 
-        GameState gameState = createGameState();
-        TurnProcessor turnProcessor = new TurnProcessor(
-                ActionHandler.create(mockRandom),
-                new ConditionEvaluator(TUNABLES),
-                EventProcessor.create(mockRandom),
-                mockRandom,
-                mockWeatherPort,
-                TUNABLES
-        );
-        TurnResult turnResult = turnProcessor.processTurn(gameState, GameAction.REST);
+        // TRAVEL 5km to cross from A to B (intermediate, not destination)
+        TurnResult turnResult = turnProcessor.processTurn(gameState, GameAction.TRAVEL);
 
-        // event should have fired
+        // arrived at intermediate city to event should have fired
         assertNotNull(turnResult.getGameEvent());
+        assertEquals(1, gameState.getJourneyState().getCurrentLocationIndex());
+        assertFalse(gameState.getEndingState().isGameOver());
     }
 
     @Test
-    public void turnWithoutEventHasNullLastEvent() {
-        // nextDouble returns 0.9, above EVENT_CHANCE (0.2), so no event
-        Mockito.when(mockRandom.nextDouble()).thenReturn(0.9);
-
+    public void nonArrivalTurnHasNoEvent() {
+        // 20km between cities; a single 5km travel does not cross
         GameState gameState = createGameState();
-        TurnProcessor turnProcessor = new TurnProcessor(
-                ActionHandler.create(mockRandom),
-                new ConditionEvaluator(TUNABLES),
-                EventProcessor.create(mockRandom),
-                mockRandom,
-                mockWeatherPort,
-                TUNABLES
-        );
+        TurnProcessor turnProcessor = createProcessor();
+
+        TurnResult turnResult = turnProcessor.processTurn(gameState, GameAction.TRAVEL);
+
+        // still at city A, no event
+        assertNull(turnResult.getGameEvent());
+        assertEquals(0, gameState.getJourneyState().getCurrentLocationIndex());
+    }
+
+    @Test
+    public void restActionNeverTriggersEvent() {
+        GameState gameState = createGameState();
+        TurnProcessor turnProcessor = createProcessor();
+
         TurnResult turnResult = turnProcessor.processTurn(gameState, GameAction.REST);
 
-        // no event
+        // REST never advances location, so it never triggers an event
+        assertNull(turnResult.getGameEvent());
+    }
+
+    @Test
+    public void arrivingAtDestinationDoesNotTriggerEvent() {
+        // 2-city journey where the second city IS the destination.
+        // Arriving there should trigger victory, not an event.
+        GameState gameState = createGameState();
+        TurnProcessor turnProcessor = createProcessor();
+
+        turnProcessor.processTurn(gameState, GameAction.TRAVEL);
+        turnProcessor.processTurn(gameState, GameAction.TRAVEL);
+        turnProcessor.processTurn(gameState, GameAction.TRAVEL);
+        TurnResult turnResult = turnProcessor.processTurn(gameState, GameAction.TRAVEL);
+
+        // victory, and no intermediate event on the final turn
+        assertTrue(gameState.getEndingState().isVictory());
         assertNull(turnResult.getGameEvent());
     }
 
     @Test
     public void actionStillAppliesWhenNoEvent() {
-        // no event fires
-        Mockito.when(mockRandom.nextDouble()).thenReturn(0.9);
-
         GameState gameState = createGameState();
-        TurnProcessor turnProcessor = new TurnProcessor(
-                ActionHandler.create(mockRandom),
-                new ConditionEvaluator(TUNABLES),
-                EventProcessor.create(mockRandom),
-                mockRandom,
-                mockWeatherPort,
-                TUNABLES
-        );
+        TurnProcessor turnProcessor = createProcessor();
         turnProcessor.processTurn(gameState, GameAction.TRAVEL);
 
         // action still applied even without event
@@ -168,12 +176,7 @@ class TurnProcessorTest {
     }
 
     @Test
-    public void weatherIsPassedToEventGenerator() {
-        // trigger event
-        Mockito.when(mockRandom.nextDouble()).thenReturn(0.1);
-        Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(1);
-
-        //  trigger weather change
+    public void weatherIsFetchedEveryTurn() {
         WeatherPort mockedWeatherPort = Mockito.mock(WeatherPort.class);
         Mockito.when(mockedWeatherPort.getWeather(Mockito.any()))
                 .thenReturn(new WeatherSignal(WeatherCategory.RAINY, 15.0));
@@ -183,7 +186,6 @@ class TurnProcessorTest {
                 ActionHandler.create(mockRandom),
                 new ConditionEvaluator(TUNABLES),
                 EventProcessor.create(mockRandom),
-                mockRandom,
                 mockedWeatherPort,
                 TUNABLES
         );
@@ -192,5 +194,4 @@ class TurnProcessorTest {
         // verify weather was fetched for the current location
         Mockito.verify(mockedWeatherPort).getWeather(gameState.getJourneyState().getCurrentLocation());
     }
-
 }

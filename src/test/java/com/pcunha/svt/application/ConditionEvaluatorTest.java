@@ -10,7 +10,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ConditionEvaluatorTest {
-    private static final GameTunables TUNABLES = GameDataLoader.loadTunables();
+    private static final Tunables TUNABLES = GameDataLoader.loadTunables();
 
     private GameState createGameState() {
         TeamState team = new TeamState(100, 100, 100);

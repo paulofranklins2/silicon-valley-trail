@@ -7,9 +7,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 /**
- * Centralised error handling for all @RestController classes.
- * @RestControllerAdvice scopes this to REST endpoints only — MVC
- * controllers keep their own redirect-based flow.
+ * Handles REST errors in one place.
+ * Keeps MVC flow separate.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {

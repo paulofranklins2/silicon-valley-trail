@@ -15,7 +15,7 @@ class OsrmDistanceAdapterTest {
         Location santaClara = new Location("Santa Clara", 37.3541, -121.9552);
         double distance = adapter.getDistance(sanJose, santaClara);
 
-        // real driving or haversine fallback — either way should be reasonable
+        // real driving or haversine fallback, either way should be reasonable
         assertTrue(distance > 3 && distance < 20,
                 "Distance should be between 3-20 km, got: " + distance);
     }

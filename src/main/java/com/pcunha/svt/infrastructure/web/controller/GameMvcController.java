@@ -1,9 +1,9 @@
 package com.pcunha.svt.infrastructure.web.controller;
 
 import com.pcunha.svt.application.GameEngine;
-import com.pcunha.svt.application.GameTunables;
 import com.pcunha.svt.application.LeaderboardService;
 import com.pcunha.svt.application.ScoreCalculator;
+import com.pcunha.svt.application.Tunables;
 import com.pcunha.svt.domain.GameAction;
 import com.pcunha.svt.domain.GameMode;
 import com.pcunha.svt.domain.model.GameState;
@@ -23,9 +23,9 @@ public class GameMvcController {
 
     private final GameEngine gameEngine;
     private final LeaderboardService leaderboardService;
-    private final GameTunables tunables;
+    private final Tunables tunables;
 
-    public GameMvcController(GameEngine gameEngine, LeaderboardService leaderboardService, GameTunables tunables) {
+    public GameMvcController(GameEngine gameEngine, LeaderboardService leaderboardService, Tunables tunables) {
         this.gameEngine = gameEngine;
         this.leaderboardService = leaderboardService;
         this.tunables = tunables;

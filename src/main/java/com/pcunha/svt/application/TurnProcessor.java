@@ -6,22 +6,18 @@ import com.pcunha.svt.domain.model.*;
 import com.pcunha.svt.domain.port.WeatherPort;
 import lombok.Getter;
 
-import java.util.Random;
-
 public class TurnProcessor {
     private final ActionHandler actionHandler;
     private final ConditionEvaluator conditionEvaluator;
     @Getter
     private final EventProcessor eventProcessor;
-    private final Random random;
     private final WeatherPort weatherPort;
-    private final GameTunables tunables;
+    private final Tunables tunables;
 
-    public TurnProcessor(ActionHandler actionHandler, ConditionEvaluator conditionEvaluator, EventProcessor eventProcessor, Random random, WeatherPort weatherPort, GameTunables tunables) {
+    public TurnProcessor(ActionHandler actionHandler, ConditionEvaluator conditionEvaluator, EventProcessor eventProcessor, WeatherPort weatherPort, Tunables tunables) {
         this.actionHandler = actionHandler;
         this.conditionEvaluator = conditionEvaluator;
         this.eventProcessor = eventProcessor;
-        this.random = random;
         this.weatherPort = weatherPort;
         this.tunables = tunables;
     }
@@ -29,6 +25,8 @@ public class TurnProcessor {
     public TurnResult processTurn(GameState gameState, GameAction gameAction) {
         TurnResult turnResult = new TurnResult();
         turnResult.setGameAction(gameAction);
+
+        int locationBefore = gameState.getJourneyState().getCurrentLocationIndex();
 
         ActionOutcome actionOutcome = actionHandler.handle(gameState, gameAction);
         turnResult.setActionOutcome(actionOutcome);
@@ -49,8 +47,11 @@ public class TurnProcessor {
             applyWeatherEffects(gameState, weatherSignal);
         }
 
-        // random events
-        if (random.nextDouble() < tunables.eventChance()) {
+        // Arriving at the final destination skips the event, victory is the story beat.
+        int locationAfter = gameState.getJourneyState().getCurrentLocationIndex();
+        boolean arrivedAtIntermediateCity = locationAfter > locationBefore
+                && !gameState.getJourneyState().hasReachedDestination();
+        if (arrivedAtIntermediateCity) {
             GameEvent event = eventProcessor.generateEvent(gameState, weatherSignal);
             turnResult.setGameEvent(event);
 
