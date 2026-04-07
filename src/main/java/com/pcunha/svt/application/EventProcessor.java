@@ -1,6 +1,7 @@
 package com.pcunha.svt.application;
 
 import com.pcunha.svt.domain.EventCategory;
+import com.pcunha.svt.domain.WeatherCategory;
 import com.pcunha.svt.domain.model.EventOutcome;
 import com.pcunha.svt.domain.model.GameEvent;
 import com.pcunha.svt.domain.model.GameState;
@@ -12,6 +13,12 @@ import java.util.Map;
 import java.util.Random;
 
 public class EventProcessor {
+
+    // Chance to pick a weather-based event.
+    // Higher on rough weather, lower on clear days.
+    private static final double WEATHER_BIAS_ROUGH = 0.7;
+    private static final double WEATHER_BIAS_CLEAR = 0.15;
+
     private final Random random;
     private final Map<EventCategory, List<GameEvent>> eventPool;
     private final List<GameEvent> cityMarketEvents;
@@ -45,11 +52,27 @@ public class EventProcessor {
         state.getResourceState().changeComputeCredits(compute);
     }
 
-    public GameEvent generateEvent(GameState gameState, WeatherSignal weatherSignal) {
+    /**
+     * Picks an event when arriving at a city.
+     * Weather can influence the type of event picked.
+     */
+    public GameEvent generateEvent(WeatherSignal weatherSignal) {
+        double bias = weatherBias(weatherSignal);
+        List<GameEvent> weatherEvents = eventPool.get(EventCategory.WEATHER);
+
+        if (weatherEvents != null && !weatherEvents.isEmpty() && random.nextDouble() < bias) {
+            return weatherEvents.get(random.nextInt(weatherEvents.size()));
+        }
+
         List<GameEvent> allEvents = eventPool.values().stream()
                 .flatMap(List::stream)
                 .toList();
         return allEvents.get(random.nextInt(allEvents.size()));
+    }
+
+    private double weatherBias(WeatherSignal signal) {
+        if (signal == null) return 0.0;
+        return signal.weatherCategory() == WeatherCategory.CLEAR ? WEATHER_BIAS_CLEAR : WEATHER_BIAS_ROUGH;
     }
 
     public GameEvent getCityMarketEvent() {

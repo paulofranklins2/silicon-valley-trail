@@ -52,7 +52,7 @@ public class TurnProcessor {
         boolean arrivedAtIntermediateCity = locationAfter > locationBefore
                 && !gameState.getJourneyState().hasReachedDestination();
         if (arrivedAtIntermediateCity) {
-            GameEvent event = eventProcessor.generateEvent(gameState, weatherSignal);
+            GameEvent event = eventProcessor.generateEvent(weatherSignal);
             turnResult.setGameEvent(event);
 
             // if event has choices, pause and wait for player decision

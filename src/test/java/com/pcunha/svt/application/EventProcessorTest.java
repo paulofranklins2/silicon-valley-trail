@@ -58,14 +58,44 @@ class EventProcessorTest {
 
     @Test
     public void generateEventReturnsValidEvent() {
-        GameState gameState = createGameState();
         WeatherSignal weatherSignal = new WeatherSignal(WeatherCategory.CLEAR, 20.0);
         Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(0);
-        GameEvent gameEvent = EventProcessor.create(mockRandom).generateEvent(gameState, weatherSignal);
+        GameEvent gameEvent = EventProcessor.create(mockRandom).generateEvent(weatherSignal);
 
         assertNotNull(gameEvent);
         assertNotNull(gameEvent.getTitle());
     }
 
+    @Test
+    public void roughWeatherBiasesTowardWeatherCategory() {
+        // force weather branch
+        Mockito.when(mockRandom.nextDouble()).thenReturn(0.0);
 
+        // pick first weather event
+        Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(0);
+
+        // generate event with rainy weather
+        WeatherSignal rainy = new WeatherSignal(WeatherCategory.RAINY, 12.0);
+        GameEvent event = EventProcessor.create(mockRandom).generateEvent(rainy);
+
+        // verify result
+        assertNotNull(event);
+        assertEquals(EventCategory.WEATHER, event.getEventCategory());
+    }
+
+    @Test
+    public void clearWeatherMostlyPullsFromFullPool() {
+        // skip weather branch
+        Mockito.when(mockRandom.nextDouble()).thenReturn(0.99);
+
+        // pick first event from full pool
+        Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(0);
+
+        // generate event with clear weather
+        WeatherSignal clear = new WeatherSignal(WeatherCategory.CLEAR, 22.0);
+        GameEvent event = EventProcessor.create(mockRandom).generateEvent(clear);
+
+        // verify result exists, full pull
+        assertNotNull(event);
+    }
 }
