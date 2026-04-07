@@ -117,7 +117,7 @@ class TurnProcessorTest {
         turnProcessor.processTurn(gameState, GameAction.REST);
 
         // event should have fired
-        assertNotNull(gameState.getLastEvent());
+        assertNotNull(gameState.getLastTurnResult().getGameEvent());
     }
 
     @Test
@@ -136,7 +136,7 @@ class TurnProcessorTest {
         turnProcessor.processTurn(gameState, GameAction.REST);
 
         // no event
-        assertNull(gameState.getLastEvent());
+        assertNull(gameState.getLastTurnResult().getGameEvent());
     }
 
     @Test

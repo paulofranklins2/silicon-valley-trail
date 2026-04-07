@@ -4,6 +4,7 @@ import com.pcunha.svt.domain.ActionOutcome;
 import com.pcunha.svt.domain.GameAction;
 import com.pcunha.svt.domain.model.GameEvent;
 import com.pcunha.svt.domain.model.GameState;
+import com.pcunha.svt.domain.model.TurnResult;
 import com.pcunha.svt.domain.model.WeatherSignal;
 import com.pcunha.svt.domain.port.WeatherPort;
 import lombok.Getter;
@@ -37,20 +38,23 @@ public class TurnProcessor {
         this.weatherPort = weatherPort;
     }
 
-    public void processTurn(GameState gameState, GameAction gameAction) {
-        gameState.setLastAction(gameAction);
-        actionHandler.handle(gameState, gameAction);
+    public TurnResult processTurn(GameState gameState, GameAction gameAction) {
+        TurnResult turnResult = new TurnResult();
+        turnResult.setGameAction(gameAction);
+
+        ActionOutcome actionOutcome = actionHandler.handle(gameState, gameAction);
+        turnResult.setActionOutcome(actionOutcome);
 
         // if action was blocked (e.g. exhausted), skip the rest of the turn
-        if (gameState.getLastActionResult() == ActionOutcome.EXHAUSTED) {
+        if (turnResult.getActionOutcome() == ActionOutcome.EXHAUSTED) {
             // still fetch weather for display
-            loadWeather(gameState);
-            gameState.setLastEvent(null);
-            return;
+            loadWeather(gameState, turnResult);
+            gameState.setLastTurnResult(turnResult);
+            return turnResult;
         }
 
         // fetch weather
-        WeatherSignal weatherSignal = loadWeather(gameState);
+        WeatherSignal weatherSignal = loadWeather(gameState, turnResult);
 
         // weather effects only apply when traveling,
         // this prevents users to find a good weather and exploit it
@@ -61,43 +65,44 @@ public class TurnProcessor {
         // random events
         if (random.nextDouble() < EVENT_CHANCE) {
             GameEvent event = eventProcessor.generateEvent(gameState, weatherSignal);
-            gameState.setLastEvent(event);
+            turnResult.setGameEvent(event);
 
             // if event has choices, pause and wait for player decision
             if (event.getOutcomes() != null && !event.getOutcomes().isEmpty()) {
-                gameState.setWaitingEventChoice(true);
-                return;
+                turnResult.setWaitingEventChoice(true);
+                gameState.setLastTurnResult(turnResult);
+                return turnResult;
             }
 
             eventProcessor.applyEvent(gameState, event);
-        } else {
-            gameState.setLastEvent(null);
         }
 
         conditionEvaluator.evaluate(gameState);
         if (!gameState.isGameOver()) {
             gameState.nextTurn();
         }
+        gameState.setLastTurnResult(turnResult);
+        return turnResult;
     }
 
     public void loadInitialWeather(GameState gameState) {
-        loadWeather(gameState);
+        loadWeather(gameState, gameState.getLastTurnResult());
     }
 
-    private WeatherSignal loadWeather(GameState gameState) {
+    private WeatherSignal loadWeather(GameState gameState, TurnResult turnResult) {
         WeatherSignal weatherSignal = weatherPort.getWeather(gameState.getJourneyState().getCurrentLocation());
-        gameState.setLastWeather(weatherSignal.weatherCategory());
-        gameState.setLastWeatherTemp(weatherSignal.temperature());
+        turnResult.setWeatherCategory(weatherSignal.weatherCategory());
+        turnResult.setWeatherTemperature(weatherSignal.temperature());
         return weatherSignal;
     }
 
     public void resolveChoice(GameState gameState, int choiceIndex) {
-        GameEvent event = gameState.getLastEvent();
+        GameEvent event = gameState.getLastTurnResult().getGameEvent();
         if (event == null || event.getOutcomes() == null) return;
         if (choiceIndex < 0 || choiceIndex >= event.getOutcomes().size()) return;
 
         eventProcessor.applyOutcome(gameState, event.getOutcomes().get(choiceIndex));
-        gameState.setWaitingEventChoice(false);
+        gameState.getLastTurnResult().setWaitingEventChoice(false);
 
         conditionEvaluator.evaluate(gameState);
         if (!gameState.isGameOver()) {
