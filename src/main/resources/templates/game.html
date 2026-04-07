@@ -317,7 +317,7 @@
 
 <!-- Fallback modal (shown when OSRM fails) -->
 <div id="fallback-modal" class="choice-modal" style="display:none"
-     th:data-game-mode="${gameState.requestedGameMode}">
+     th:data-game-mode="${gameState.configState.requestedGameMode}">
     <div class="choice-modal__backdrop"></div>
     <div class="choice-modal__content">
         <button id="fallback-close" class="fallback-close">&times;</button>

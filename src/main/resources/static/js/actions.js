@@ -386,7 +386,7 @@
             window.GameWeather.update(progress.currentWeather, progress.currentWeatherTemperature);
         }
 
-        // Handle choice-pending state via modal — delay so player sees action result first
+        // Handle choice-pending state via modal, delay so player sees action result first
         if (progress.pendingEvent) {
             setTimeout(function () {
                 showChoiceModal(progress.pendingEvent);

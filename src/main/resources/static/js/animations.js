@@ -46,7 +46,7 @@
     // -- Scene builders --
 
     function buildTravelScene(state, turnResult) {
-        // City labels: current location → next location
+        // City labels: current location to next location
         var fromCity = '???';
         var toCity = '???';
 
