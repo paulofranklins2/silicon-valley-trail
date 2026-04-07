@@ -8,22 +8,24 @@ import com.pcunha.svt.domain.model.GameEvent;
 import com.pcunha.svt.domain.model.GameState;
 import com.pcunha.svt.domain.model.MarketResult;
 import com.pcunha.svt.domain.model.SubmissionResult;
-import com.pcunha.svt.domain.port.LeaderboardPort;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
 @RestController
 public class GameRestController {
+    private static final Map<String, Object> NO_GAME_ERROR = Map.of("error", "No game in progress");
+
     private final GameEngine gameEngine;
-    private final LeaderboardPort leaderboardPort;
     private final LeaderboardService leaderboardService;
 
-
-    public GameRestController(GameEngine gameEngine, LeaderboardPort leaderboardPort, LeaderboardService leaderboardService) {
+    public GameRestController(GameEngine gameEngine, LeaderboardService leaderboardService) {
         this.gameEngine = gameEngine;
-        this.leaderboardPort = leaderboardPort;
         this.leaderboardService = leaderboardService;
     }
 
@@ -46,63 +48,58 @@ public class GameRestController {
     }
 
     @PostMapping("/api/action")
-    public Object processActionApi(@RequestParam String action, HttpSession session) {
+    public ResponseEntity<?> processActionApi(@RequestParam String action, HttpSession session) {
         GameState gameState = getGameState(session);
-        if (gameState == null) return "redirect:/";
+        if (gameState == null) return ResponseEntity.status(404).body(NO_GAME_ERROR);
 
         try {
             gameEngine.processAction(gameState, GameAction.valueOf(action));
         } catch (IllegalArgumentException e) {
-            return Map.of("error", "Invalid action");
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid action"));
         }
-        return gameState;
+        return ResponseEntity.ok(gameState);
     }
 
     @PostMapping("/api/choice")
-    public Object processChoice(@RequestParam int choiceIndex, HttpSession session) {
+    public ResponseEntity<?> processChoice(@RequestParam int choiceIndex, HttpSession session) {
         GameState gameState = getGameState(session);
-        if (gameState == null) {
-            return "redirect:/";
-        }
+        if (gameState == null) return ResponseEntity.status(404).body(NO_GAME_ERROR);
+
         gameEngine.resolveChoice(gameState, choiceIndex);
-        return gameState;
+        return ResponseEntity.ok(gameState);
     }
 
     @GetMapping("/api/market")
     public Object getMarket(HttpSession session) {
         GameState gameState = getGameState(session);
-        if (gameState == null) return "redirect:/";
+        if (gameState == null) return NO_GAME_ERROR;
 
         GameEvent market = gameEngine.getMarket(gameState);
         return Map.of("event", market, "purchased", gameState.getMarketPurchased());
     }
 
     @PostMapping("/api/market")
-    public Object processMarketPurchase(@RequestParam int choiceIndex, HttpSession session) {
+    public ResponseEntity<?> processMarketPurchase(@RequestParam int choiceIndex, HttpSession session) {
         GameState gameState = getGameState(session);
-        if (gameState == null) return "redirect:/";
+        if (gameState == null) return ResponseEntity.status(404).body(NO_GAME_ERROR);
 
         MarketResult marketResult = gameEngine.buyFromMarket(gameState, choiceIndex);
         if (!marketResult.ok()) {
-            return Map.of("state", gameState, "purchased", gameState.getMarketPurchased(), "error", marketResult.error());
+            return ResponseEntity.badRequest().body(Map.of("error", marketResult.error()));
         }
-
-        return Map.of("state", gameState, "purchased", gameState.getMarketPurchased());
+        return ResponseEntity.ok(gameState);
     }
 
     @PostMapping("/api/leaderboard")
     public Object submitScore(@RequestParam String playerName, HttpSession session) {
         GameState gameState = getGameState(session);
-        if (gameState == null) {
-            return Map.of("error", "No game in progress");
-        }
+        if (gameState == null) return NO_GAME_ERROR;
 
         SubmissionResult result = leaderboardService.submitResult(gameState, playerName);
         if (result.ok()) {
             return Map.of("success", true);
-        } else {
-            return Map.of("error", result.error());
         }
+        return Map.of("error", result.error());
     }
 
     private GameState getGameState(HttpSession session) {

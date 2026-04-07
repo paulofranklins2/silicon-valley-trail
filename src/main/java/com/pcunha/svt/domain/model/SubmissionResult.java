@@ -1,6 +1,6 @@
 package com.pcunha.svt.domain.model;
 
-public record SubmissionResult(Boolean ok, String error) {
+public record SubmissionResult(boolean ok, String error) {
     public static SubmissionResult success() {
         return new SubmissionResult(true, null);
     }

@@ -632,18 +632,12 @@
             body: 'choiceIndex=' + encodeURIComponent(choiceIndex)
         })
             .then(function (response) {
-                if (!response.ok) throw new Error('Market request failed: ' + response.status);
-                return response.json();
+                return response.json().then(function (body) {
+                    if (!response.ok) throw new Error(body.error || 'Market request failed: ' + response.status);
+                    return body;
+                });
             })
-            .then(function (data) {
-                var state = data.state;
-                var purchased = data.purchased || [];
-                if (data.error) {
-                    hideMarketModal();
-                    window.GameToast.show('<div class="toast__title">' + data.error + '</div>', 'negative', window.GameToast.TOAST_DURATION);
-                    return;
-                }
-
+            .then(function (state) {
                 var oldState = previousState;
                 hideMarketModal();
                 applyStateUpdate(state, oldState);
@@ -680,6 +674,7 @@
             .catch(function (err) {
                 console.error('Market failed:', err);
                 hideMarketModal();
+                window.GameToast.show('<div class="toast__title">' + window.GameToast.escapeHtml(err.message) + '</div>', 'negative', window.GameToast.TOAST_DURATION);
             })
             .finally(function () {
                 isProcessing = false;

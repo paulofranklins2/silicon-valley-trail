@@ -2,12 +2,11 @@ package com.pcunha.svt.infrastructure.web.controller;
 
 import com.pcunha.svt.application.ConditionEvaluator;
 import com.pcunha.svt.application.GameEngine;
+import com.pcunha.svt.application.LeaderboardService;
 import com.pcunha.svt.application.ScoreCalculator;
 import com.pcunha.svt.domain.GameAction;
 import com.pcunha.svt.domain.GameMode;
 import com.pcunha.svt.domain.model.GameState;
-import com.pcunha.svt.domain.model.LeaderboardEntry;
-import com.pcunha.svt.domain.port.LeaderboardPort;
 import com.pcunha.svt.infrastructure.data.GameDataLoader;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
@@ -16,19 +15,15 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 @Controller
 public class GameMvcController {
 
     private final GameEngine gameEngine;
-    private final LeaderboardPort leaderboardPort;
+    private final LeaderboardService leaderboardService;
 
-    public GameMvcController(GameEngine gameEngine, LeaderboardPort leaderboardPort) {
+    public GameMvcController(GameEngine gameEngine, LeaderboardService leaderboardService) {
         this.gameEngine = gameEngine;
-        this.leaderboardPort = leaderboardPort;
+        this.leaderboardService = leaderboardService;
     }
 
     @GetMapping("/")
@@ -90,11 +85,7 @@ public class GameMvcController {
 
     @GetMapping("/leaderboard")
     public String leaderboard(Model model) {
-        Map<GameMode, List<LeaderboardEntry>> leaderboard = new LinkedHashMap<>();
-        for (GameMode mode : GameMode.values()) {
-            leaderboard.put(mode, leaderboardPort.getTopScores(mode));
-        }
-        model.addAttribute("leaderboard", leaderboard);
+        model.addAttribute("leaderboard", leaderboardService.getTopScoresByMode());
         return "leaderboard";
     }
 
