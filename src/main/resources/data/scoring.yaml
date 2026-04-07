@@ -1,0 +1,19 @@
+victoryBonus: 1000
+maxTurnBonus: 500
+maxJourneyBonus: 300
+turnBonusBaseline: 30
+
+statWeights:
+  health: 2.0
+  energy: 1.0
+  morale: 3.0
+
+resourceWeights:
+  cash: 2.0
+  food: 3.0
+  compute: 1.0
+
+resourceCaps:
+  cash: 200.0
+  food: 15.0
+  compute: 15.0

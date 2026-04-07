@@ -1,15 +1,20 @@
 package com.pcunha.svt.domain.model;
 
-import com.pcunha.svt.application.ScoreCalculator;
 import com.pcunha.svt.domain.GameMode;
+import com.pcunha.svt.domain.LossReason;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+/**
+ * Persistent record of a finished game.
+ */
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor
 public class LeaderboardEntry {
     @Id
@@ -20,6 +25,11 @@ public class LeaderboardEntry {
     private int turns;
     private boolean victory;
     private String lastLocation;
+    // Needed to recompute journey progress without resolving location names
+    private int locationIndex;
+    private int totalLocations;
+    @Enumerated(EnumType.STRING)
+    private LossReason lossReason;
     private int health;
     private int energy;
     private int morale;
@@ -31,22 +41,21 @@ public class LeaderboardEntry {
     private GameMode gameMode;
     private LocalDateTime createdAt;
 
-    public static LeaderboardEntry fromGameState(GameState gameState, String playerName) {
-        LeaderboardEntry leaderboardEntry = new LeaderboardEntry();
-        leaderboardEntry.playerName = playerName;
-        leaderboardEntry.teamName = gameState.getTeamName();
-        leaderboardEntry.turns = gameState.getProgressState().getTurn();
-        leaderboardEntry.victory = gameState.getEndingState().isVictory();
-        leaderboardEntry.lastLocation = gameState.getJourneyState().getCurrentLocation().getName();
-        leaderboardEntry.health = gameState.getTeamState().getHealth();
-        leaderboardEntry.energy = gameState.getTeamState().getEnergy();
-        leaderboardEntry.morale = gameState.getTeamState().getMorale();
-        leaderboardEntry.cash = gameState.getResourceState().getCash();
-        leaderboardEntry.food = gameState.getResourceState().getFood();
-        leaderboardEntry.computeCredits = gameState.getResourceState().getComputeCredits();
-        leaderboardEntry.score = ScoreCalculator.calculate(gameState);
-        leaderboardEntry.gameMode = gameState.getConfigState().getGameMode();
-        leaderboardEntry.createdAt = LocalDateTime.now();
-        return leaderboardEntry;
+    /**
+     * Converts this entry into ScoreInputs for score recalculation.
+     */
+    public ScoreInputs toScoreInputs() {
+        return new ScoreInputs(
+                victory,
+                turns,
+                locationIndex,
+                totalLocations,
+                health,
+                energy,
+                morale,
+                cash,
+                food,
+                computeCredits
+        );
     }
 }

@@ -3,6 +3,7 @@ package com.pcunha.svt.infrastructure.data;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.pcunha.svt.application.Scoring;
 import com.pcunha.svt.application.Tunables;
 import com.pcunha.svt.domain.EventCategory;
 import com.pcunha.svt.domain.GameAction;
@@ -23,6 +24,7 @@ public class GameDataLoader {
     private static final String PATH_MARKETS = "data/markets.yaml";
     private static final String PATH_EVENTS = "data/events.yaml";
     private static final String PATH_TUNABLES = "data/tunables.yaml";
+    private static final String PATH_SCORING = "data/scoring.yaml";
 
     public static List<ActionInfo> loadActions() {
         return load(PATH_ACTIONS, new TypeReference<>() {
@@ -50,6 +52,11 @@ public class GameDataLoader {
 
     public static Tunables loadTunables() {
         return load(PATH_TUNABLES, new TypeReference<>() {
+        });
+    }
+
+    public static Scoring loadScoring() {
+        return load(PATH_SCORING, new TypeReference<>() {
         });
     }
 

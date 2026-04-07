@@ -2,7 +2,6 @@ package com.pcunha.svt.infrastructure.web.controller;
 
 import com.pcunha.svt.application.GameEngine;
 import com.pcunha.svt.application.LeaderboardService;
-import com.pcunha.svt.application.ScoreCalculator;
 import com.pcunha.svt.application.Tunables;
 import com.pcunha.svt.domain.GameAction;
 import com.pcunha.svt.domain.GameMode;
@@ -86,7 +85,7 @@ public class GameMvcController {
         GameState gameState = getGameState(session);
         if (gameState == null) return "redirect:/";
         model.addAttribute("gameState", gameState);
-        model.addAttribute("score", ScoreCalculator.calculate(gameState));
+        model.addAttribute("score", leaderboardService.calculateScore(gameState));
         model.addAttribute("submitted", gameState.getEndingState().isLeaderboardSubmitted());
         return "end";
     }

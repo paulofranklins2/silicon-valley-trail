@@ -1,23 +1,16 @@
 package com.pcunha.svt.application;
 
 import com.pcunha.svt.domain.GameMode;
-import com.pcunha.svt.domain.model.GameState;
-import com.pcunha.svt.domain.model.JourneyState;
-import com.pcunha.svt.domain.model.LeaderboardEntry;
-import com.pcunha.svt.domain.model.Location;
-import com.pcunha.svt.domain.model.ResourceState;
-import com.pcunha.svt.domain.model.SubmissionResult;
-import com.pcunha.svt.domain.model.TeamState;
+import com.pcunha.svt.domain.model.*;
 import com.pcunha.svt.domain.port.LeaderboardPort;
+import com.pcunha.svt.infrastructure.data.GameDataLoader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class LeaderboardServiceTest {
 
@@ -28,7 +21,8 @@ class LeaderboardServiceTest {
     @BeforeEach
     void setUp() {
         port = new StubLeaderboardPort();
-        service = new LeaderboardService(port);
+        ScoreCalculator scoreCalculator = new ScoreCalculator(GameDataLoader.loadScoring());
+        service = new LeaderboardService(port, scoreCalculator);
         gameState = new GameState(
                 new TeamState(100, 100, 100),
                 new ResourceState(100, 10, 5),
@@ -76,6 +70,26 @@ class LeaderboardServiceTest {
         assertEquals("Name required", result.error());
         assertEquals(0, port.saved.size());
         assertFalse(gameState.getEndingState().isLeaderboardSubmitted());
+    }
+
+    @Test
+    void submitWithNameLongerThanMaxReturnsErrorAndDoesNotCallPort() {
+        // Max is 10 chars; "ThisNameIsTooLong" is 17 chars.
+        SubmissionResult result = service.submitResult(gameState, "ThisNameIsTooLong");
+
+        assertFalse(result.ok());
+        assertTrue(result.error().startsWith("Name too long"));
+        assertEquals(0, port.saved.size());
+        assertFalse(gameState.getEndingState().isLeaderboardSubmitted());
+    }
+
+    @Test
+    void submitWithNameExactlyMaxLengthSucceeds() {
+        // 10 characters — the boundary case
+        SubmissionResult result = service.submitResult(gameState, "TenCharsOk");
+
+        assertTrue(result.ok());
+        assertEquals("TenCharsOk", port.saved.getFirst().getPlayerName());
     }
 
     @Test

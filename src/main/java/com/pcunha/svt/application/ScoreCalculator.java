@@ -1,70 +1,90 @@
 package com.pcunha.svt.application;
 
 import com.pcunha.svt.domain.model.GameState;
+import com.pcunha.svt.domain.model.LeaderboardEntry;
+import com.pcunha.svt.domain.model.ScoreInputs;
+import org.springframework.stereotype.Component;
 
+/**
+ * Calculates leaderboard scores.
+ * Supports scoring from a live GameState or a persisted LeaderboardEntry.
+ */
+@Component
 public class ScoreCalculator {
-    private static final int VICTORY_BONUS = 1000;
-    private static final int MAX_TURN_BONUS = 500;
-    private static final int MAX_JOURNEY_BONUS = 300;
-    private static final int TURN_BONUS_BASELINE = 30;
+    private final Scoring scoring;
 
-    // stat weights: harder to maintain = higher weight
-    private static final double HEALTH_WEIGHT = 2.0;
-    private static final double ENERGY_WEIGHT = 1.0;
-    private static final double MORALE_WEIGHT = 3.0;
+    public ScoreCalculator(Scoring scoring) {
+        this.scoring = scoring;
+    }
 
-    // resource weights: scarcer = higher weight
-    private static final double CASH_WEIGHT = 2.0;
-    private static final double FOOD_WEIGHT = 3.0;
-    private static final double COMPUTE_WEIGHT = 1.0;
+    public int calculate(GameState gameState) {
+        return calculate(toInputs(gameState));
+    }
 
-    // resource normalization caps (beyond this, no extra score)
-    private static final double CASH_CAP = 200.0;
-    private static final double FOOD_CAP = 15.0;
-    private static final double COMPUTE_CAP = 15.0;
+    public int calculate(LeaderboardEntry entry) {
+        return calculate(entry.toScoreInputs());
+    }
 
-    public static int calculate(GameState gameState) {
+    public int calculate(ScoreInputs inputs) {
         int score = 0;
 
-        if (gameState.getEndingState().isVictory()) {
-            score += VICTORY_BONUS;
-            score += turnEfficiencyBonus(gameState.getProgressState().getTurn());
+        if (inputs.victory()) {
+            score += scoring.victoryBonus();
+            score += turnEfficiencyBonus(inputs.turns());
         } else {
-            score += journeyProgressBonus(gameState);
+            score += journeyProgressBonus(inputs.locationIndex(), inputs.totalLocations());
         }
 
-        score += statScore(gameState);
-        score += resourceScore(gameState);
+        score += statScore(inputs);
+        score += resourceScore(inputs);
 
         return Math.max(0, score);
     }
 
-    private static int turnEfficiencyBonus(int turns) {
-        // fewer turns = higher bonus, baseline at 30 turns (0 bonus)
-        if (turns >= TURN_BONUS_BASELINE) return 0;
-        double ratio = 1.0 - ((double) turns / TURN_BONUS_BASELINE);
-        return (int) (ratio * MAX_TURN_BONUS);
+    private static ScoreInputs toInputs(GameState gameState) {
+        return new ScoreInputs(
+                gameState.getEndingState().isVictory(),
+                gameState.getProgressState().getTurn(),
+                gameState.getJourneyState().getCurrentLocationIndex(),
+                gameState.getJourneyState().getLocations().size(),
+                gameState.getTeamState().getHealth(),
+                gameState.getTeamState().getEnergy(),
+                gameState.getTeamState().getMorale(),
+                gameState.getResourceState().getCash(),
+                gameState.getResourceState().getFood(),
+                gameState.getResourceState().getComputeCredits()
+        );
     }
 
-    private static int journeyProgressBonus(GameState gameState) {
-        int currentIndex = gameState.getJourneyState().getCurrentLocationIndex();
-        int totalLocations = gameState.getJourneyState().getLocations().size() - 1;
-        if (totalLocations <= 0) return 0;
-        double progress = (double) currentIndex / totalLocations;
-        return (int) (progress * MAX_JOURNEY_BONUS);
+    private int turnEfficiencyBonus(int turns) {
+        // fewer turns = higher bonus, zero once the player hits the baseline
+        int baseline = scoring.turnBonusBaseline();
+        if (turns >= baseline) return 0;
+        double ratio = 1.0 - ((double) turns / baseline);
+        return (int) (ratio * scoring.maxTurnBonus());
     }
 
-    private static int statScore(GameState gameState) {
-        double health = gameState.getTeamState().getHealth() * HEALTH_WEIGHT;
-        double energy = gameState.getTeamState().getEnergy() * ENERGY_WEIGHT;
-        double morale = gameState.getTeamState().getMorale() * MORALE_WEIGHT;
+    private int journeyProgressBonus(int locationIndex, int totalLocations) {
+        int denominator = totalLocations - 1;
+        if (denominator <= 0) return 0;
+        double progress = (double) locationIndex / denominator;
+        return (int) (progress * scoring.maxJourneyBonus());
+    }
+
+    private int statScore(ScoreInputs inputs) {
+        Scoring.StatWeights w = scoring.statWeights();
+        double health = inputs.health() * w.health();
+        double energy = inputs.energy() * w.energy();
+        double morale = inputs.morale() * w.morale();
         return (int) (health + energy + morale);
     }
 
-    private static int resourceScore(GameState gameState) {
-        double cash = normalize(gameState.getResourceState().getCash(), CASH_CAP) * 100 * CASH_WEIGHT;
-        double food = normalize(gameState.getResourceState().getFood(), FOOD_CAP) * 100 * FOOD_WEIGHT;
-        double compute = normalize(gameState.getResourceState().getComputeCredits(), COMPUTE_CAP) * 100 * COMPUTE_WEIGHT;
+    private int resourceScore(ScoreInputs inputs) {
+        Scoring.ResourceWeights w = scoring.resourceWeights();
+        Scoring.ResourceCaps c = scoring.resourceCaps();
+        double cash = normalize(inputs.cash(), c.cash()) * 100 * w.cash();
+        double food = normalize(inputs.food(), c.food()) * 100 * w.food();
+        double compute = normalize(inputs.computeCredits(), c.compute()) * 100 * w.compute();
         return (int) (cash + food + compute);
     }
 

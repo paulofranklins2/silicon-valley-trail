@@ -35,6 +35,11 @@ public class GameConfig {
     }
 
     @Bean
+    public Scoring scoring() {
+        return GameDataLoader.loadScoring();
+    }
+
+    @Bean
     public WeatherPort weatherPort(Random random) {
         return switch (weatherMode) {
             case "mock" -> new MockWeatherAdapter(random);
@@ -89,7 +94,7 @@ public class GameConfig {
     }
 
     @Bean
-    public LeaderboardService leaderboardService(LeaderboardPort leaderboardPort) {
-        return new LeaderboardService(leaderboardPort);
+    public LeaderboardService leaderboardService(LeaderboardPort leaderboardPort, ScoreCalculator scoreCalculator) {
+        return new LeaderboardService(leaderboardPort, scoreCalculator);
     }
 }
