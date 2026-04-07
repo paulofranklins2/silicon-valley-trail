@@ -9,24 +9,48 @@
         <div class="leaderboard-section" th:each="entry : ${leaderboard}">
             <h2 class="leaderboard-section__title" th:text="${entry.key.displayName}">Mode</h2>
             <p class="leaderboard-section__desc" th:text="${entry.key.description}">Description</p>
-            <div class="leaderboard-table-wrap" th:if="${!entry.value.isEmpty()}">
+            <div class="leaderboard-table-wrap">
                 <table class="leaderboard-table">
-                    <thead><tr><th>#</th><th>Player</th><th>Result</th><th>Score</th></tr></thead>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Player</th>
+                            <th>Outcome</th>
+                            <th>Location</th>
+                            <th>Turns</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
                     <tbody>
                     <tr th:each="score, iter : ${entry.value}"
                         th:classappend="${score.victory} ? 'leaderboard-row--victory' : 'leaderboard-row--defeat'">
                         <td th:text="${iter.index + 1}">1</td>
                         <td th:text="${score.playerName}">Player</td>
                         <td>
-                            <span th:if="${score.victory}" class="badge badge--victory">WIN</span>
-                            <span th:unless="${score.victory}" class="badge badge--defeat">LOST</span>
+                            <span th:if="${score.victory}" class="leaderboard-outcome">Won</span>
+                            <span th:unless="${score.victory}"
+                                  class="leaderboard-outcome"
+                                  th:text="${score.lossReason != null ? score.lossReason.displayName : 'Lost'}">Lost</span>
                         </td>
+                        <td th:text="${score.lastLocation}">City</td>
+                        <td th:text="${score.turns}">0</td>
                         <td th:text="${score.score}">0</td>
+                    </tr>
+                    <!-- Filler rows so the table always has 5 slots. Prevents layout
+                         shift when the first real score is added. -->
+                    <tr th:each="i : ${#numbers.sequence(1, 5 - entry.value.size())}"
+                        th:if="${entry.value.size() < 5}"
+                        class="leaderboard-row--empty">
+                        <td th:text="${entry.value.size() + i}">—</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>—</td>
                     </tr>
                     </tbody>
                 </table>
             </div>
-            <p class="leaderboard-empty" th:if="${entry.value.isEmpty()}">No scores yet</p>
         </div>
     </div>
 

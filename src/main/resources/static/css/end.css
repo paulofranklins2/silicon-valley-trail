@@ -482,7 +482,11 @@
 .leaderboard-table-wrap {
     overflow-x: auto;
     margin: 0 auto var(--space-2xl);
-    max-width: 600px;
+    /* width: 100% forces the wrap to respect its parent's width on narrow
+       viewports. Without it, the wrap auto-sizes to the table's intrinsic
+       width and overflows the section, which breaks mobile alignment. */
+    width: 100%;
+    max-width: 720px;
 }
 
 .leaderboard-table {
@@ -495,7 +499,9 @@
     font-family: var(--font-arcade);
     color: var(--accent);
     text-align: left;
-    padding: var(--space-md) var(--space-md);
+    /* Tight horizontal padding — the 6-column table has to fit in a 2x2
+       grid cell, so we spend padding on vertical breathing room only. */
+    padding: var(--space-md) var(--space-sm);
     border-bottom: 2px solid var(--border);
     font-size: 0.8rem;
     letter-spacing: 1px;
@@ -503,9 +509,23 @@
 }
 
 .leaderboard-table tbody td {
-    padding: var(--space-md) var(--space-md);
+    padding: var(--space-md) var(--space-sm);
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     color: #fff;
+}
+
+/* Fixed column widths so the table layout doesn't shift when entries are
+   added. Outcome column sized for "Morale Broke" (the longest LossReason
+   displayName). Location column sized for "South San Francisco" (the
+   longest entry in locations.yaml). Both have comfortable padding. */
+.leaderboard-table th:nth-child(3),
+.leaderboard-table td:nth-child(3) {
+    min-width: 8rem;
+}
+
+.leaderboard-table th:nth-child(4),
+.leaderboard-table td:nth-child(4) {
+    min-width: 11rem;
 }
 
 .leaderboard-row--victory {
@@ -514,6 +534,30 @@
 
 .leaderboard-row--defeat {
     border-left: 3px solid var(--red);
+}
+
+.leaderboard-row--empty {
+    border-left: 3px solid rgba(255, 255, 255, 0.05);
+}
+
+.leaderboard-row--empty td {
+    color: var(--text-muted);
+    opacity: 0.35;
+}
+
+.leaderboard-outcome {
+    font-family: var(--font-arcade);
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.leaderboard-row--victory .leaderboard-outcome {
+    color: var(--green);
+}
+
+.leaderboard-row--defeat .leaderboard-outcome {
+    color: var(--red);
 }
 
 .badge {
@@ -543,17 +587,20 @@
     margin-bottom: var(--space-2xl);
 }
 
-/* Widen container for leaderboard grid */
+/* Container width for the leaderboard page. Wider than the base .end-page
+   so the 2x2 grid has room for 4 sections with 6-column tables. Each cell
+   ends up ~548px wide (1120 grid - 24 gap / 2), which comfortably fits
+   the 8rem + 11rem fixed columns plus the 4 auto-sized columns. */
 .end-page:has(.leaderboard-grid) {
-    max-width: 960px;
+    max-width: 1180px;
 }
 
-/*  LEADERBOARD GRID (2x2)  */
+/*  LEADERBOARD GRID (2x2 on desktop, single column on mobile) */
 .leaderboard-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    max-width: 900px;
+    gap: 24px;
+    max-width: 1120px;
     margin: 0 auto 32px;
 }
 
