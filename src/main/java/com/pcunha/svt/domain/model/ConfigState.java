@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ConfigState {
-    private GameMode gameMode = GameMode.FAST;
+    private GameMode gameMode = GameMode.EASY;
     private GameMode requestedGameMode;
     private boolean usedFallbackDistances;
 }

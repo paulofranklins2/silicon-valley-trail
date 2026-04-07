@@ -4,18 +4,18 @@ import lombok.Getter;
 
 @Getter
 public enum GameMode {
-    FAST("Fast", "Straight-line distance", 1.0),
-    ROAD("Road", "Real driving distance", 1.0),
-    WALKING_ROAD("Walking (Road)", "Slow pace, real roads", 0.4),
-    WALKING_FAST("Walking (Fast)", "Slow pace, straight-line", 0.4);
+    EASY("Easy", 1.0, 1.0),
+    MEDIUM("Medium", 1.0, 1.3),
+    HARD("Hard", 0.4, 1.7),
+    IMPOSSIBLE("Impossible", 0.4, 2.2);
 
     private final String displayName;
-    private final String description;
     private final double speedMultiplier;
+    private final double scoreMultiplier;
 
-    GameMode(String displayName, String description, double speedMultiplier) {
+    GameMode(String displayName, double speedMultiplier, double scoreMultiplier) {
         this.displayName = displayName;
-        this.description = description;
         this.speedMultiplier = speedMultiplier;
+        this.scoreMultiplier = scoreMultiplier;
     }
 }

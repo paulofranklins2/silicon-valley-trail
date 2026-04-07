@@ -1,6 +1,5 @@
 package com.pcunha.svt.infrastructure.api;
 
-import com.pcunha.svt.domain.GameMode;
 import com.pcunha.svt.domain.model.LeaderboardEntry;
 import com.pcunha.svt.domain.port.LeaderboardPort;
 import com.pcunha.svt.infrastructure.persistence.LeaderboardRepository;
@@ -22,7 +21,7 @@ public class LeaderboardAdapter implements LeaderboardPort {
     }
 
     @Override
-    public List<LeaderboardEntry> getTopScores(GameMode gameMode) {
-        return leaderboardRepository.findTop5ByGameModeOrderByScoreDesc(gameMode);
+    public List<LeaderboardEntry> getTopScores() {
+        return leaderboardRepository.findTop10ByOrderByWeightedScoreDesc();
     }
 }

@@ -37,6 +37,7 @@ public class LeaderboardEntry {
     private int food;
     private int computeCredits;
     private int score;
+    private int weightedScore;
     @Enumerated(EnumType.STRING)
     private GameMode gameMode;
     private LocalDateTime createdAt;

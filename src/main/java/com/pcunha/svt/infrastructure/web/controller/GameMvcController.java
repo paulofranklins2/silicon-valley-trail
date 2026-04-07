@@ -37,7 +37,7 @@ public class GameMvcController {
     }
 
     @PostMapping("/start")
-    public String createGame(@RequestParam String teamName, @RequestParam(defaultValue = "FAST") String gameMode, HttpSession session) {
+    public String createGame(@RequestParam String teamName, @RequestParam(defaultValue = "EASY") String gameMode, HttpSession session) {
         if (teamName == null || teamName.trim().isEmpty()) {
             return "redirect:/";
         }
@@ -92,7 +92,7 @@ public class GameMvcController {
 
     @GetMapping("/leaderboard")
     public String leaderboard(Model model) {
-        model.addAttribute("leaderboard", leaderboardService.getTopScoresByMode());
+        model.addAttribute("leaderboard", leaderboardService.getTopScores());
         return "leaderboard";
     }
 

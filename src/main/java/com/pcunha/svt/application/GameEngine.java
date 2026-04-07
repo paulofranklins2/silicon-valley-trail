@@ -101,9 +101,9 @@ public class GameEngine {
      */
     private GameMode getFallbackMode(GameMode mode) {
         return switch (mode) {
-            case ROAD -> GameMode.FAST;
-            case WALKING_ROAD -> GameMode.WALKING_FAST;
-            default -> GameMode.FAST;
+            case MEDIUM -> GameMode.EASY;
+            case IMPOSSIBLE -> GameMode.HARD;
+            default -> GameMode.EASY;
         };
     }
 

@@ -1,15 +1,12 @@
 package com.pcunha.svt.application;
 
-import com.pcunha.svt.domain.GameMode;
 import com.pcunha.svt.domain.model.GameState;
 import com.pcunha.svt.domain.model.LeaderboardEntry;
 import com.pcunha.svt.domain.model.SubmissionResult;
 import com.pcunha.svt.domain.port.LeaderboardPort;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 public class LeaderboardService {
     private static final int MAX_PLAYER_NAME_LENGTH = 10;
@@ -39,12 +36,8 @@ public class LeaderboardService {
         return SubmissionResult.success();
     }
 
-    public Map<GameMode, List<LeaderboardEntry>> getTopScoresByMode() {
-        Map<GameMode, List<LeaderboardEntry>> scores = new LinkedHashMap<>();
-        for (GameMode mode : GameMode.values()) {
-            scores.put(mode, leaderboardPort.getTopScores(mode));
-        }
-        return scores;
+    public List<LeaderboardEntry> getTopScores() {
+        return leaderboardPort.getTopScores();
     }
 
     /**
@@ -73,8 +66,11 @@ public class LeaderboardService {
         leaderboardEntry.setCash(gameState.getResourceState().getCash());
         leaderboardEntry.setFood(gameState.getResourceState().getFood());
         leaderboardEntry.setComputeCredits(gameState.getResourceState().getComputeCredits());
-        leaderboardEntry.setScore(scoreCalculator.calculate(gameState));
-        leaderboardEntry.setGameMode(gameState.getConfigState().getGameMode());
+        int rawScore = scoreCalculator.calculate(gameState);
+        var mode = gameState.getConfigState().getGameMode();
+        leaderboardEntry.setScore(rawScore);
+        leaderboardEntry.setWeightedScore((int) Math.round(rawScore * mode.getScoreMultiplier()));
+        leaderboardEntry.setGameMode(mode);
         leaderboardEntry.setCreatedAt(LocalDateTime.now());
         return leaderboardEntry;
     }

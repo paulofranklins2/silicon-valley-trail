@@ -1,6 +1,5 @@
 package com.pcunha.svt.application;
 
-import com.pcunha.svt.domain.GameMode;
 import com.pcunha.svt.domain.model.*;
 import com.pcunha.svt.domain.port.LeaderboardPort;
 import com.pcunha.svt.infrastructure.data.GameDataLoader;
@@ -105,13 +104,20 @@ class LeaderboardServiceTest {
     }
 
     @Test
-    void getTopScoresByModeReturnsAllModes() {
-        var scores = service.getTopScoresByMode();
+    void getTopScoresReturnsListFromPort() {
+        var scores = service.getTopScores();
 
-        assertEquals(GameMode.values().length, scores.size());
-        for (GameMode mode : GameMode.values()) {
-            assertTrue(scores.containsKey(mode));
-        }
+        assertNotNull(scores);
+        assertTrue(scores.isEmpty());
+    }
+
+    @Test
+    void submittedEntryHasWeightedScoreEqualToRawTimesMultiplier() {
+        service.submitResult(gameState, "Alice");
+
+        LeaderboardEntry entry = port.saved.getFirst();
+        double multiplier = entry.getGameMode().getScoreMultiplier();
+        assertEquals((int) Math.round(entry.getScore() * multiplier), entry.getWeightedScore());
     }
 
     private static class StubLeaderboardPort implements LeaderboardPort {
@@ -123,7 +129,7 @@ class LeaderboardServiceTest {
         }
 
         @Override
-        public List<LeaderboardEntry> getTopScores(GameMode gameMode) {
+        public List<LeaderboardEntry> getTopScores() {
             return List.of();
         }
     }

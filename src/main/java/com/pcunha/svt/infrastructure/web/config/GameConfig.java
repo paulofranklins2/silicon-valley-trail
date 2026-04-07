@@ -81,10 +81,10 @@ public class GameConfig {
         OsrmDistanceAdapter osrm = new OsrmDistanceAdapter(ors);
 
         Map<GameMode, DistancePort> ports = new EnumMap<>(GameMode.class);
-        ports.put(GameMode.FAST, haversine);
-        ports.put(GameMode.ROAD, osrm);
-        ports.put(GameMode.WALKING_ROAD, osrm);
-        ports.put(GameMode.WALKING_FAST, haversine);
+        ports.put(GameMode.EASY, haversine);
+        ports.put(GameMode.MEDIUM, osrm);
+        ports.put(GameMode.IMPOSSIBLE, osrm);
+        ports.put(GameMode.HARD, haversine);
         return ports;
     }
 
