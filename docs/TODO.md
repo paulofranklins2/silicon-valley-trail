@@ -113,7 +113,7 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 
 ### Must have
 - [x] GameController (thin routing, delegates to GameEngine)
-- [x] Game mode selection on start page (Fast / Road / Walking)
+- [x] Game mode selection on start page (Easy / Medium / Hard / Impossible / Daily)
 - [x] Walking mode disabled on UI when no API key
 - [x] Action cards rendered from backend data (no hardcoded frontend values)
 - [x] Energy costs from `data-energy-cost` attribute
@@ -124,7 +124,12 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] Weather display with initial weather on game start
 - [x] Journey map with total distance and game mode label
 - [x] Grace period warnings (pulsing badges: starving X/2, broke X/3)
-- [x] Leaderboard page with separate Fast / Road / Walking rankings
+- [x] Leaderboard page (originally per-mode top 5, now unified top 10 weighted, plus a daily view)
+- [x] Leaderboard rows show outcome (Won / loss reason), location, turns, score
+- [x] Filler rows pad each mode table to 5 slots (no layout shift on first submission)
+- [x] Player name length capped at 10 chars (HTML maxlength + server-side validation)
+- [x] Mobile leaderboard layout fix (`width: 100%` on table-wrap stops overflow)
+- [x] 2x2 mode grid on desktop, single column under 768px
 - [x] End screen with score submission and loss reason
 - [x] Maven Wrapper for zero-install builds
 
@@ -139,7 +144,12 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] Weather only on travel (prevents exploit)
 - [x] Game balance: health/morale drain from actions and events
 - [x] Leaderboard with weighted score per game mode
-- [x] Four game modes (Fast, Road, Walking, Walking+) with speed multiplier
+- [x] Scoring parameters extracted to `scoring.yaml` (rebalance without recompile)
+- [x] `ScoreCalculator` converted to `@Component` taking `Scoring` via DI
+- [x] `ScoreInputs` record (per-run data) split from `Scoring` record (formula params)
+- [x] `LeaderboardEntry` stores `lossReason`, `locationIndex`, `totalLocations` for recompute
+- [x] `LeaderboardEntry.fromGameState` removed; build logic moved to `LeaderboardService.buildEntry`
+- [x] Four game modes (Easy, Medium, Hard, Impossible) with speed multiplier
 - [x] OSRM fallback to ORS car with fair ranking detection
 - [x] Pre-computed distances at startup with shared port caching
 - [x] Input validation: empty names, invalid actions, duplicate submissions
@@ -156,14 +166,98 @@ Build Silicon Valley Trail with clean backend logic, Spring Boot + Thymeleaf web
 - [x] Start page and leaderboard render modes dynamically from GameMode enum
 
 ### README - REQUIRED
-- [ ] Quick start from a fresh machine
-- [ ] API keys / mock instructions
-- [ ] Architecture overview
-- [ ] Dependency list
-- [ ] How to run tests
-- [ ] Example gameplay
-- [ ] AI disclosure
+- [x] Quick start from a fresh machine
+- [x] API keys / mock instructions
+- [x] Architecture overview
+- [x] Dependency list
+- [x] How to run tests
+- [x] Example gameplay
+- [x] AI disclosure
 
 ### Documentation - REQUIRED
-- [ ] Live URL or screen recording
+- [x] Live URL or screen recording
 - [x] Update DESIGN.md with final state
+
+---
+
+## Day 7 - Cross-device resume + daily mode + naming polish
+
+### Mode rename + scoring
+- [x] Rename game modes: FAST/ROAD/WALKING_FAST/WALKING_ROAD to EASY/MEDIUM/HARD/IMPOSSIBLE
+- [x] Drop `description` field from `GameMode` (label is enough)
+- [x] Add `scoreMultiplier` to `GameMode` (1.0 / 1.3 / 1.7 / 2.2 super-linear curve)
+- [x] Consolidate leaderboard to single weighted top-10 (was per-mode top-5)
+- [x] Store both `score` (raw) and `weightedScore` on `LeaderboardEntry`
+- [x] Drop `getTopScores(GameMode)` from `LeaderboardPort`
+- [x] Three-column score display in leaderboard table (Raw / Mult / Score)
+- [x] Mode badge column on leaderboard rows
+
+### Room + GameSession persistence layer
+- [x] `Room` JPA entity with type/mode/seed/status/dateBucket
+- [x] `GameSession` JPA entity with serialized GameState, playerToken, @Version
+- [x] `RoomPort` + `GameSessionPort` in domain
+- [x] `RoomAdapter` + `GameSessionAdapter` JPA implementations
+- [x] `RoomService` lifecycle owner (createSoloGame, createOrJoinDailyGame, loadActiveSession, persist, markCompleted)
+- [x] Java native serialization of GameState into a TEXT column via Base64 (12 domain classes implement Serializable)
+- [x] No `@Lob`, no length-bound magic numbers, just `@Column(columnDefinition = "TEXT")`
+
+### Cookie-based identity + cross-device resume
+- [x] `PlayerCookies` utility, `svt_player` cookie, 30-day max-age, HttpOnly
+- [x] Migrate `GameMvcController` from HttpSession to cookie + RoomService
+- [x] Migrate `GameRestController` from HttpSession to cookie + RoomService
+- [x] `/resume/{token}` endpoint with UUID validation
+- [x] Continue button on home page when active session exists
+- [x] Collapsible "Resume on another device" URL on home page
+
+### Daily mode + daily leaderboard
+- [x] `RoomType.DAILY` + `dateBucket` field on `Room`
+- [x] `findOrCreateDailyRoom(mode, today)` with deterministic seed per (mode, date)
+- [x] Daily mode is a 5th button in the mode selector (gameMode=DAILY magic value)
+- [x] `dailyRun` boolean on `LeaderboardEntry`
+- [x] `/leaderboard/daily` endpoint with today-only filter
+- [x] All-time leaderboard explicitly filters out daily runs (`dailyRun=false`)
+- [x] Tab toggle in leaderboard template between All-Time and Today's Daily
+
+### Action outcome bundles (generic gambling layer)
+- [x] Add `ActionEffect` top-level class (was nested as `ActionInfo.Effect`)
+- [x] Add `ActionRoll` top-level class (wraps `List<ActionEffect>`, one bundle = one mutually exclusive outcome)
+- [x] Add `ActionResult` record (returned by `ActionHandler.handle`, carries outcome enum + chosen roll)
+- [x] `ActionInfo.outcomes` is `List<ActionRoll>` loaded from YAML alongside `effects`
+- [x] `ActionHandler` generic flow: apply guaranteed effects, pick one outcome roll, apply its bundle
+- [x] Drop the hardcoded per-action switch (was scavenge/pitchVcs custom logic)
+- [x] `ActionHandler.classifyOutcome` is generic, full if statements, no ternaries
+- [x] `ActionOutcome` enum slimmed to generic `SUCCESS`, `EXHAUSTED`, `GAIN`, `LOSS`
+- [x] `TurnResult` gains `chosenRoll` field so the UI can introspect what fired
+
+### YAML restructure for the bundle model
+- [x] Travel: gambling action with morale -5 OR health -5 outcome rolls
+- [x] Hackathon: jackpot bundle (+cash, +food) OR wreck bundle (-morale, -health)
+- [x] Scavenge: food bundle OR (cash + morale) bundle
+- [x] Pitch VCs: cash bundle OR (morale + health) bundle
+- [x] Two new choice events in events.yml: Critical Production Bug, Conference Talk Slot
+
+### Balance pass for fun-not-punishing
+- [x] Travel: energy -15 to -10, compute -5 to -2, random morale/health -10 to -5
+- [x] Rest: health +5 to +8, energy +10 to +15, morale +5 to +8
+- [x] Scavenge: health -5 to -3, food +2 to +3, cash +10 to +15, morale -5 to -3
+- [x] Hackathon: compute +12 to +15, energy -15 to -12, wreck stats -10 to -8
+- [x] Pitch VCs: compute -5 to -3, guaranteed morale -3 to -2, failure morale -10 to -8, failure health -5 to -3
+- [x] Starting resources in `GameEngine.createNewGame`: food 5 to 8, compute 5 to 8
+- [x] Result: 2 travels + 1 rest is the sustainable cycle, 6 km of progress every 3 turns
+
+### Action card UI for outcome rolls
+- [x] Rewrite action card outcomes section to render `info.outcomes` as `action-card__roll` groups
+- [x] CSS rule: "or" appears only between adjacent roll groups, not between every effect span
+- [x] `animations.js` scavenge sprite picker reads `turnResult.chosenRoll.effects[0].stat` instead of per-action enum value
+- [x] `animations.js` pitch celebration checks `actionOutcome === 'GAIN'` (was per-action `PITCH_SUCCESS`)
+- [x] Drop dead `.action-card__fx .or-text` CSS rule
+
+### Home page state fix
+- [x] Split `hasActiveGame` into `canResume` (active and not over) and `hasUnfinishedEnd` (active and over but not submitted)
+- [x] Show "Continue run" button only when game is not over
+- [x] Show "View result" button when game is over and not yet submitted
+- [x] Resume URL block stays visible whenever there is any active session
+
+### Cleanups
+- [x] Catch `OptimisticLockingFailureException` in action handler (graceful redirect on two-tab race)
+- [x] `/resume/{token}` validates the token is a UUID before issuing the cookie

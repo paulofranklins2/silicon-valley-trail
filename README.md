@@ -24,9 +24,23 @@ cd silicon-valley-trail
 
 Open `http://localhost:8080`. That's it.
 
-No database setup needed. No API keys needed. H2 runs in-memory by default, and all APIs used are free and keyless.
+### No API keys required (this was the whole point)
 
-**Note:** Road and Walking+ modes use OSRM for real driving distances. OSRM's public server is free but can be slow or unreliable. If OSRM is down, the game falls back to straight-line distances and offers two options: keep retrying until OSRM responds, or play with estimated distances (ranked as the equivalent Fast mode for fair leaderboard scores). Setting up an `ORS_API_KEY` in a `.env` file (free at [openrouteservice.org](https://openrouteservice.org/dev/#/signup)) adds a reliable driving distance fallback before hitting straight-line estimates.
+This was a deliberate design goal from day one. The reviewer should be able to clone, run, and play without signing up for anything. Every API used is free and keyless:
+
+- Open-Meteo for weather, no key
+- OSRM public server for driving distances, no key
+- Haversine for straight-line distances, pure math
+- H2 in-memory database, no setup
+
+**Heads up about OSRM:** the public OSRM server is free but it can be slow or fail outright (rate limits, public traffic spikes). Medium and Impossible modes use it. If OSRM is unreachable at startup, the game falls back to straight-line distances and downgrades the mode to its straight-line equivalent so the leaderboard stays fair. The player can also retry from the in-game modal.
+
+If you hit a slow OSRM and want a smoother experience, you have two paths:
+
+1. Use the live demo at [silicon-valley-trail.duckdns.org](http://silicon-valley-trail.duckdns.org). The cached distances on the server are already warm.
+2. Drop a free `ORS_API_KEY` in `.env` (sign up at [openrouteservice.org](https://openrouteservice.org/dev/#/signup)). OpenRouteService is the second link in the fallback chain and is significantly more reliable than OSRM. See `.env.example` for the format.
+
+Both are optional. Plain `./mvnw spring-boot:run` works on its own.
 
 ### Run tests
 
@@ -34,7 +48,7 @@ No database setup needed. No API keys needed. H2 runs in-memory by default, and 
 ./mvnw test
 ```
 
-74 tests across 15 test files covering domain logic, game mechanics, API adapters, and score calculation.
+89 tests across 16 test files covering domain logic, game mechanics, API adapters, score calculation, and leaderboard service.
 
 ---
 
@@ -74,6 +88,9 @@ infrastructure/ API adapters, database, web controller, data loader
 flowchart LR
     UI[Thymeleaf UI] --> Controller
     Controller --> Engine[GameEngine]
+    Controller --> RoomService
+    RoomService --> RoomPort
+    RoomService --> GameSessionPort
     Engine --> TurnProcessor
     Engine --> ScoreCalculator
     TurnProcessor --> ActionHandler
@@ -88,6 +105,8 @@ flowchart LR
     DistancePort --> ORS[OpenRouteService]
     DistancePort --> Haversine
     LeaderboardPort --> DB[(H2 / Postgres)]
+    RoomPort --> DB
+    GameSessionPort --> DB
 ```
 
 **Ports** define what the game needs. **Adapters** implement how. Swapping an API is one file - no game logic changes.
@@ -106,24 +125,56 @@ flowchart LR
 
 ## Game Modes
 
-| Mode | Distance | Speed | Difficulty |
-|------|----------|-------|------------|
-| **Fast** | Straight-line (Haversine) | 5 km/turn | Easy |
-| **Road** | Driving (OSRM/ORS) | 5 km/turn | Medium |
-| **Walking** | Straight-line | 2 km/turn | Hard |
-| **Walking+** | Driving (OSRM/ORS) | 2 km/turn | Hardest |
+| Mode | Distance source | Speed | Multiplier |
+|------|----------------|-------|------------|
+| **Easy** | Straight-line (Haversine) | 3 km/turn | x1.0 |
+| **Medium** | Driving (OSRM/ORS) | 3 km/turn | x1.3 |
+| **Hard** | Straight-line | 1.2 km/turn | x1.7 |
+| **Impossible** | Driving (OSRM/ORS) | 1.2 km/turn | x2.2 |
+| **Daily** | Easy distance + speed | 3 km/turn | x1.0 |
 
-Distances are pre-computed at startup and cached. Road/Walking+ fall back to their straight-line equivalents if the routing API is not available, with a retry option for the player.
+Distances are pre-computed at startup and cached. Medium and Impossible fall back to their straight-line equivalents if the routing API is not available, with a retry option for the player.
+
+The score multiplier weights leaderboard scores so harder modes are worth picking. A great Impossible run can beat a great Easy run on the unified ranking. The curve is super-linear because death risk grows non-linearly with distance and pace.
+
+**Daily** is a special mode. Every player who picks Daily today gets the same RNG seed (derived from the date), so events and scavenge rolls are identical across the daily competition. The daily leaderboard is its own bracket, separate from the all-time ranking.
+
+---
+
+## Extras
+
+Spec required: 3 actions, 3 stats, 10 locations, events with choices, 1 public API. Built on top of that:
+
+- 5 game modes instead of 1 (Easy, Medium, Hard, Impossible, Daily)
+- 6 stats instead of 3, with grace-period death clocks for food and cash
+- 15 locations instead of 10
+- 3 distance APIs with a fallback chain (OSRM, OpenRouteService, Haversine) and an automatic mode downgrade when the player ends up on estimated distances
+- Live weather biases the event pool, not just stat deltas
+- 20+ events across 5 categories, 7 with player choices
+- Daily mode with a deterministic seed per (mode, date) so all players today share the same run
+- Cookie-based identity (`svt_player` UUID, 30-day persistence)
+- Cross-device resume via `/resume/{token}` URL, exposed on the home page with click-to-copy
+- Two leaderboard views (all-time top 10 weighted by mode multiplier, today's daily top 10), kept disjoint
+- Optimistic locking on game sessions for two-tab and two-device safety
+- Room and GameSession persistence layer that supports a future multiplayer extension as an additive change
+- Server-side player name validation (10 char cap, non-blank, no double submit)
+- Hexagonal architecture with ports in domain and adapters in infrastructure
+- All game content in YAML (`actions.yml`, `events.yml`, `markets.yml`, `locations.yml`, `tunables.yml`, `scoring.yaml`)
+- 89 tests across 16 files
+- Postgres support alongside H2, with `docker-compose.yml` for one-command setup
+- Live deployed demo at [silicon-valley-trail.duckdns.org](http://silicon-valley-trail.duckdns.org)
+
+Full reasoning for each item is in [docs/DESIGN.md](docs/DESIGN.md).
 
 ---
 
 ## Gameplay
 
-**Actions per turn:** Travel, Rest, Scavenge, Hackathon, Pitch VCs. Each has tradeoffs - travel drains energy and food, rest costs food but recovers stats, scavenge is a gamble.
+**Actions per turn:** Travel, Rest, Scavenge, Hackathon, Pitch VCs. Each has real tradeoffs. Travel drains energy, food, and a bit of compute, plus a 50/50 roll for losing 5 morale or 5 health (the road is unpredictable). Rest recovers health, energy, and morale at the cost of food and a turn. Scavenge takes a guaranteed energy and health cost, then rolls between finding food (clean) or finding cash and taking a small morale hit (dirty). Hackathon guarantees compute and energy cost, then rolls jackpot (+15 cash, +1 food) or wreck (-8 morale, -8 health). Pitch VCs is a gamble for cash, with a morale and health hit on a bad pitch.
 
-**6 stats:** Health, Energy, Morale, Cash, Food, Compute Credits. All matter - energy gates actions, food has a grace period death clock, cash is spent at city markets, compute affects travel distance.
+**6 stats:** Health, Energy, Morale, Cash, Food, Compute Credits. All of them matter. Energy gates actions, food has a grace period death clock, cash is spent at city markets, compute affects travel distance, and health and morale are slow burners that you have to manage across the whole journey.
 
-**Events:** 20+ random events across 5 categories (weather, team, market, location, tech). 5 have player choices with real tradeoffs. 20% chance per turn.
+**Events:** 20+ events across 5 categories (weather, team, market, location, tech). 7 have player choices with real tradeoffs (Incoming Storm, Engineer Wants to Quit, VC Equity Offer, Conference Talk Slot, Abandoned Office, Technical Debt Crisis, Critical Production Bug). An event fires every time the team arrives at a new city. Content is drawn from the pool with a live weather bias. On rough weather (rainy, stormy, heatwave) the selection strongly prefers weather-themed events. On clear days it mostly pulls from the full pool but can still surface "Clear Skies" occasionally. That bias is the spec's "events conditional on API data" hook. The Open-Meteo signal materially shifts what the player encounters.
 
 **Markets:** Open the city market voluntarily. 5 market variants rotate randomly per city. Spend cash on food, energy, compute, or morale. Each option can only be bought once per city.
 
@@ -131,27 +182,38 @@ Distances are pre-computed at startup and cached. Road/Walking+ fall back to the
 
 **Weather:** Real weather from Open-Meteo affects gameplay on travel turns only. Resting is "indoors" - prevents exploiting clear weather for free stats.
 
-**Leaderboard:** Score calculated from victory bonus, turn efficiency, remaining stats, and resources. Separate rankings per game mode. Stored in H2 (or Postgres).
+**Leaderboard:** Score is calculated from victory bonus, turn efficiency, remaining stats, and resources, then multiplied by the mode's score multiplier so harder modes compete fairly with easier ones. Two views sharing one template:
+
+- `/leaderboard` shows the all-time top 10 across all modes (excluding daily runs).
+- `/leaderboard/daily` shows today's top 10 from the daily challenge.
+
+Each row shows player, mode badge, outcome (Won / Bankrupt / Starved / Collapsed / Morale Broke), the city the team ended at, turns, raw score, multiplier, and final weighted score. Filler rows pad each table to 10 slots so the layout does not shift when the first real score lands. Player names are capped at 10 characters, validated server-side. Scoring weights live in `scoring.yaml` and the entity stores the raw inputs, so the formula can be retuned without wiping history. Stored in H2 by default, Postgres optional.
+
+**Resume across sessions and devices:** every player gets a `svt_player` cookie (a random UUID) the first time they visit. The cookie persists for 30 days, so closing the browser and coming back the next day picks up exactly where you left off. The start page shows a "Continue run" button next to Launch when an active game exists. For cross-device resume (laptop to phone) the start page exposes a `/resume/<token>` URL inside a collapsible "Resume on another device" section. Open that URL on any other browser and it drops you straight into the game. No accounts, no email, no PII. The cookie is the identity.
 
 ---
 
 ## Example Gameplay
 
 ```
-Turn 1:  Select TRAVEL to move 5km toward Santa Clara, lose 15 energy, 1 food, 1 compute
-         Weather: Clear to +2 health, +5 energy (travel only)
+Turn 1:  Select TRAVEL to move 3km toward Santa Clara, lose 10 energy, 1 food, 2 compute
+         Random roll: health -5 (rough patch on the road)
+         Weather: Clear, +2 health, +5 energy (travel only)
 
-Turn 2:  Select TRAVEL to arrive at Santa Clara
-         Event (20% chance): "Team Argument" to morale -15
+Turn 2:  Select TRAVEL again, arrive at Santa Clara
+         Random roll: morale -5
+         Arrival event (weather is rainy, weather pool biased): Fog Delay, energy -5, food -1, morale -3
 
-Turn 3:  Open Market to "Food Truck Rally" to buy meals (-$25, +5 food)
-         Select REST to +5 health, +10 energy, +10 morale, -1 food
+Turn 3:  Open Market: Food Truck Rally, buy meals (-$25, +5 food)
+         Select REST: +8 health, +15 energy, +8 morale, -1 food
 
-Turn 4:  Energy too low for travel to REST forced
-         Grace warning appears: "starving 1/2" (food at 0)
+Turn 4:  Select HACKATHON, lose 12 energy and 1 food, gain 15 compute
+         Random roll: jackpot, cash +15 and food +1
 
-Turn 5:  Select SCAVENGE to -10 energy, found food (+2)
-         Grace counter resets - crisis averted
+Turn 5:  Select SCAVENGE: -10 energy, -3 health, found food (+3)
+
+Turn 6:  Select TRAVEL again, lose 10 energy, 1 food, 2 compute
+         Random roll: health -5
 ```
 
 ---
@@ -164,8 +226,8 @@ Full design document at [docs/DESIGN.md](docs/DESIGN.md). Covers:
 - **API choices** - Open-Meteo (keyless, real data), OSRM + ORS (driving distances with fallback chain), Haversine (pure math, always works)
 - **Data modeling** - YAML files for game content (events, actions, locations, markets), JPA entity for leaderboard
 - **Error handling** - API fallbacks, input validation, graceful degradation
-- **Tradeoffs** - 14 documented decisions with benefits and costs
-- **"If I had more time"** - weighted event selection, Flyway migrations, integration tests
+- **Tradeoffs** - 30+ documented decisions with benefits and costs
+- **"If I had more time"** - integration tests for the persistence layer, weighted event selection, Flyway migrations, real multiplayer rooms (the Room/GameSession model already supports it)
 
 ---
 
@@ -189,15 +251,23 @@ All architecture decisions, design choices, and code are my own.
 
 ```
 src/main/java/com/pcunha/svt/
-├── domain/          models, enums, ports
+├── domain/          models, enums, ports (RoomPort, GameSessionPort, LeaderboardPort,
+│                    WeatherPort, DistancePort)
 ├── application/     GameEngine, TurnProcessor, ActionHandler, EventProcessor,
-│                    ConditionEvaluator, ScoreCalculator
-└── infrastructure/  API adapters, database, web controller, YAML loader
+│                    ConditionEvaluator, ScoreCalculator, LeaderboardService, RoomService
+└── infrastructure/
+    ├── api/         OpenMeteo, OSRM, OpenRouteService, Haversine, Mock/Demo adapters
+    ├── data/        GameDataLoader (YAML deserialization)
+    ├── persistence/ LeaderboardRepository, RoomRepository, RoomAdapter,
+    │                GameSessionRepository, GameSessionAdapter
+    └── web/         GameMvcController, GameRestController, PlayerCookies,
+                     GameConfig, GlobalExceptionHandler
 
 src/main/resources/
-├── data/            actions.yaml, events.yaml, locations.yaml, markets.yaml
-├── static/          CSS (13 files), JS (6 files), images
+├── data/            actions.yaml, events.yaml, locations.yaml, markets.yaml,
+│                    tunables.yaml, scoring.yaml
+├── static/          css, js, img
 └── templates/       start, game, end, leaderboard + fragments
 
-src/test/java/       15 test files, 74 tests
+src/test/java/       16 test files, 89 tests
 ```
