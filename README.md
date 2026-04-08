@@ -8,21 +8,112 @@ Turn-based survival game inspired by Oregon Trail. Guide a startup team from San
 
 ---
 
-## Quick Start
+## Quick Start (from a fresh machine)
 
-**Prerequisites:** Java 21
+**The only thing you need to install is a JDK 21.** Everything else (Maven, dependencies, database, API access) is bundled or fetched automatically.
 
-Clone Repository
+### 1. Install Java 21
+
+Pick whichever works for your OS:
+
+- **macOS** (Homebrew): `brew install --cask temurin@21`
+- **Windows** (winget): `winget install EclipseAdoptium.Temurin.21.JDK`
+- **Linux** (apt): `sudo apt install openjdk-21-jdk`
+- **Anywhere**: download from [adoptium.net](https://adoptium.net/temurin/releases/?version=21)
+
+Confirm it works:
+```bash
+java -version
 ```
+You should see something like `openjdk version "21.0.x"`.
+
+### 2. Clone the repo
+
+```bash
 git clone https://github.com/paulofranklins/silicon-valley-trail.git
+cd silicon-valley-trail
 ```
 
-``` bash
-cd silicon-valley-trail
+### 3. Run the app
+
+```bash
+./mvnw spring-boot:run
+```
+On Windows use `mvnw.cmd spring-boot:run` instead. The Maven Wrapper (`mvnw`) is checked into the repo, so you do **not** need Maven installed separately. First run downloads dependencies, takes 1-2 minutes.
+
+### 4. Open the game
+
+[http://localhost:8080](http://localhost:8080)
+
+That's it. No database to install, no API keys to configure, no `.env` file required. H2 runs in-memory by default, all APIs are free and keyless.
+
+### Stop the server
+
+`Ctrl+C` in the terminal.
+
+### Common issues
+
+- **`./mvnw: Permission denied`** on macOS/Linux: run `chmod +x mvnw` once.
+- **Port 8080 in use**: stop the other process, or run `./mvnw spring-boot:run -Dspring-boot.run.arguments=--server.port=8081` and open `localhost:8081`.
+- **Slow first start**: the first run downloads ~50 MB of Maven dependencies. Subsequent runs are instant.
+- **OSRM mode hangs or fails**: see the next section about API reliability.
+
+### Optional: run with Postgres instead of H2
+
+The default H2 in-memory database needs zero setup, so most reviewers should ignore this section. If you want to point the app at a real Postgres (the leaderboard then survives restarts), you have two paths.
+
+**Option A: Docker Compose (recommended)**
+
+The repo ships a `docker-compose.yml` that starts a Postgres 16 container, automatically creating a database called `svt` with user `root` / password `root`. Prerequisites: Docker Desktop or any Docker engine.
+
+```bash
+# 1. Start the Postgres container
+docker compose up -d
+
+# 2. Create a .env file at the project root with these three lines
+#    (or open .env.example and uncomment the DB_ lines, then save as .env)
+echo "DB_URL=jdbc:postgresql://localhost:5432/svt" >> .env
+echo "DB_USERNAME=root" >> .env
+echo "DB_PASSWORD=root" >> .env
+
+# 3. Run the app
 ./mvnw spring-boot:run
 ```
 
-Open `http://localhost:8080`. That's it.
+`spring-dotenv` reads `.env` at startup and Spring Boot picks Postgres over H2 because `DB_URL` is now set. The Spring Data JPA `ddl-auto: update` setting creates the `leaderboard_entry`, `room`, and `game_session` tables automatically the first time the app starts against an empty database.
+
+To verify the connection worked, look for `HikariPool` and `jdbc:postgresql` lines in the startup logs (instead of `jdbc:h2:mem`).
+
+To stop and clean up:
+
+```bash
+docker compose down -v
+```
+
+**Option B: Bring your own Postgres**
+
+If you already have a Postgres instance running locally or remotely, you need to do two things yourself first:
+
+1. **Create the database.** The app does NOT create the Postgres database (only the tables inside it). Connect to your Postgres and run:
+   ```sql
+   CREATE DATABASE svt;
+   ```
+2. **Make sure the user has permission** to create tables in that database.
+
+Then set the three env vars and run:
+
+```bash
+export DB_URL=jdbc:postgresql://your-host:5432/svt
+export DB_USERNAME=your_user
+export DB_PASSWORD=your_password
+./mvnw spring-boot:run
+```
+
+On Windows PowerShell use `$env:DB_URL = "..."` instead of `export`. You can also put the three lines into a `.env` file at the project root and they'll be picked up the same way.
+
+JPA's `ddl-auto: update` creates all the tables on first startup. No manual schema or migration step.
+
+Switching back to H2 is just deleting `.env` (or unsetting the env vars) and restarting.
 
 ### No API keys required (this was the whole point)
 
