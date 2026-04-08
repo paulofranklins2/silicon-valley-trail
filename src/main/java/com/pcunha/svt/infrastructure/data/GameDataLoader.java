@@ -19,12 +19,12 @@ import java.util.Map;
 
 public class GameDataLoader {
     private static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory());
-    private static final String PATH_ACTIONS = "data/actions.yaml";
-    private static final String PATH_LOCATIONS = "data/locations.yaml";
-    private static final String PATH_MARKETS = "data/markets.yaml";
-    private static final String PATH_EVENTS = "data/events.yaml";
-    private static final String PATH_TUNABLES = "data/tunables.yaml";
-    private static final String PATH_SCORING = "data/scoring.yaml";
+    private static final String PATH_ACTIONS = "data/actions.yml";
+    private static final String PATH_LOCATIONS = "data/locations.yml";
+    private static final String PATH_MARKETS = "data/markets.yml";
+    private static final String PATH_EVENTS = "data/events.yml";
+    private static final String PATH_TUNABLES = "data/tunables.yml";
+    private static final String PATH_SCORING = "data/scoring.yml";
 
     public static List<ActionInfo> loadActions() {
         return load(PATH_ACTIONS, new TypeReference<>() {

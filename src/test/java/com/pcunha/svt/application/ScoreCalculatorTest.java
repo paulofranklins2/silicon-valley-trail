@@ -16,7 +16,7 @@ class ScoreCalculatorTest {
 
     @BeforeEach
     void setUp() {
-        // use the real scoring.yaml so tests exercise the same formula as production.
+        // use the real scoring.yml so tests exercise the same formula as production.
         scoreCalculator = new ScoreCalculator(GameDataLoader.loadScoring());
     }
 
