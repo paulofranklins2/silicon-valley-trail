@@ -38,6 +38,7 @@ public class LeaderboardEntry {
     private int computeCredits;
     private int score;
     private int weightedScore;
+    private boolean dailyRun;
     @Enumerated(EnumType.STRING)
     private GameMode gameMode;
     private LocalDateTime createdAt;

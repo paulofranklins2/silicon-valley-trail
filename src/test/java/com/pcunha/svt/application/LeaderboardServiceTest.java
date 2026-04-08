@@ -35,7 +35,7 @@ class LeaderboardServiceTest {
 
     @Test
     void submitWithValidNameSucceedsAndMarksSubmitted() {
-        SubmissionResult result = service.submitResult(gameState, "Alice");
+        SubmissionResult result = service.submitResult(gameState, "Alice", false);
 
         assertTrue(result.ok());
         assertEquals(1, port.saved.size());
@@ -45,7 +45,7 @@ class LeaderboardServiceTest {
 
     @Test
     void submitTrimsWhitespaceFromPlayerName() {
-        SubmissionResult result = service.submitResult(gameState, "  Bob  ");
+        SubmissionResult result = service.submitResult(gameState, "  Bob  ", false);
 
         assertTrue(result.ok());
         assertEquals("Bob", port.saved.getFirst().getPlayerName());
@@ -53,7 +53,7 @@ class LeaderboardServiceTest {
 
     @Test
     void submitWithNullNameReturnsErrorAndDoesNotCallPort() {
-        SubmissionResult result = service.submitResult(gameState, null);
+        SubmissionResult result = service.submitResult(gameState, null, false);
 
         assertFalse(result.ok());
         assertEquals("Name required", result.error());
@@ -63,7 +63,7 @@ class LeaderboardServiceTest {
 
     @Test
     void submitWithBlankNameReturnsErrorAndDoesNotCallPort() {
-        SubmissionResult result = service.submitResult(gameState, "   ");
+        SubmissionResult result = service.submitResult(gameState, "   ", false);
 
         assertFalse(result.ok());
         assertEquals("Name required", result.error());
@@ -74,7 +74,7 @@ class LeaderboardServiceTest {
     @Test
     void submitWithNameLongerThanMaxReturnsErrorAndDoesNotCallPort() {
         // Max is 10 chars; "ThisNameIsTooLong" is 17 chars.
-        SubmissionResult result = service.submitResult(gameState, "ThisNameIsTooLong");
+        SubmissionResult result = service.submitResult(gameState, "ThisNameIsTooLong", false);
 
         assertFalse(result.ok());
         assertTrue(result.error().startsWith("Name too long"));
@@ -85,7 +85,7 @@ class LeaderboardServiceTest {
     @Test
     void submitWithNameExactlyMaxLengthSucceeds() {
         // 10 characters — the boundary case
-        SubmissionResult result = service.submitResult(gameState, "TenCharsOk");
+        SubmissionResult result = service.submitResult(gameState, "TenCharsOk", false);
 
         assertTrue(result.ok());
         assertEquals("TenCharsOk", port.saved.getFirst().getPlayerName());
@@ -93,10 +93,10 @@ class LeaderboardServiceTest {
 
     @Test
     void submitWhenAlreadySubmittedReturnsErrorAndDoesNotCallPortAgain() {
-        service.submitResult(gameState, "Alice");
+        service.submitResult(gameState, "Alice", false);
         port.saved.clear();
 
-        SubmissionResult result = service.submitResult(gameState, "Alice");
+        SubmissionResult result = service.submitResult(gameState, "Alice", false);
 
         assertFalse(result.ok());
         assertEquals("Already submitted", result.error());
@@ -113,7 +113,7 @@ class LeaderboardServiceTest {
 
     @Test
     void submittedEntryHasWeightedScoreEqualToRawTimesMultiplier() {
-        service.submitResult(gameState, "Alice");
+        service.submitResult(gameState, "Alice", false);
 
         LeaderboardEntry entry = port.saved.getFirst();
         double multiplier = entry.getGameMode().getScoreMultiplier();
@@ -130,6 +130,11 @@ class LeaderboardServiceTest {
 
         @Override
         public List<LeaderboardEntry> getTopScores() {
+            return List.of();
+        }
+
+        @Override
+        public List<LeaderboardEntry> getDailyTopScores(java.time.LocalDateTime start, java.time.LocalDateTime end) {
             return List.of();
         }
     }

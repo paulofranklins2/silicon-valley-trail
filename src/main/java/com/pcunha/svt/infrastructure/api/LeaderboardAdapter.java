@@ -5,6 +5,7 @@ import com.pcunha.svt.domain.port.LeaderboardPort;
 import com.pcunha.svt.infrastructure.persistence.LeaderboardRepository;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -22,6 +23,11 @@ public class LeaderboardAdapter implements LeaderboardPort {
 
     @Override
     public List<LeaderboardEntry> getTopScores() {
-        return leaderboardRepository.findTop10ByOrderByWeightedScoreDesc();
+        return leaderboardRepository.findTop10ByDailyRunFalseOrderByWeightedScoreDesc();
+    }
+
+    @Override
+    public List<LeaderboardEntry> getDailyTopScores(LocalDateTime start, LocalDateTime end) {
+        return leaderboardRepository.findTop10ByDailyRunTrueAndCreatedAtBetweenOrderByWeightedScoreDesc(start, end);
     }
 }

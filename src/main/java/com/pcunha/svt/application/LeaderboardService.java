@@ -5,6 +5,7 @@ import com.pcunha.svt.domain.model.LeaderboardEntry;
 import com.pcunha.svt.domain.model.SubmissionResult;
 import com.pcunha.svt.domain.port.LeaderboardPort;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -19,7 +20,7 @@ public class LeaderboardService {
         this.scoreCalculator = scoreCalculator;
     }
 
-    public SubmissionResult submitResult(GameState gameState, String playerName) {
+    public SubmissionResult submitResult(GameState gameState, String playerName, boolean dailyRun) {
         if (playerName == null || playerName.trim().isEmpty()) {
             return SubmissionResult.error("Name required");
         }
@@ -30,7 +31,7 @@ public class LeaderboardService {
         if (gameState.getEndingState().isLeaderboardSubmitted()) {
             return SubmissionResult.error("Already submitted");
         }
-        LeaderboardEntry entry = buildEntry(gameState, trimmed);
+        LeaderboardEntry entry = buildEntry(gameState, trimmed, dailyRun);
         leaderboardPort.save(entry);
         gameState.getEndingState().markLeaderboardSubmitted();
         return SubmissionResult.success();
@@ -38,6 +39,12 @@ public class LeaderboardService {
 
     public List<LeaderboardEntry> getTopScores() {
         return leaderboardPort.getTopScores();
+    }
+
+    public List<LeaderboardEntry> getDailyTopScores() {
+        LocalDateTime start = LocalDate.now().atStartOfDay();
+        LocalDateTime end = start.plusDays(1);
+        return leaderboardPort.getDailyTopScores(start, end);
     }
 
     /**
@@ -50,7 +57,7 @@ public class LeaderboardService {
     /**
      * Builds a LeaderboardEntry from a finished game.
      */
-    private LeaderboardEntry buildEntry(GameState gameState, String playerName) {
+    private LeaderboardEntry buildEntry(GameState gameState, String playerName, boolean dailyRun) {
         LeaderboardEntry leaderboardEntry = new LeaderboardEntry();
         leaderboardEntry.setPlayerName(playerName);
         leaderboardEntry.setTeamName(gameState.getTeamName());
@@ -70,6 +77,7 @@ public class LeaderboardService {
         var mode = gameState.getConfigState().getGameMode();
         leaderboardEntry.setScore(rawScore);
         leaderboardEntry.setWeightedScore((int) Math.round(rawScore * mode.getScoreMultiplier()));
+        leaderboardEntry.setDailyRun(dailyRun);
         leaderboardEntry.setGameMode(mode);
         leaderboardEntry.setCreatedAt(LocalDateTime.now());
         return leaderboardEntry;
