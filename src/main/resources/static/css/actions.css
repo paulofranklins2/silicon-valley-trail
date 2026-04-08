@@ -127,33 +127,34 @@
     text-shadow: 0 0 4px rgba(34, 197, 94, 0.3);
 }
 
-.action-card__fx .or-text {
-    color: var(--text-dim);
-    font-size: 0.7rem;
-    font-style: italic;
-}
-
 .action-card__costs {
     display: flex;
     flex-direction: column;
     gap: 2px;
 }
 
-.action-card__outcomes {
+.action-card__rolls {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0;
+    gap: 4px;
     margin-top: 4px;
     padding-top: 4px;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.action-card__outcomes:empty {
+.action-card__rolls:empty {
     display: none;
 }
 
-.action-card__outcomes span + span::before {
+.action-card__roll {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.action-card__roll + .action-card__roll::before {
     content: 'or';
     display: block;
     color: var(--text-dim);

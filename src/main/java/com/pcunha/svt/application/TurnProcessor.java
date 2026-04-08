@@ -28,11 +28,12 @@ public class TurnProcessor {
 
         int locationBefore = gameState.getJourneyState().getCurrentLocationIndex();
 
-        ActionOutcome actionOutcome = actionHandler.handle(gameState, gameAction);
-        turnResult.setActionOutcome(actionOutcome);
+        ActionResult actionResult = actionHandler.handle(gameState, gameAction);
+        turnResult.setActionOutcome(actionResult.outcome());
+        turnResult.setChosenRoll(actionResult.chosenRoll());
 
         // if action was blocked (e.g. exhausted), skip the rest of the turn
-        if (actionOutcome == ActionOutcome.EXHAUSTED) {
+        if (actionResult.outcome() == ActionOutcome.EXHAUSTED) {
             // still fetch weather for display
             loadWeather(gameState, turnResult);
             return turnResult;

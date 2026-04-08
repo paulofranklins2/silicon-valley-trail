@@ -250,16 +250,16 @@
                             <span class="action-card__name" th:text="${info.displayName}">Action</span>
                             <span class="action-card__fx">
                                 <span class="action-card__costs">
-                                    <th:block th:each="fx : ${info.effects}">
-                                        <span th:if="${!fx.random}" th:classappend="${fx.positive} ? 'gain' : 'cost'"
-                                              th:text="${(fx.value > 0 ? '+' : '') + fx.value + ' ' + fx.stat.displayName}">effect</span>
-                                    </th:block>
+                                    <span th:each="fx : ${info.effects}"
+                                          th:classappend="${fx.positive} ? 'gain' : 'cost'"
+                                          th:text="${(fx.value > 0 ? '+' : '') + fx.value + ' ' + fx.stat.displayName}">effect</span>
                                 </span>
-                                <span class="action-card__outcomes">
-                                    <th:block th:each="fx : ${info.effects}">
-                                        <span th:if="${fx.random}" th:classappend="${fx.positive} ? 'gain' : 'cost'"
+                                <span class="action-card__rolls" th:if="${not #lists.isEmpty(info.outcomes)}">
+                                    <span class="action-card__roll" th:each="oc : ${info.outcomes}">
+                                        <span th:each="fx : ${oc.effects}"
+                                              th:classappend="${fx.positive} ? 'gain' : 'cost'"
                                               th:text="${(fx.value > 0 ? '+' : '') + fx.value + ' ' + fx.stat.displayName}">effect</span>
-                                    </th:block>
+                                    </span>
                                 </span>
                             </span>
                         </button>

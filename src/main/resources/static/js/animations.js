@@ -141,12 +141,20 @@
         searcher.style.height = '42px';
         scene.appendChild(searcher);
 
-        // Determine result: food or cash
+        // Determine result: food or cash. The chosen roll on the turn result
+        // tells us which stat fired without any per-action enum hardcoding.
         var gotFood = false;
         var gotCash = false;
-        var outcome = turnResult && turnResult.actionOutcome;
-        if (outcome === 'FOOD') gotFood = true;
-        if (outcome === 'CASH') gotCash = true;
+        var firstStat = null;
+        if (turnResult && turnResult.chosenRoll && turnResult.chosenRoll.effects && turnResult.chosenRoll.effects.length > 0) {
+            firstStat = turnResult.chosenRoll.effects[0].stat;
+        }
+        if (firstStat === 'FOOD') {
+            gotFood = true;
+        }
+        if (firstStat === 'CASH') {
+            gotCash = true;
+        }
 
         // Show result item
         var resultItem;
@@ -232,8 +240,9 @@
         });
         scene.appendChild(vcGroup);
 
-        // Determine success/failure after entrance animation
-        var pitchSuccess = turnResult && turnResult.actionOutcome === 'PITCH_SUCCESS';
+        // Determine success/failure after entrance animation. GAIN means the
+        // chosen roll's first effect was positive (the cash branch fired).
+        var pitchSuccess = turnResult && turnResult.actionOutcome === 'GAIN';
 
         setTimeout(function () {
             if (!scene.parentNode) return;
