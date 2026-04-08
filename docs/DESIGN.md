@@ -745,7 +745,6 @@ The architecture supports these without major changes:
 
 - Integration tests for `RoomService`. Round-trip serialization, daily-room race coverage, optimistic-lock failure scenarios. The native Java serialization is the brittlest part of the system (refactoring `GameState` would silently break stored sessions on Postgres) and deserves a regression test pinning the contract.
 - Background cleanup job. A `@Scheduled` task to delete completed `GameSession` rows older than 30 days and orphaned `Room` rows with no active sessions. Irrelevant on H2 in-memory, necessary for any Postgres deployment that runs longer than a few weeks.
-- `OptimisticLockingFailureException` in the REST controller too. The MVC controller catches it on the action endpoint but the REST endpoints do not. Same fix, same shape, did not get to it before submission.
 - Real multiplayer rooms. The data model is ready (see above). Building it would be a focused weekend project, not a refactor.
 - Flyway migrations. Currently `ddl-auto: update` handles schema. For production, Flyway gives versioned migrations, rollback, and the ability to backfill columns deliberately.
 - Resume URL polish. The current "open this URL on another device" flow works but is unfussy. A QR code or a 6-character resume code with a separate code-to-token lookup would feel more product-y. Skipped because it is strictly more complex code for the same outcome.
