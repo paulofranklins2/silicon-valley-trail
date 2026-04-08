@@ -39,7 +39,6 @@ cd silicon-valley-trail
 ```bash
 ./mvnw spring-boot:run
 ```
-On Windows use `mvnw.cmd spring-boot:run` instead. The Maven Wrapper (`mvnw`) is checked into the repo, so you do **not** need Maven installed separately. First run downloads dependencies, takes 1-2 minutes.
 
 ### 4. Open the game
 
@@ -55,7 +54,6 @@ That's it. No database to install, no API keys to configure, no `.env` file requ
 
 - **`./mvnw: Permission denied`** on macOS/Linux: run `chmod +x mvnw` once.
 - **Port 8080 in use**: stop the other process, or run `./mvnw spring-boot:run -Dspring-boot.run.arguments=--server.port=8081` and open `localhost:8081`.
-- **Slow first start**: the first run downloads ~50 MB of Maven dependencies. Subsequent runs are instant.
 - **OSRM mode hangs or fails**: see the next section about API reliability.
 
 ### Optional: run with Postgres instead of H2
@@ -70,17 +68,11 @@ The repo ships a `docker-compose.yml` that starts a Postgres 16 container, autom
 # 1. Start the Postgres container
 docker compose up -d
 
-# 2. Create a .env file at the project root with these three lines
-#    (or open .env.example and uncomment the DB_ lines, then save as .env)
-echo "DB_URL=jdbc:postgresql://localhost:5432/svt" >> .env
-echo "DB_USERNAME=root" >> .env
-echo "DB_PASSWORD=root" >> .env
+# 2. Create a .env file at the project root follow .env.exemple tenplate
 
 # 3. Run the app
 ./mvnw spring-boot:run
 ```
-
-`spring-dotenv` reads `.env` at startup and Spring Boot picks Postgres over H2 because `DB_URL` is now set. The Spring Data JPA `ddl-auto: update` setting creates the `leaderboard_entry`, `room`, and `game_session` tables automatically the first time the app starts against an empty database.
 
 To verify the connection worked, look for `HikariPool` and `jdbc:postgresql` lines in the startup logs (instead of `jdbc:h2:mem`).
 
@@ -100,24 +92,15 @@ If you already have a Postgres instance running locally or remotely, you need to
    ```
 2. **Make sure the user has permission** to create tables in that database.
 
-Then set the three env vars and run:
-
-```bash
-export DB_URL=jdbc:postgresql://your-host:5432/svt
-export DB_USERNAME=your_user
-export DB_PASSWORD=your_password
-./mvnw spring-boot:run
-```
-
-On Windows PowerShell use `$env:DB_URL = "..."` instead of `export`. You can also put the three lines into a `.env` file at the project root and they'll be picked up the same way.
+Then set the three env vars following .env.exemple
 
 JPA's `ddl-auto: update` creates all the tables on first startup. No manual schema or migration step.
 
 Switching back to H2 is just deleting `.env` (or unsetting the env vars) and restarting.
 
-### No API keys required (this was the whole point)
+### No API keys required
 
-This was a deliberate design goal from day one. The reviewer should be able to clone, run, and play without signing up for anything. Every API used is free and keyless:
+This was a deliberate design goal from day one. Should be able to clone, run, and play without signing up for anything. Every API used is free and keyless:
 
 - Open-Meteo for weather, no key
 - OSRM public server for driving distances, no key
