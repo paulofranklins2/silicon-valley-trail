@@ -37,11 +37,25 @@
                    th:classappend="${iter.first} ? 'mode-option--active'">
                 <input type="radio" name="gameMode" th:value="${mode}" th:checked="${iter.first}">
                 <span class="mode-option__name" th:text="${mode.displayName}">Mode</span>
-                <span class="mode-option__desc" th:text="${mode.description}">Description</span>
+            </label>
+            <label class="mode-option mode-option--daily">
+                <input type="radio" name="gameMode" value="DAILY">
+                <span class="mode-option__name">Daily</span>
             </label>
         </div>
-        <button type="submit">Launch</button>
+        <div class="start-actions">
+            <button type="submit">Launch</button>
+            <a th:if="${hasActiveGame}" href="/game" class="start-actions__continue">Continue run</a>
+        </div>
     </form>
+    <details th:if="${hasActiveGame}" class="start-resume">
+        <summary>Resume on another device</summary>
+        <p class="start-resume__hint">Open this link on another device — it drops you straight into the game.</p>
+        <input class="start-resume__url"
+               th:value="${resumeUrl}"
+               readonly
+               onclick="this.select(); navigator.clipboard &amp;&amp; navigator.clipboard.writeText(this.value);">
+    </details>
     <script>
         document.querySelectorAll('.mode-option input').forEach(function(radio) {
             radio.addEventListener('change', function() {

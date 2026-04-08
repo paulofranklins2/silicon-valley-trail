@@ -4,54 +4,77 @@
 <body>
 <div class="container end-page">
     <h1 class="leaderboard-title">Leaderboard</h1>
+    <p th:if="${view == 'daily'}" class="leaderboard-subtitle">
+        Today's daily challenge - top 10 by weighted score.
+    </p>
+    <p th:unless="${view == 'daily'}" class="leaderboard-subtitle">
+        All-time top 10 across all modes. Weighted score = raw score x difficulty multiplier.
+    </p>
 
-    <div class="leaderboard-grid">
-        <div class="leaderboard-section" th:each="entry : ${leaderboard}">
-            <h2 class="leaderboard-section__title" th:text="${entry.key.displayName}">Mode</h2>
-            <p class="leaderboard-section__desc" th:text="${entry.key.description}">Description</p>
-            <div class="leaderboard-table-wrap">
-                <table class="leaderboard-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Player</th>
-                            <th>Outcome</th>
-                            <th>Location</th>
-                            <th>Turns</th>
-                            <th>Score</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:each="score, iter : ${entry.value}"
-                        th:classappend="${score.victory} ? 'leaderboard-row--victory' : 'leaderboard-row--defeat'">
-                        <td th:text="${iter.index + 1}">1</td>
-                        <td th:text="${score.playerName}">Player</td>
-                        <td>
-                            <span th:if="${score.victory}" class="leaderboard-outcome">Won</span>
-                            <span th:unless="${score.victory}"
-                                  class="leaderboard-outcome"
-                                  th:text="${score.lossReason != null ? score.lossReason.displayName : 'Lost'}">Lost</span>
-                        </td>
-                        <td th:text="${score.lastLocation}">City</td>
-                        <td th:text="${score.turns}">0</td>
-                        <td th:text="${score.score}">0</td>
-                    </tr>
-                    <!-- Filler rows so the table always has 5 slots. Prevents layout
-                         shift when the first real score is added. -->
-                    <tr th:each="i : ${#numbers.sequence(1, 5 - entry.value.size())}"
-                        th:if="${entry.value.size() < 5}"
-                        class="leaderboard-row--empty">
-                        <td th:text="${entry.value.size() + i}">—</td>
-                        <td>—</td>
-                        <td>—</td>
-                        <td>—</td>
-                        <td>—</td>
-                        <td>—</td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <div class="leaderboard-tabs">
+        <a href="/leaderboard"
+           class="leaderboard-tab"
+           th:classappend="${view == 'overall'} ? 'leaderboard-tab--active'">All-Time</a>
+        <a href="/leaderboard/daily"
+           class="leaderboard-tab"
+           th:classappend="${view == 'daily'} ? 'leaderboard-tab--active'">Today's Daily</a>
+    </div>
+
+    <div class="leaderboard-table-wrap">
+        <table class="leaderboard-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Player</th>
+                    <th>Mode</th>
+                    <th>Outcome</th>
+                    <th>Location</th>
+                    <th>Turns</th>
+                    <th>Raw</th>
+                    <th>Mult</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody>
+            <tr th:each="score, iter : ${leaderboard}"
+                th:classappend="${score.victory} ? 'leaderboard-row--victory' : 'leaderboard-row--defeat'">
+                <td th:text="${iter.index + 1}">1</td>
+                <td th:text="${score.playerName}">Player</td>
+                <td>
+                    <span class="leaderboard-mode"
+                          th:classappend="'leaderboard-mode--' + ${#strings.toLowerCase(score.gameMode.name())}"
+                          th:text="${score.gameMode.displayName}">Easy</span>
+                </td>
+                <td>
+                    <span th:if="${score.victory}" class="leaderboard-outcome">Won</span>
+                    <span th:unless="${score.victory}"
+                          class="leaderboard-outcome"
+                          th:text="${score.lossReason != null ? score.lossReason.displayName : 'Lost'}">Lost</span>
+                </td>
+                <td th:text="${score.lastLocation}">City</td>
+                <td th:text="${score.turns}">0</td>
+                <td class="leaderboard-score-raw" th:text="${score.score}">0</td>
+                <td class="leaderboard-score-mult"
+                    th:text="'×' + ${#numbers.formatDecimal(score.gameMode.scoreMultiplier, 1, 1)}">×1.0</td>
+                <td class="leaderboard-score-weighted" th:text="${score.weightedScore}">0</td>
+            </tr>
+            <!-- Filler rows so the table always has 10 slots. Prevents layout
+                 shift when the first real score is added. -->
+            <tr th:each="i : ${#numbers.sequence(1, 10 - leaderboard.size())}"
+                th:if="${leaderboard.size() < 10}"
+                class="leaderboard-row--empty">
+                <td th:text="${leaderboard.size() + i}">—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+            </tr>
+            </tbody>
+        </table>
     </div>
 
     <div class="end-actions">

@@ -479,6 +479,37 @@
     margin-bottom: var(--space-2xl);
 }
 
+.leaderboard-tabs {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+}
+
+.leaderboard-tab {
+    font-family: var(--font-arcade);
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: var(--space-sm) var(--space-lg);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all var(--duration-normal) ease;
+}
+
+.leaderboard-tab:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.leaderboard-tab--active {
+    color: var(--accent);
+    border-color: var(--accent);
+    box-shadow: var(--shadow-glow);
+}
+
 .leaderboard-table-wrap {
     overflow-x: auto;
     margin: 0 auto var(--space-2xl);
@@ -486,7 +517,7 @@
        viewports. Without it, the wrap auto-sizes to the table's intrinsic
        width and overflows the section, which breaks mobile alignment. */
     width: 100%;
-    max-width: 720px;
+    max-width: 1100px;
 }
 
 .leaderboard-table {
@@ -498,9 +529,9 @@
 .leaderboard-table thead th {
     font-family: var(--font-arcade);
     color: var(--accent);
-    text-align: left;
-    /* Tight horizontal padding — the 6-column table has to fit in a 2x2
-       grid cell, so we spend padding on vertical breathing room only. */
+    /* Header inherits center from .end-page, made explicit so future readers
+       see it without having to trace the cascade. Body cells inherit the same. */
+    text-align: center;
     padding: var(--space-md) var(--space-sm);
     border-bottom: 2px solid var(--border);
     font-size: 0.8rem;
@@ -512,20 +543,26 @@
     padding: var(--space-md) var(--space-sm);
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     color: #fff;
+    text-align: center;
 }
 
 /* Fixed column widths so the table layout doesn't shift when entries are
-   added. Outcome column sized for "Morale Broke" (the longest LossReason
-   displayName). Location column sized for "South San Francisco" (the
-   longest entry in locations.yaml). Both have comfortable padding. */
+   added. Column order: # | Player | Mode | Outcome | Location | Turns | Raw | Mult | Score
+   Outcome sized for "Morale Broke" (longest LossReason displayName).
+   Location sized for "South San Francisco" (longest in locations.yaml). */
 .leaderboard-table th:nth-child(3),
 .leaderboard-table td:nth-child(3) {
-    min-width: 8rem;
+    min-width: 5.5rem;
 }
 
 .leaderboard-table th:nth-child(4),
 .leaderboard-table td:nth-child(4) {
-    min-width: 11rem;
+    min-width: 7.5rem;
+}
+
+.leaderboard-table th:nth-child(5),
+.leaderboard-table td:nth-child(5) {
+    min-width: 10rem;
 }
 
 .leaderboard-row--victory {
@@ -581,52 +618,9 @@
     box-shadow: 0 0 6px var(--red-glow);
 }
 
-.leaderboard-empty {
-    color: var(--text-muted);
-    font-size: 1rem;
-    margin-bottom: var(--space-2xl);
-}
-
-/* Container width for the leaderboard page. Wider than the base .end-page
-   so the 2x2 grid has room for 4 sections with 6-column tables. Each cell
-   ends up ~548px wide (1120 grid - 24 gap / 2), which comfortably fits
-   the 8rem + 11rem fixed columns plus the 4 auto-sized columns. */
-.end-page:has(.leaderboard-grid) {
+/* Container width for the leaderboard page. The unified single top-10 table
+   has 10 columns, so the page needs ~1180px on desktop to fit comfortably
+   without horizontal scroll. Base .end-page is 600px which would clip badly. */
+.end-page:has(.leaderboard-table-wrap) {
     max-width: 1180px;
-}
-
-/*  LEADERBOARD GRID (2x2 on desktop, single column on mobile) */
-.leaderboard-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    max-width: 1120px;
-    margin: 0 auto 32px;
-}
-
-@media (max-width: 768px) {
-    .leaderboard-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-.leaderboard-section {
-    background: linear-gradient(145deg, var(--bg-panel) 0%, var(--bg-panel-alt) 100%);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 16px 20px;
-}
-
-.leaderboard-section__title {
-    font-family: var(--font-arcade);
-    font-size: 1.3rem;
-    color: var(--text);
-    letter-spacing: 2px;
-    margin-bottom: var(--space-xs);
-}
-
-.leaderboard-section__desc {
-    font-size: 0.8rem;
-    color: var(--text-dim);
-    margin-bottom: var(--space-lg);
 }
