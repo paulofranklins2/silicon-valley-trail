@@ -50,9 +50,9 @@ public class GameEngine {
             cachedDistances.put(mode, result);
 
             if (result.usedFallback()) {
-                System.out.println("" + mode.getDisplayName() + " mode: unavailable");
+                System.out.println(mode.getDisplayName() + " mode: unavailable");
             } else {
-                System.out.println("" + mode.getDisplayName() + " mode: ready");
+                System.out.println(mode.getDisplayName() + " mode: ready");
             }
         }
     }

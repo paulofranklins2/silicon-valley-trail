@@ -2,9 +2,7 @@ package com.pcunha.svt.infrastructure.web.config;
 
 import com.pcunha.svt.application.*;
 import com.pcunha.svt.domain.GameMode;
-import com.pcunha.svt.domain.port.DistancePort;
-import com.pcunha.svt.domain.port.LeaderboardPort;
-import com.pcunha.svt.domain.port.WeatherPort;
+import com.pcunha.svt.domain.port.*;
 import com.pcunha.svt.infrastructure.api.*;
 import com.pcunha.svt.infrastructure.data.GameDataLoader;
 import org.springframework.beans.factory.annotation.Value;
@@ -96,5 +94,10 @@ public class GameConfig {
     @Bean
     public LeaderboardService leaderboardService(LeaderboardPort leaderboardPort, ScoreCalculator scoreCalculator) {
         return new LeaderboardService(leaderboardPort, scoreCalculator);
+    }
+
+    @Bean
+    public RoomService roomService(RoomPort roomPort, GameSessionPort gameSessionPort, GameEngine gameEngine) {
+        return new RoomService(roomPort, gameSessionPort, gameEngine);
     }
 }

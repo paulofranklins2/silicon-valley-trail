@@ -2,23 +2,17 @@ package com.pcunha.svt.infrastructure.web.controller;
 
 import com.pcunha.svt.application.GameEngine;
 import com.pcunha.svt.application.LeaderboardService;
+import com.pcunha.svt.application.RoomService;
+import com.pcunha.svt.application.RoomService.LoadedSession;
 import com.pcunha.svt.domain.GameAction;
 import com.pcunha.svt.domain.GameMode;
-import com.pcunha.svt.domain.model.ActionResponse;
-import com.pcunha.svt.domain.model.ApiError;
-import com.pcunha.svt.domain.model.GameEvent;
-import com.pcunha.svt.domain.model.GameState;
-import com.pcunha.svt.domain.model.MarketResult;
-import com.pcunha.svt.domain.model.SubmissionResult;
-import com.pcunha.svt.domain.model.TurnResult;
+import com.pcunha.svt.domain.model.*;
+import com.pcunha.svt.infrastructure.web.PlayerCookies;
 import com.pcunha.svt.infrastructure.web.exception.NoGameInSessionException;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -26,24 +20,28 @@ import java.util.Map;
 @RequestMapping("/api")
 public class GameRestController {
     private final GameEngine gameEngine;
+    private final RoomService roomService;
     private final LeaderboardService leaderboardService;
 
-    public GameRestController(GameEngine gameEngine, LeaderboardService leaderboardService) {
+    public GameRestController(GameEngine gameEngine, RoomService roomService, LeaderboardService leaderboardService) {
         this.gameEngine = gameEngine;
+        this.roomService = roomService;
         this.leaderboardService = leaderboardService;
     }
 
     @PostMapping("/retry-distances")
-    public ResponseEntity<?> retryDistances(@RequestParam String gameMode, HttpSession session) {
-        GameState existing = requireGame(session);
+    public ResponseEntity<?> retryDistances(@RequestParam String gameMode, HttpServletRequest request, HttpServletResponse response) {
+        String token = PlayerCookies.getOrCreate(request, response);
+        LoadedSession existing = requireGame(token);
 
         GameMode mode = GameMode.valueOf(gameMode);
         boolean success = gameEngine.retryDistances(mode);
 
         if (success) {
-            // recreate the game with the now-cached real distances
-            GameState gameState = gameEngine.createNewGame(existing.getTeamName(), mode);
-            session.setAttribute("gameState", gameState);
+            // recreate the game with the now-cached real distances.
+            // mark the old session done so the player doesn't end up with two actives.
+            roomService.markCompleted(existing);
+            roomService.createSoloGame(token, existing.gameState().getTeamName(), mode);
             return ResponseEntity.ok(Map.of("success", true));
         }
 
@@ -51,8 +49,10 @@ public class GameRestController {
     }
 
     @PostMapping("/action")
-    public ResponseEntity<?> processActionApi(@RequestParam String action, HttpSession session) {
-        GameState gameState = requireGame(session);
+    public ResponseEntity<?> processActionApi(@RequestParam String action, HttpServletRequest request, HttpServletResponse response) {
+        String token = PlayerCookies.getOrCreate(request, response);
+        LoadedSession loaded = requireGame(token);
+        GameState gameState = loaded.gameState();
 
         TurnResult result;
         try {
@@ -60,51 +60,57 @@ public class GameRestController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new ApiError("Invalid action"));
         }
+        roomService.persist(loaded);
         return ResponseEntity.ok(new ActionResponse(gameState, result));
     }
 
     @PostMapping("/choice")
-    public ResponseEntity<ActionResponse> processChoice(@RequestParam int choiceIndex, HttpSession session) {
-        GameState gameState = requireGame(session);
-        TurnResult result = gameEngine.resolveChoice(gameState, choiceIndex);
-        return ResponseEntity.ok(new ActionResponse(gameState, result));
+    public ResponseEntity<ActionResponse> processChoice(@RequestParam int choiceIndex, HttpServletRequest request, HttpServletResponse response) {
+        String token = PlayerCookies.getOrCreate(request, response);
+        LoadedSession loaded = requireGame(token);
+        TurnResult result = gameEngine.resolveChoice(loaded.gameState(), choiceIndex);
+        roomService.persist(loaded);
+        return ResponseEntity.ok(new ActionResponse(loaded.gameState(), result));
     }
 
     @GetMapping("/market")
-    public Map<String, Object> getMarket(HttpSession session) {
-        GameState gameState = requireGame(session);
-        GameEvent market = gameEngine.getMarket(gameState);
-        return Map.of("event", market, "purchased", gameState.getMarketState().getMarketPurchased());
+    public Map<String, Object> getMarket(HttpServletRequest request, HttpServletResponse response) {
+        String token = PlayerCookies.getOrCreate(request, response);
+        LoadedSession loaded = requireGame(token);
+        GameEvent market = gameEngine.getMarket(loaded.gameState());
+        roomService.persist(loaded);
+        return Map.of("event", market, "purchased", loaded.gameState().getMarketState().getMarketPurchased());
     }
 
     @PostMapping("/market")
-    public ResponseEntity<?> processMarketPurchase(@RequestParam int choiceIndex, HttpSession session) {
-        GameState gameState = requireGame(session);
+    public ResponseEntity<?> processMarketPurchase(@RequestParam int choiceIndex, HttpServletRequest request, HttpServletResponse response) {
+        String token = PlayerCookies.getOrCreate(request, response);
+        LoadedSession loaded = requireGame(token);
 
-        MarketResult marketResult = gameEngine.buyFromMarket(gameState, choiceIndex);
+        MarketResult marketResult = gameEngine.buyFromMarket(loaded.gameState(), choiceIndex);
         if (!marketResult.ok()) {
             return ResponseEntity.badRequest().body(new ApiError(marketResult.error()));
         }
-        return ResponseEntity.ok(gameState);
+        roomService.persist(loaded);
+        return ResponseEntity.ok(loaded.gameState());
     }
 
     @PostMapping("/leaderboard")
-    public ResponseEntity<?> submitScore(@RequestParam String playerName, HttpSession session) {
-        GameState gameState = requireGame(session);
+    public ResponseEntity<?> submitScore(@RequestParam String playerName, HttpServletRequest request, HttpServletResponse response) {
+        String token = PlayerCookies.getOrCreate(request, response);
+        LoadedSession loaded = requireGame(token);
 
-        SubmissionResult result = leaderboardService.submitResult(gameState, playerName);
+        boolean daily = roomService.isDailySession(loaded);
+        SubmissionResult result = leaderboardService.submitResult(loaded.gameState(), playerName, daily);
         if (result.ok()) {
+            roomService.markCompleted(loaded);
             return ResponseEntity.ok(Map.of("success", true));
         }
+        roomService.persist(loaded);
         return ResponseEntity.badRequest().body(new ApiError(result.error()));
     }
 
-    /**
-     * Get game from session or throws if missing.
-     */
-    private GameState requireGame(HttpSession session) {
-        GameState gameState = (GameState) session.getAttribute("gameState");
-        if (gameState == null) throw new NoGameInSessionException();
-        return gameState;
+    private LoadedSession requireGame(String playerToken) {
+        return roomService.loadActiveSession(playerToken).orElseThrow(NoGameInSessionException::new);
     }
 }
