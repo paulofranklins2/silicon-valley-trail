@@ -63,7 +63,10 @@ public class GameEngine {
      */
     public GameState createNewGame(String teamName, GameMode gameMode) {
         TeamState teamState = new TeamState(100, 100, 100);
-        ResourceState resourceState = new ResourceState(100, 5, 5);
+        // Starting food 8 gives ~8 turns of breathing room before food hunting
+        // becomes urgent. Starting compute 8 keeps the first 4 travels at full
+        // speed (compute -2 per travel) before the speed penalty kicks in.
+        ResourceState resourceState = new ResourceState(100, 8, 8);
 
         DistanceResult result = cachedDistances.get(gameMode);
 

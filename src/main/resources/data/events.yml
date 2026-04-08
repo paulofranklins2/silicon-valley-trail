@@ -92,6 +92,18 @@ market:
       - description: Decline and stay independent
         moraleChange: 10
 
+  - title: Conference Talk Slot
+    description: A founder dropped out of a big conference. The slot is yours if you can pitch live tomorrow.
+    outcomes:
+      - description: Take the stage
+        energyChange: -10
+        cashChange: 80
+        moraleChange: 15
+        healthChange: -5
+      - description: Pass, too much pressure
+        moraleChange: -10
+        energyChange: 5
+
 location:
   - title: Coffee Shop Discovery
     description: The team finds a great local coffee spot
@@ -149,3 +161,15 @@ tech:
       - description: Ship fast, deal with it later
         moraleChange: -15
         computeCreditsChange: -5
+
+  - title: Critical Production Bug
+    description: A beta tester just found a critical bug. Pull an all-nighter to fix it or ship anyway?
+    outcomes:
+      - description: All-nighter to fix it
+        computeCreditsChange: 8
+        energyChange: -15
+        healthChange: -15
+        moraleChange: -10
+      - description: Ship anyway, write it off
+        moraleChange: -12
+        computeCreditsChange: -3

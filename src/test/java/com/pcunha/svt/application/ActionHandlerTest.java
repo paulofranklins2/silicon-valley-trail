@@ -17,7 +17,9 @@ class ActionHandlerTest {
 
     private GameState createGameState() {
         TeamState team = new TeamState(100, 100, 100);
-        ResourceState resources = new ResourceState(100, 10, 5);
+        // Start with 20 compute so travel does not trigger the
+        // speed-penalty branch during these tests.
+        ResourceState resources = new ResourceState(100, 10, 20);
         JourneyState journey = new JourneyState(
                 List.of(
                         new Location("A", 0, 0),
@@ -29,123 +31,149 @@ class ActionHandlerTest {
 
     @Test
     public void travel() {
-        // health 100, energy 100, morale 100, cash 100, food 10, computeCredit 5
+        // health 100, energy 100, morale 100, cash 100, food 10, computeCredit 20
         GameState gameState = createGameState();
         ActionHandler handler = ActionHandler.create(mockRandom);
-        // energy -15, food -1, computeCredit -1
+        // Travel has 2 outcomes (morale -5 OR health -5). Force the morale branch.
+        when(mockRandom.nextInt(2)).thenReturn(0);
+
+        // guaranteed: energy -10, food -1, computeCredit -2; outcome: morale -5
         handler.handle(gameState, GameAction.TRAVEL);
 
-        // health 100, energy 85, morale 100, cash 100, food 9, computeCredit 4, still at index 0
         assertEquals(0, gameState.getJourneyState().getCurrentLocationIndex());
-        assertEquals(85, gameState.getTeamState().getEnergy());
-        assertEquals(15, gameState.getJourneyState().getDistanceToNextLocation());
+        assertEquals(90, gameState.getTeamState().getEnergy());
+        assertEquals(95, gameState.getTeamState().getMorale());
+        assertEquals(100, gameState.getTeamState().getHealth());
+        assertEquals(17, gameState.getJourneyState().getDistanceToNextLocation());
         assertEquals(9, gameState.getResourceState().getFood());
-        assertEquals(4, gameState.getResourceState().getComputeCredits());
+        assertEquals(18, gameState.getResourceState().getComputeCredits());
 
-        // health 100, energy 85, morale 100, cash 100, food 9, computeCredit 4
-        // energy -15, food -1, computeCredit -1
+        // Now flip to the health branch.
+        when(mockRandom.nextInt(2)).thenReturn(1);
         handler.handle(gameState, GameAction.TRAVEL);
+
         assertEquals(0, gameState.getJourneyState().getCurrentLocationIndex());
-        assertEquals(70, gameState.getTeamState().getEnergy());
-        assertEquals(10, gameState.getJourneyState().getDistanceToNextLocation());
+        assertEquals(80, gameState.getTeamState().getEnergy());
+        assertEquals(95, gameState.getTeamState().getMorale());
+        assertEquals(95, gameState.getTeamState().getHealth());
+        assertEquals(14, gameState.getJourneyState().getDistanceToNextLocation());
         assertEquals(8, gameState.getResourceState().getFood());
-        assertEquals(3, gameState.getResourceState().getComputeCredits());
+        assertEquals(16, gameState.getResourceState().getComputeCredits());
     }
 
     @Test
     public void rest() {
         TeamState team = new TeamState(80, 70, 60);
-        ResourceState resources = new ResourceState(100, 10, 5);
+        ResourceState resources = new ResourceState(100, 10, 20);
         JourneyState journey = new JourneyState(
                 List.of(new Location("A", 0, 0), new Location("B", 0, 0)),
                 List.of(20.0)
         );
 
-        // health 80, energy 70, morale 60, cash 100, food 10, computeCredit 5
+        // health 80, energy 70, morale 60, cash 100, food 10, computeCredit 20
         GameState gameState = new GameState(team, resources, journey, "Test Team Name");
         ActionHandler actionHandler = ActionHandler.create(mockRandom);
 
-        // health + 5, energy + 10, morale + 10, food - 1
+        // health +8, energy +15, morale +8, food -1
         actionHandler.handle(gameState, GameAction.REST);
 
-        // should not change location index, distance should still say 20
         assertEquals(0, gameState.getJourneyState().getCurrentLocationIndex());
         assertEquals(20, gameState.getJourneyState().getDistanceToNextLocation());
 
-        // health 85, energy 80, morale 70, cash 100, food 9, computeCredit 5
-        assertEquals(85, gameState.getTeamState().getHealth());
-        assertEquals(80, gameState.getTeamState().getEnergy());
-        assertEquals(70, gameState.getTeamState().getMorale());
+        assertEquals(88, gameState.getTeamState().getHealth());
+        assertEquals(85, gameState.getTeamState().getEnergy());
+        assertEquals(68, gameState.getTeamState().getMorale());
         assertEquals(9, gameState.getResourceState().getFood());
-
     }
 
     @Test
     public void scavenge() {
-        // health 100, energy 100, morale 100, cash 100, food 10, computeCredit 5
+        // health 100, energy 100, morale 100, cash 100, food 10, computeCredit 20
         GameState gameState = createGameState();
         ActionHandler handler = ActionHandler.create(mockRandom);
-        // energy -10, food +2 or cash + 10
-        when(mockRandom.nextBoolean()).thenReturn(true);
+        // Scavenge has 2 outcomes: food alone, or cash + morale loss. Pick food.
+        when(mockRandom.nextInt(2)).thenReturn(0);
         handler.handle(gameState, GameAction.SCAVENGE);
 
-        // should not change location index, distance should still say 20
+        // guaranteed: energy -10, health -3; outcome: food +3
         assertEquals(0, gameState.getJourneyState().getCurrentLocationIndex());
         assertEquals(20, gameState.getJourneyState().getDistanceToNextLocation());
-
-        // energy -10, food +2
         assertEquals(90, gameState.getTeamState().getEnergy());
-        assertEquals(12, gameState.getResourceState().getFood());
+        assertEquals(97, gameState.getTeamState().getHealth());
+        assertEquals(100, gameState.getTeamState().getMorale());
+        assertEquals(13, gameState.getResourceState().getFood());
 
-        // energy -10, food +2 or cash + 10
-        when(mockRandom.nextBoolean()).thenReturn(false);
+        // Now pick the cash + morale-hit branch.
+        when(mockRandom.nextInt(2)).thenReturn(1);
         handler.handle(gameState, GameAction.SCAVENGE);
 
-        // energy -10, cash +10
+        // guaranteed again: energy -10, health -3; outcome: cash +15, morale -3
         assertEquals(80, gameState.getTeamState().getEnergy());
-        assertEquals(110, gameState.getResourceState().getCash());
+        assertEquals(94, gameState.getTeamState().getHealth());
+        assertEquals(97, gameState.getTeamState().getMorale());
+        assertEquals(115, gameState.getResourceState().getCash());
+        assertEquals(13, gameState.getResourceState().getFood());
     }
 
     @Test
     public void hackathon() {
-        // health 100, energy 100, morale 100, cash 100, food 10, computeCredit 5
+        // health 100, energy 100, morale 100, cash 100, food 10, computeCredit 20
         GameState gameState = createGameState();
         ActionHandler handler = ActionHandler.create(mockRandom);
-        // compute credit + 10, energy -5, morale -5, food -1
+        // Hackathon has 2 outcomes: jackpot (cash +15, food +1) or wreck (morale -8, health -8).
+        // Pick jackpot.
+        when(mockRandom.nextInt(2)).thenReturn(0);
         handler.handle(gameState, GameAction.HACKATHON);
 
-        // should not change location index, distance should still say 20
         assertEquals(0, gameState.getJourneyState().getCurrentLocationIndex());
         assertEquals(20, gameState.getJourneyState().getDistanceToNextLocation());
 
-        // compute credit + 10, energy -15, morale -8, food -1
-        assertEquals(15, gameState.getResourceState().getComputeCredits());
-        assertEquals(85, gameState.getTeamState().getEnergy());
-        assertEquals(92, gameState.getTeamState().getMorale());
+        // guaranteed: compute +15, energy -12, food -1; jackpot: cash +15, food +1
+        assertEquals(35, gameState.getResourceState().getComputeCredits());
+        assertEquals(88, gameState.getTeamState().getEnergy());
+        assertEquals(115, gameState.getResourceState().getCash());
+        assertEquals(10, gameState.getResourceState().getFood());
+        assertEquals(100, gameState.getTeamState().getMorale());
+        assertEquals(100, gameState.getTeamState().getHealth());
+
+        // Now flip to the wreck branch.
+        when(mockRandom.nextInt(2)).thenReturn(1);
+        handler.handle(gameState, GameAction.HACKATHON);
+
+        // guaranteed adds again: compute +15, energy -12, food -1; wreck: morale -8, health -8
+        assertEquals(50, gameState.getResourceState().getComputeCredits());
+        assertEquals(76, gameState.getTeamState().getEnergy());
+        assertEquals(115, gameState.getResourceState().getCash());
         assertEquals(9, gameState.getResourceState().getFood());
+        assertEquals(92, gameState.getTeamState().getMorale());
+        assertEquals(92, gameState.getTeamState().getHealth());
     }
 
     @Test
     public void pitchVcs() {
-        // health 100, energy 100, morale 100, cash 100, food 10, computeCredit 5
+        // health 100, energy 100, morale 100, cash 100, food 10, computeCredit 20
         GameState gameState = createGameState();
         ActionHandler handler = ActionHandler.create(mockRandom);
 
-        when(mockRandom.nextBoolean()).thenReturn(true);
+        // Pitch VCs has 2 outcomes: cash +50 or (morale -8, health -3). Pick cash.
+        when(mockRandom.nextInt(2)).thenReturn(0);
         handler.handle(gameState, GameAction.PITCH_VCS);
 
-        // should not change location index, distance should still say 20
         assertEquals(0, gameState.getJourneyState().getCurrentLocationIndex());
         assertEquals(20, gameState.getJourneyState().getDistanceToNextLocation());
 
-        // cash + 50, morale should not change
+        // guaranteed: energy -5, compute -3, morale -2; outcome: cash +50
         assertEquals(150, gameState.getResourceState().getCash());
-        assertEquals(100, gameState.getTeamState().getMorale());
+        assertEquals(98, gameState.getTeamState().getMorale());
+        assertEquals(100, gameState.getTeamState().getHealth());
 
-        // cash should not change, morale -10
-        when(mockRandom.nextBoolean()).thenReturn(false);
+        // Now the failure branch.
+        when(mockRandom.nextInt(2)).thenReturn(1);
         handler.handle(gameState, GameAction.PITCH_VCS);
+
+        // guaranteed again: energy -5, compute -3, morale -2; outcome: morale -8, health -3
         assertEquals(150, gameState.getResourceState().getCash());
-        assertEquals(90, gameState.getTeamState().getMorale());
+        assertEquals(88, gameState.getTeamState().getMorale());
+        assertEquals(97, gameState.getTeamState().getHealth());
     }
 }

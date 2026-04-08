@@ -3,13 +3,16 @@ package com.pcunha.svt.application;
 import com.pcunha.svt.domain.ActionOutcome;
 import com.pcunha.svt.domain.GameAction;
 import com.pcunha.svt.domain.StatType;
+import com.pcunha.svt.domain.model.ActionEffect;
 import com.pcunha.svt.domain.model.ActionInfo;
+import com.pcunha.svt.domain.model.ActionResult;
+import com.pcunha.svt.domain.model.ActionRoll;
 import com.pcunha.svt.domain.model.GameState;
 import com.pcunha.svt.infrastructure.data.GameDataLoader;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
-
 
 public class ActionHandler {
     private final Random random;
@@ -24,65 +27,50 @@ public class ActionHandler {
         return new ActionHandler(random, GameDataLoader.loadActionMap());
     }
 
-    public ActionOutcome handle(GameState gameState, GameAction gameAction) {
+    public ActionResult handle(GameState gameState, GameAction gameAction) {
         ActionInfo info = actionMap.get(gameAction);
         int energyCost = info.getEnergyCost();
 
         if (energyCost > 0 && gameState.getTeamState().getEnergy() < energyCost) {
-            return ActionOutcome.EXHAUSTED;
+            return new ActionResult(ActionOutcome.EXHAUSTED, null);
         }
 
-        return switch (gameAction) {
-            case TRAVEL -> {
-                travel(gameState, info);
-                yield ActionOutcome.SUCCESS;
-            }
-            case REST, HACKATHON -> {
-                applyAllEffects(gameState, info);
-                yield ActionOutcome.SUCCESS;
-            }
-            case SCAVENGE -> scavenge(gameState, info);
-            case PITCH_VCS -> pitchVcs(gameState, info);
-        };
+        if (gameAction == GameAction.TRAVEL) {
+            applyTravelDistance(gameState, info);
+        }
+
+        applyEffects(gameState, info.getEffects());
+        ActionRoll chosen = pickRoll(info);
+        if (chosen != null) {
+            applyEffects(gameState, chosen.getEffects());
+        }
+
+        ActionOutcome outcome = classifyOutcome(chosen);
+        return new ActionResult(outcome, chosen);
     }
 
-    private void travel(GameState gameState, ActionInfo info) {
+    private void applyTravelDistance(GameState gameState, ActionInfo info) {
         double distance = info.getTravelDistance();
         distance *= gameState.getConfigState().getGameMode().getSpeedMultiplier();
         if (gameState.getResourceState().getComputeCredits() <= 0 && info.getComputePenaltyFactor() > 0) {
             distance *= info.getComputePenaltyFactor();
         }
         gameState.getJourneyState().travel(distance);
-        applyAllEffects(gameState, info);
     }
 
-    private ActionOutcome scavenge(GameState gameState, ActionInfo info) {
-        gameState.getTeamState().changeEnergy(info.getEffect(StatType.ENERGY));
-        if (random.nextBoolean()) {
-            gameState.getResourceState().changeFood(info.getRandomEffect(StatType.FOOD));
-            return ActionOutcome.FOOD;
+    private ActionRoll pickRoll(ActionInfo info) {
+        if (!info.hasOutcomes()) {
+            return null;
         }
-        gameState.getResourceState().changeCash(info.getRandomEffect(StatType.CASH));
-        return ActionOutcome.CASH;
+        List<ActionRoll> outcomes = info.getOutcomes();
+        return outcomes.get(random.nextInt(outcomes.size()));
     }
 
-    private ActionOutcome pitchVcs(GameState gameState, ActionInfo info) {
-        // guaranteed costs
-        gameState.getTeamState().changeEnergy(info.getEffect(StatType.ENERGY));
-        gameState.getResourceState().changeComputeCredits(info.getEffect(StatType.COMPUTE_CREDIT));
-
-        // random outcome
-        if (random.nextBoolean()) {
-            gameState.getResourceState().changeCash(info.getRandomEffect(StatType.CASH));
-            return ActionOutcome.PITCH_SUCCESS;
+    private void applyEffects(GameState gameState, List<ActionEffect> effects) {
+        if (effects == null) {
+            return;
         }
-        gameState.getTeamState().changeMorale(info.getRandomEffect(StatType.MORALE));
-        return ActionOutcome.PITCH_FAILURE;
-    }
-
-    private void applyAllEffects(GameState gameState, ActionInfo info) {
-        for (ActionInfo.Effect fx : info.getEffects()) {
-            if (fx.isRandom()) continue;
+        for (ActionEffect fx : effects) {
             applyStat(gameState, fx.getStat(), fx.getValue());
         }
     }
@@ -96,5 +84,25 @@ public class ActionHandler {
             case FOOD -> gameState.getResourceState().changeFood(value);
             case COMPUTE_CREDIT -> gameState.getResourceState().changeComputeCredits(value);
         }
+    }
+
+    /**
+     * Generic classifier. Works for any action whose YAML defines outcomes.
+     * Looks at the chosen roll's first effect: positive means GAIN, negative
+     * means LOSS, no roll at all means SUCCESS.
+     */
+    private ActionOutcome classifyOutcome(ActionRoll chosen) {
+        if (chosen == null) {
+            return ActionOutcome.SUCCESS;
+        }
+        List<ActionEffect> effects = chosen.getEffects();
+        if (effects == null || effects.isEmpty()) {
+            return ActionOutcome.SUCCESS;
+        }
+        ActionEffect first = effects.getFirst();
+        if (first.isPositive()) {
+            return ActionOutcome.GAIN;
+        }
+        return ActionOutcome.LOSS;
     }
 }

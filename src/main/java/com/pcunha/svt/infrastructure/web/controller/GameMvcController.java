@@ -45,10 +45,14 @@ public class GameMvcController {
     @GetMapping("/")
     public String home(Model model, HttpServletRequest request, HttpServletResponse response) {
         String token = PlayerCookies.getOrCreate(request, response);
-        boolean hasActiveGame = roomService.loadActiveSession(token).isPresent();
+        LoadedSession loaded = roomService.loadActiveSession(token).orElse(null);
+        boolean canResume = loaded != null && !loaded.gameState().getEndingState().isGameOver();
+        boolean hasUnfinishedEnd = loaded != null && loaded.gameState().getEndingState().isGameOver();
+
         model.addAttribute("gameModes", GameMode.values());
-        model.addAttribute("hasActiveGame", hasActiveGame);
-        if (hasActiveGame) {
+        model.addAttribute("canResume", canResume);
+        model.addAttribute("hasUnfinishedEnd", hasUnfinishedEnd);
+        if (canResume || hasUnfinishedEnd) {
             String resumeUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
                     .path("/resume/")
                     .path(token)

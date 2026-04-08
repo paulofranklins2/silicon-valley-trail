@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Collections;
 import java.util.List;
 
 @Getter
@@ -16,42 +17,25 @@ public class ActionInfo {
     private String displayName;
     private double travelDistance;
     private double computePenaltyFactor;
-    private List<Effect> effects;
+    private List<ActionEffect> effects;
+    private List<ActionRoll> outcomes;
 
     public int getEnergyCost() {
         return effects.stream()
-                .filter(e -> e.stat == StatType.ENERGY && e.value < 0 && !e.random)
-                .mapToInt(e -> Math.abs(e.value))
+                .filter(e -> e.getStat() == StatType.ENERGY && e.getValue() < 0)
+                .mapToInt(e -> Math.abs(e.getValue()))
                 .findFirst()
                 .orElse(0);
     }
 
-    public int getEffect(StatType stat) {
-        return effects.stream()
-                .filter(e -> e.stat == stat && !e.random)
-                .mapToInt(e -> e.value)
-                .findFirst()
-                .orElse(0);
+    public boolean hasOutcomes() {
+        return outcomes != null && !outcomes.isEmpty();
     }
 
-    public int getRandomEffect(StatType stat) {
-        return effects.stream()
-                .filter(e -> e.stat == stat && e.random)
-                .mapToInt(e -> e.value)
-                .findFirst()
-                .orElse(0);
-    }
-
-    @Getter
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Effect {
-        private StatType stat;
-        private int value;
-        private boolean random;
-
-        public boolean isPositive() {
-            return value > 0;
+    public List<ActionRoll> getOutcomes() {
+        if (outcomes == null) {
+            return Collections.emptyList();
         }
+        return outcomes;
     }
 }

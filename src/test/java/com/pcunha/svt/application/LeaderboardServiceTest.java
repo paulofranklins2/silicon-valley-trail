@@ -84,7 +84,7 @@ class LeaderboardServiceTest {
 
     @Test
     void submitWithNameExactlyMaxLengthSucceeds() {
-        // 10 characters — the boundary case
+        // 10 characters, the boundary case
         SubmissionResult result = service.submitResult(gameState, "TenCharsOk", false);
 
         assertTrue(result.ok());

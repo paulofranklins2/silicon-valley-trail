@@ -1,26 +1,31 @@
 - action: TRAVEL
   displayName: Travel
-  travelDistance: 5.0
+  travelDistance: 3.0
   computePenaltyFactor: 0.5
   effects:
     - stat: ENERGY
-      value: -15
-    - stat: MORALE
-      value: -2
+      value: -10
     - stat: FOOD
       value: -1
     - stat: COMPUTE_CREDIT
-      value: -1
+      value: -2
+  outcomes:
+    - effects:
+        - stat: MORALE
+          value: -5
+    - effects:
+        - stat: HEALTH
+          value: -5
 
 - action: REST
   displayName: Rest
   effects:
     - stat: HEALTH
-      value: 5
+      value: 8
     - stat: ENERGY
-      value: 10
+      value: 15
     - stat: MORALE
-      value: 10
+      value: 8
     - stat: FOOD
       value: -1
 
@@ -31,24 +36,36 @@
       value: -10
     - stat: HEALTH
       value: -3
-    - stat: FOOD
-      value: 2
-      random: true
-    - stat: CASH
-      value: 10
-      random: true
+  outcomes:
+    - effects:
+        - stat: FOOD
+          value: 3
+    - effects:
+        - stat: CASH
+          value: 15
+        - stat: MORALE
+          value: -3
 
 - action: HACKATHON
   displayName: Hackathon
   effects:
     - stat: COMPUTE_CREDIT
-      value: 10
+      value: 15
     - stat: ENERGY
-      value: -15
-    - stat: MORALE
-      value: -8
+      value: -12
     - stat: FOOD
       value: -1
+  outcomes:
+    - effects:
+        - stat: CASH
+          value: 15
+        - stat: FOOD
+          value: 1
+    - effects:
+        - stat: MORALE
+          value: -8
+        - stat: HEALTH
+          value: -8
 
 - action: PITCH_VCS
   displayName: Pitch VCs
@@ -56,12 +73,15 @@
     - stat: ENERGY
       value: -5
     - stat: COMPUTE_CREDIT
-      value: -5
-    - stat: MORALE
       value: -3
-    - stat: CASH
-      value: 50
-      random: true
     - stat: MORALE
-      value: -10
-      random: true
+      value: -2
+  outcomes:
+    - effects:
+        - stat: CASH
+          value: 50
+    - effects:
+        - stat: MORALE
+          value: -8
+        - stat: HEALTH
+          value: -3

@@ -11,6 +11,7 @@ import lombok.Setter;
 public class TurnResult {
     private GameAction gameAction;
     private ActionOutcome actionOutcome;
+    private ActionRoll chosenRoll;
     private GameEvent gameEvent;
     private WeatherCategory weatherCategory;
     private double weatherTemperature;

@@ -29,16 +29,22 @@ class TurnProcessorTest {
     }
 
     private GameState createGameState() {
+        return createGameState(20.0);
+    }
+
+    private GameState createGameState(double distance) {
         Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(1);
         Mockito.when(mockWeatherPort.getWeather(Mockito.any()))
                 .thenReturn(new WeatherSignal(WeatherCategory.CLEAR, 20.0));
         TeamState team = new TeamState(100, 100, 100);
-        ResourceState resources = new ResourceState(100, 10, 5);
+        // Start with 20 compute so the travel speed penalty (kicks in at 0)
+        // does not interfere with tests that just check turn flow.
+        ResourceState resources = new ResourceState(100, 10, 20);
         JourneyState journey = new JourneyState(
                 List.of(
                         new Location("A", 0, 0),
                         new Location("B", 0, 0)),
-                List.of(20.0)
+                List.of(distance)
         );
         return new GameState(team, resources, journey, "Test Team Name");
     }
@@ -48,13 +54,13 @@ class TurnProcessorTest {
         Mockito.when(mockWeatherPort.getWeather(Mockito.any()))
                 .thenReturn(new WeatherSignal(WeatherCategory.CLEAR, 20.0));
         TeamState team = new TeamState(100, 100, 100);
-        ResourceState resources = new ResourceState(100, 10, 5);
+        ResourceState resources = new ResourceState(100, 10, 20);
         JourneyState journey = new JourneyState(
                 List.of(
                         new Location("A", 0, 0),
                         new Location("B", 0, 0),
                         new Location("C", 0, 0)),
-                List.of(5.0, 20.0)
+                List.of(3.0, 20.0)
         );
         return new GameState(team, resources, journey, "Test Team Name");
     }
@@ -92,13 +98,14 @@ class TurnProcessorTest {
 
     @Test
     public void travelTurnShouldCauseVictory() {
-        GameState gameState = createGameState();
+        // 12km journey at 3km/turn means 4 travels exactly reach the destination.
+        GameState gameState = createGameState(12.0);
         TurnProcessor turnProcessor = createProcessor();
 
-        turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 5
-        turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 10
-        turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 15
-        turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 20 to arrived at B (destination)
+        turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 3
+        turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 6
+        turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 9
+        turnProcessor.processTurn(gameState, GameAction.TRAVEL); // 12 to arrived at B (destination)
 
         // turn counter
         assertEquals(4, gameState.getProgressState().getTurn());
@@ -150,8 +157,8 @@ class TurnProcessorTest {
     @Test
     public void arrivingAtDestinationDoesNotTriggerEvent() {
         // 2-city journey where the second city IS the destination.
-        // Arriving there should trigger victory, not an event.
-        GameState gameState = createGameState();
+        // 12km at 3km/turn means 4 travels exactly reach it.
+        GameState gameState = createGameState(12.0);
         TurnProcessor turnProcessor = createProcessor();
 
         turnProcessor.processTurn(gameState, GameAction.TRAVEL);
@@ -171,8 +178,8 @@ class TurnProcessorTest {
         turnProcessor.processTurn(gameState, GameAction.TRAVEL);
 
         // action still applied even without event
-        assertEquals(15, gameState.getJourneyState().getDistanceToNextLocation()); // 20 - 5
-        assertEquals(90, gameState.getTeamState().getEnergy()); // 100 - 15 +5 weather
+        assertEquals(17, gameState.getJourneyState().getDistanceToNextLocation()); // 20 - 3
+        assertEquals(95, gameState.getTeamState().getEnergy()); // 100 - 10 +5 weather
     }
 
     @Test
