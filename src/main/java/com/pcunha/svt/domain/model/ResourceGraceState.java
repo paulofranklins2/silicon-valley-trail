@@ -2,8 +2,10 @@ package com.pcunha.svt.domain.model;
 
 import lombok.Getter;
 
+import java.io.Serializable;
+
 @Getter
-public class ResourceGraceState {
+public class ResourceGraceState implements Serializable {
     private int turnWithoutCash;
     private int turnWithoutFood;
 

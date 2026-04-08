@@ -2,10 +2,11 @@ package com.pcunha.svt.domain.model;
 
 import lombok.Getter;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Getter
-public class JourneyState {
+public class JourneyState implements Serializable {
     private final List<Location> locations;
     private final List<Double> distances;
     private int currentLocationIndex;

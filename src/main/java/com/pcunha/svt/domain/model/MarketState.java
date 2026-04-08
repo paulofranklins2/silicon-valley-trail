@@ -3,11 +3,12 @@ package com.pcunha.svt.domain.model;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
 @Getter
-public class MarketState {
+public class MarketState implements Serializable {
     @Setter
     private GameEvent currentMarketEvent;
     @Setter

@@ -1,19 +1,16 @@
 package com.pcunha.svt.domain.model;
 
 import com.pcunha.svt.domain.EventCategory;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Getter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class GameEvent {
+public class GameEvent implements Serializable {
     private String title;
     private String description;
     @Setter

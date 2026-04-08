@@ -5,11 +5,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class EventOutcome {
+public class EventOutcome implements Serializable {
     private String description;
     private int healthChange;
     private int energyChange;

@@ -4,8 +4,10 @@ import com.pcunha.svt.domain.WeatherCategory;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Getter
-public class ProgressState {
+public class ProgressState implements Serializable {
     private int turn = 1;
     @Setter
     private WeatherCategory currentWeather;

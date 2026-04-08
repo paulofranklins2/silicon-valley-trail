@@ -4,10 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.io.Serializable;
+
 @Getter
 @AllArgsConstructor
 @ToString
-public class ResourceState {
+public class ResourceState implements Serializable {
     private int cash;
     private int food;
     private int computeCredits;

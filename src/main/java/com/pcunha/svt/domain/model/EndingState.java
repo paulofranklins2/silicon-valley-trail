@@ -4,8 +4,10 @@ import com.pcunha.svt.domain.LossReason;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
+
 @Getter
-public class EndingState {
+public class EndingState implements Serializable {
     private boolean victory;
     @Setter
     private boolean gameOver;

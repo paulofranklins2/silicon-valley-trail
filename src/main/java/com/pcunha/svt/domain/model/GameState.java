@@ -3,9 +3,11 @@ package com.pcunha.svt.domain.model;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.io.Serializable;
+
 @Getter
 @ToString
-public class GameState {
+public class GameState implements Serializable {
     private final String teamName;
     private final TeamState teamState;
     private final ResourceState resourceState;

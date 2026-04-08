@@ -4,10 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
 
+import java.io.Serializable;
+
 @Getter
 @AllArgsConstructor
 @ToString
-public class TeamState {
+public class TeamState implements Serializable {
     private int health;
     private int energy;
     private int morale;
