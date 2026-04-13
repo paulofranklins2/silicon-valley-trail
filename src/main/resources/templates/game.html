@@ -13,6 +13,8 @@
             <span class="weather-display__effects" id="weather-effects"></span>
         </div>
         <span class="top-bar__turn" th:text="'Turn ' + ${gameState.progressState.turn}">Turn 1</span>
+        <span class="top-bar__timer" id="game-timer"
+              th:data-start="${gameState.progressState.startTimeMs}">0:00</span>
     </div>
 
     <!-- Weather overlay (CSS animations + DOM particles) -->
@@ -303,6 +305,21 @@
         cashGraceTurns: /*[[${cashGraceTurns}]]*/ 3,
         usedFallback: /*[[${gameState.configState.usedFallbackDistances}]]*/ false
     };
+</script>
+
+<script>
+(function() {
+    var el = document.getElementById('game-timer');
+    if (!el) return;
+    var start = parseInt(el.getAttribute('data-start'), 10);
+    if (!start) return;
+    function tick() {
+        var s = Math.max(0, Math.floor((Date.now() - start) / 1000));
+        el.textContent = new Date(s * 1000).toISOString().slice(s >= 3600 ? 11 : 14, 19);
+    }
+    tick();
+    setInterval(tick, 1000);
+})();
 </script>
 
 <!-- Choice modal overlay (JS-driven) -->

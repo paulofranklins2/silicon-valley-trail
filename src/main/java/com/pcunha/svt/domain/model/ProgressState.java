@@ -15,6 +15,10 @@ public class ProgressState implements Serializable {
     private double currentWeatherTemperature;
     @Setter
     private GameEvent pendingEvent;
+    @Setter
+    private long startTimeMs;
+    @Setter
+    private long endTimeMs;
 
     public void nextTurn() {
         turn++;
@@ -22,5 +26,13 @@ public class ProgressState implements Serializable {
 
     public void clearPendingEvent() {
         this.pendingEvent = null;
+    }
+
+    public String getElapsedTime() {
+        long end = endTimeMs > 0 ? endTimeMs : System.currentTimeMillis();
+        if (startTimeMs == 0 || end < startTimeMs) {
+            return "0:00";
+        }
+        return TimeFormatter.format(end - startTimeMs);
     }
 }

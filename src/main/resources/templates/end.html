@@ -32,7 +32,8 @@
         <div th:if="${gameState.endingState.victory}">
             <p class="result-message">
                 <span th:text="${gameState.teamName}">Team</span> reached San Francisco in
-                <strong th:text="${gameState.progressState.turn}">0</strong> turns.
+                <strong th:text="${gameState.progressState.turn}">0</strong> turns
+                (<span th:text="${gameState.progressState.elapsedTime}">0:00</span>).
             </p>
         </div>
         <div th:unless="${gameState.endingState.victory}">
@@ -55,6 +56,10 @@
             <span class="final-stats__meta-item">
                 <span class="label">Turns</span>
                 <span class="value" th:text="${gameState.progressState.turn}">0</span>
+            </span>
+            <span class="final-stats__meta-item">
+                <span class="label">Time</span>
+                <span class="value" th:text="${gameState.progressState.elapsedTime}">0:00</span>
             </span>
         </div>
         <div class="final-stats__grid">

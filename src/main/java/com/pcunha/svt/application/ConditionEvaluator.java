@@ -13,6 +13,7 @@ public class ConditionEvaluator {
     public void evaluate(GameState gameState) {
         if (hasWon(gameState)) {
             gameState.getEndingState().markVictory();
+            stampEndTime(gameState);
             return;
         }
 
@@ -66,5 +67,12 @@ public class ConditionEvaluator {
     private void lose(GameState gameState, LossReason lossReason) {
         gameState.getEndingState().setLossReason(lossReason);
         gameState.getEndingState().setGameOver(true);
+        stampEndTime(gameState);
+    }
+
+    private void stampEndTime(GameState gameState) {
+        if (gameState.getProgressState().getEndTimeMs() == 0) {
+            gameState.getProgressState().setEndTimeMs(System.currentTimeMillis());
+        }
     }
 }

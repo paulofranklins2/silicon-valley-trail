@@ -97,6 +97,22 @@ class TurnProcessorTest {
     }
 
     @Test
+    public void endTimeIsStampedWhenGameEnds() {
+        GameState gameState = createGameState();
+        gameState.getProgressState().setStartTimeMs(System.currentTimeMillis() - 5000);
+        gameState.getTeamState().changeHealth(-100);
+
+        TurnProcessor turnProcessor = createProcessor();
+        turnProcessor.processTurn(gameState, GameAction.TRAVEL);
+
+        assertTrue(gameState.getEndingState().isGameOver());
+        assertTrue(gameState.getProgressState().getEndTimeMs() > 0);
+        long elapsed = gameState.getProgressState().getEndTimeMs()
+                     - gameState.getProgressState().getStartTimeMs();
+        assertTrue(elapsed >= 5000, "Elapsed time should be at least 5 seconds");
+    }
+
+    @Test
     public void travelTurnShouldCauseVictory() {
         // 12km journey at 3km/turn means 4 travels exactly reach the destination.
         GameState gameState = createGameState(12.0);

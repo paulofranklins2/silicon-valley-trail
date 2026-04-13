@@ -101,6 +101,14 @@
     transition: transform var(--duration-normal) ease, text-shadow var(--duration-normal) ease;
 }
 
+.top-bar__timer {
+    font-family: var(--font-arcade);
+    font-size: 1rem;
+    color: var(--text-muted, #aaa);
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
+
 /*  TEAM DISPLAY (now inside stats panel)  */
 .stats-panel__team {
     display: flex;

@@ -82,6 +82,7 @@ public class GameEngine {
         configState.setGameMode(effectiveMode);
         configState.setRequestedGameMode(gameMode);
         configState.setUsedFallbackDistances(result.usedFallback());
+        gameState.getProgressState().setStartTimeMs(System.currentTimeMillis());
         turnProcessor.loadInitialWeather(gameState);
         return gameState;
     }
