@@ -1,7 +1,9 @@
 victoryBonus: 1000
 maxTurnBonus: 500
+maxTimeBonus: 300
 maxJourneyBonus: 300
 turnBonusBaseline: 30
+timeBonusBaselineSeconds: 600
 
 statWeights:
   health: 2.0

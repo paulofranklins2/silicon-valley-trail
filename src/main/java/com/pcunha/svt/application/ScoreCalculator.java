@@ -31,6 +31,7 @@ public class ScoreCalculator {
         if (inputs.victory()) {
             score += scoring.victoryBonus();
             score += turnEfficiencyBonus(inputs.turns());
+            score += timeEfficiencyBonus(inputs.elapsedMs());
         } else {
             score += journeyProgressBonus(inputs.locationIndex(), inputs.totalLocations());
         }
@@ -42,9 +43,13 @@ public class ScoreCalculator {
     }
 
     private static ScoreInputs toInputs(GameState gameState) {
+        long start = gameState.getProgressState().getStartTimeMs();
+        long end = gameState.getProgressState().getEndTimeMs();
+        long elapsed = (start > 0 && end > start) ? end - start : 0;
         return new ScoreInputs(
                 gameState.getEndingState().isVictory(),
                 gameState.getProgressState().getTurn(),
+                elapsed,
                 gameState.getJourneyState().getCurrentLocationIndex(),
                 gameState.getJourneyState().getLocations().size(),
                 gameState.getTeamState().getHealth(),
@@ -62,6 +67,15 @@ public class ScoreCalculator {
         if (turns >= baseline) return 0;
         double ratio = 1.0 - ((double) turns / baseline);
         return (int) (ratio * scoring.maxTurnBonus());
+    }
+
+    private int timeEfficiencyBonus(long elapsedMs) {
+        if (elapsedMs <= 0) return 0;
+        long elapsedSeconds = elapsedMs / 1000;
+        int baseline = scoring.timeBonusBaselineSeconds();
+        if (elapsedSeconds >= baseline) return 0;
+        double ratio = 1.0 - ((double) elapsedSeconds / baseline);
+        return (int) (ratio * scoring.maxTimeBonus());
     }
 
     private int journeyProgressBonus(int locationIndex, int totalLocations) {

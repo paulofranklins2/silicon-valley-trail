@@ -7,6 +7,7 @@ package com.pcunha.svt.domain.model;
 public record ScoreInputs(
         boolean victory,
         int turns,
+        long elapsedMs,
         int locationIndex,
         int totalLocations,
         int health,

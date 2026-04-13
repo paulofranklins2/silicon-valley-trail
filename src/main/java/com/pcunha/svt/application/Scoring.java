@@ -7,8 +7,10 @@ package com.pcunha.svt.application;
 public record Scoring(
         int victoryBonus,
         int maxTurnBonus,
+        int maxTimeBonus,
         int maxJourneyBonus,
         int turnBonusBaseline,
+        int timeBonusBaselineSeconds,
         StatWeights statWeights,
         ResourceWeights resourceWeights,
         ResourceCaps resourceCaps) {

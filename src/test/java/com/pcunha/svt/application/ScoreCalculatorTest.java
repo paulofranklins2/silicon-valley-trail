@@ -141,6 +141,9 @@ class ScoreCalculatorTest {
         LeaderboardEntry entry = new LeaderboardEntry();
         entry.setVictory(gameState.getEndingState().isVictory());
         entry.setTurns(gameState.getProgressState().getTurn());
+        long start = gameState.getProgressState().getStartTimeMs();
+        long end = gameState.getProgressState().getEndTimeMs();
+        entry.setElapsedMs((start > 0 && end > start) ? end - start : 0);
         entry.setLocationIndex(gameState.getJourneyState().getCurrentLocationIndex());
         entry.setTotalLocations(gameState.getJourneyState().getLocations().size());
         entry.setHealth(gameState.getTeamState().getHealth());

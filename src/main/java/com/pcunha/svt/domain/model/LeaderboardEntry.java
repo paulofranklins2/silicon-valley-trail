@@ -56,6 +56,7 @@ public class LeaderboardEntry {
         return new ScoreInputs(
                 victory,
                 turns,
+                elapsedMs,
                 locationIndex,
                 totalLocations,
                 health,
