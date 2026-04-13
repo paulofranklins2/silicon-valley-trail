@@ -57,17 +57,22 @@ public class EventProcessor {
      * Weather can influence the type of event picked.
      */
     public GameEvent generateEvent(WeatherSignal weatherSignal) {
+        return generateEvent(weatherSignal, random);
+    }
+
+    // Overload that accepts a seeded Random for Daily mode determinism
+    public GameEvent generateEvent(WeatherSignal weatherSignal, Random rng) {
         double bias = weatherBias(weatherSignal);
         List<GameEvent> weatherEvents = eventPool.get(EventCategory.WEATHER);
 
-        if (weatherEvents != null && !weatherEvents.isEmpty() && random.nextDouble() < bias) {
-            return weatherEvents.get(random.nextInt(weatherEvents.size()));
+        if (weatherEvents != null && !weatherEvents.isEmpty() && rng.nextDouble() < bias) {
+            return weatherEvents.get(rng.nextInt(weatherEvents.size()));
         }
 
         List<GameEvent> allEvents = eventPool.values().stream()
                 .flatMap(List::stream)
                 .toList();
-        return allEvents.get(random.nextInt(allEvents.size()));
+        return allEvents.get(rng.nextInt(allEvents.size()));
     }
 
     private double weatherBias(WeatherSignal signal) {
@@ -77,5 +82,10 @@ public class EventProcessor {
 
     public GameEvent getCityMarketEvent() {
         return cityMarketEvents.get(random.nextInt(cityMarketEvents.size()));
+    }
+
+    // Overload that accepts a seeded Random for Daily mode determinism
+    public GameEvent getCityMarketEvent(Random rng) {
+        return cityMarketEvents.get(rng.nextInt(cityMarketEvents.size()));
     }
 }

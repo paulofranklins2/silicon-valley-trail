@@ -9,6 +9,7 @@ import com.pcunha.svt.infrastructure.data.GameDataLoader;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * Main game class. Sets up new games and runs turns.
@@ -62,6 +63,11 @@ public class GameEngine {
      * If the cached result used a fallback, downgrade to Fast mode.
      */
     public GameState createNewGame(String teamName, GameMode gameMode) {
+        return createNewGame(teamName, gameMode, 0);
+    }
+
+    // Overload that accepts a seed so Daily mode players share the same random sequence
+    public GameState createNewGame(String teamName, GameMode gameMode, long seed) {
         TeamState teamState = new TeamState(100, 100, 100);
         // Starting food 8 gives ~8 turns of breathing room before food hunting
         // becomes urgent. Starting compute 8 keeps the first 4 travels at full
@@ -82,6 +88,8 @@ public class GameEngine {
         configState.setGameMode(effectiveMode);
         configState.setRequestedGameMode(gameMode);
         configState.setUsedFallbackDistances(result.usedFallback());
+        // Store seed in state so TurnProcessor can build a per-turn Random for Daily mode
+        gameState.setSeed(seed);
         turnProcessor.loadInitialWeather(gameState);
         return gameState;
     }
@@ -134,7 +142,18 @@ public class GameEngine {
 
         if (marketState.getCurrentMarketEvent() == null || marketState.getMarketCityIndex() != cityIndex) {
             marketState.resetMarket();
-            marketState.setCurrentMarketEvent(turnProcessor.getEventProcessor().getCityMarketEvent());
+            // Distinct seed per city so all Daily players see the same market at each stop
+            GameEvent market;
+            if (gameState.getSeed() != 0) {
+//                Room 5, City 0 → 5*31 + 0*7 + 3 = 158
+//                Room 5, City 1 → 5*31 + 1*7 + 3 = 165
+//                Room 5, City 2 → 5*31 + 2*7 + 3 = 172
+                long marketSeed = gameState.getSeed() * 31 + cityIndex * 7 + 3;
+                market = turnProcessor.getEventProcessor().getCityMarketEvent(new Random(marketSeed));
+            } else {
+                market = turnProcessor.getEventProcessor().getCityMarketEvent();
+            }
+            marketState.setCurrentMarketEvent(market);
             marketState.setMarketCityIndex(cityIndex);
         }
 

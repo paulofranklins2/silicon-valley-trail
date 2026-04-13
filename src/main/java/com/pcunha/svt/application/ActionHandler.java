@@ -28,6 +28,11 @@ public class ActionHandler {
     }
 
     public ActionResult handle(GameState gameState, GameAction gameAction) {
+        return handle(gameState, gameAction, random);
+    }
+
+    // Overload that accepts a seeded Random for Daily mode determinism
+    public ActionResult handle(GameState gameState, GameAction gameAction, Random rng) {
         ActionInfo info = actionMap.get(gameAction);
         int energyCost = info.getEnergyCost();
 
@@ -40,7 +45,7 @@ public class ActionHandler {
         }
 
         applyEffects(gameState, info.getEffects());
-        ActionRoll chosen = pickRoll(info);
+        ActionRoll chosen = pickRoll(info, rng);
         if (chosen != null) {
             applyEffects(gameState, chosen.getEffects());
         }
@@ -58,12 +63,12 @@ public class ActionHandler {
         gameState.getJourneyState().travel(distance);
     }
 
-    private ActionRoll pickRoll(ActionInfo info) {
+    private ActionRoll pickRoll(ActionInfo info, Random rng) {
         if (!info.hasOutcomes()) {
             return null;
         }
         List<ActionRoll> outcomes = info.getOutcomes();
-        return outcomes.get(random.nextInt(outcomes.size()));
+        return outcomes.get(rng.nextInt(outcomes.size()));
     }
 
     private void applyEffects(GameState gameState, List<ActionEffect> effects) {

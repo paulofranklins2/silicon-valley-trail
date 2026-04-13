@@ -1,6 +1,7 @@
 package com.pcunha.svt.domain.model;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
@@ -17,6 +18,9 @@ public class GameState implements Serializable {
     private final MarketState marketState = new MarketState();
     private final ConfigState configState = new ConfigState();
     private final ProgressState progressState = new ProgressState();
+    // Room seed for Daily mode, 0 means unseeded (Solo mode uses normal randomness)
+    @Setter
+    private long seed;
 
     public GameState(TeamState teamState, ResourceState resourceState, JourneyState journeyState, String teamName) {
         this.teamName = teamName;

@@ -6,6 +6,8 @@ import com.pcunha.svt.domain.model.*;
 import com.pcunha.svt.domain.port.WeatherPort;
 import lombok.Getter;
 
+import java.util.Random;
+
 public class TurnProcessor {
     private final ActionHandler actionHandler;
     private final ConditionEvaluator conditionEvaluator;
@@ -22,41 +24,78 @@ public class TurnProcessor {
         this.tunables = tunables;
     }
 
+    // Checks if the game uses a deterministic seed (Daily mode)
+    private boolean isSeeded(GameState gameState) {
+        return gameState.getSeed() != 0;
+    }
+
+    // Builds a seeded Random for a specific purpose so action rolls and events each get their own sequence
+    // salt is a borrowed name from cryptography nothing else is just to make each action different values
+    private Random seededRandom(long seed, int turn, int salt) {
+        return new Random(seed * 31 + turn * 7 + salt);
+    }
+
+    /**
+     * Processes a single game turn. Steps:
+     * 1. Roll the action (travel distance, scavenge loot, etc.)
+     * 2. Fetch weather for the current location
+     * 3. Apply weather effects if traveling
+     * 4. If the player arrived at an intermediate city, generate a random event
+     * 5. Check end-game conditions (death, victory)
+     * 6. Advance the turn counter
+     *
+     * In Daily mode each step that uses randomness gets its own seeded Random
+     * (salt 1 for actions, salt 2 for events) so different player choices
+     * can't shift the random sequence of another step.
+     */
     public TurnResult processTurn(GameState gameState, GameAction gameAction) {
         TurnResult turnResult = new TurnResult();
         turnResult.setGameAction(gameAction);
 
+        long seed = gameState.getSeed();
+        int turn = gameState.getProgressState().getTurn();
+
         int locationBefore = gameState.getJourneyState().getCurrentLocationIndex();
 
-        ActionResult actionResult = actionHandler.handle(gameState, gameAction);
+        // Step 1: Roll action — seeded Random (salt 1) keeps action rolls isolated from events
+        ActionResult actionResult;
+        if (isSeeded(gameState)) {
+            actionResult = actionHandler.handle(gameState, gameAction, seededRandom(seed, turn, 1));
+        } else {
+            actionResult = actionHandler.handle(gameState, gameAction);
+        }
         turnResult.setActionOutcome(actionResult.outcome());
         turnResult.setChosenRoll(actionResult.chosenRoll());
 
-        // if action was blocked (e.g. exhausted), skip the rest of the turn
+        // Step 1b: If the player has no energy the action is blocked, skip the rest
         if (actionResult.outcome() == ActionOutcome.EXHAUSTED) {
-            // still fetch weather for display
             loadWeather(gameState, turnResult);
             return turnResult;
         }
 
-        // fetch weather
+        // Step 2: Fetch weather for the player's current location
         WeatherSignal weatherSignal = loadWeather(gameState, turnResult);
 
-        // weather effects only apply when traveling,
-        // this prevents users to find a good weather and exploit it
+        // Step 3: Apply weather stat changes only when traveling (prevents exploit of resting on good weather)
         if (gameAction == GameAction.TRAVEL) {
             applyWeatherEffects(gameState, weatherSignal);
         }
 
-        // Arriving at the final destination skips the event, victory is the story beat.
+        // Step 4: Generate a random event if the player arrived at an intermediate city
         int locationAfter = gameState.getJourneyState().getCurrentLocationIndex();
         boolean arrivedAtIntermediateCity = locationAfter > locationBefore
                 && !gameState.getJourneyState().hasReachedDestination();
         if (arrivedAtIntermediateCity) {
-            GameEvent event = eventProcessor.generateEvent(weatherSignal);
+            // Seeded Random (salt 2) so events are independent of which action was taken
+            GameEvent event;
+            if (isSeeded(gameState)) {
+                event = eventProcessor.generateEvent(weatherSignal, seededRandom(seed, turn, 2));
+            } else {
+                event = eventProcessor.generateEvent(weatherSignal);
+            }
             turnResult.setGameEvent(event);
 
-            // if event has choices, pause and wait for player decision
+            // If event has choices, pause and wait for player decision
             if (event.getOutcomes() != null && !event.getOutcomes().isEmpty()) {
                 gameState.getProgressState().setPendingEvent(event);
                 return turnResult;
@@ -65,6 +104,7 @@ public class TurnProcessor {
             eventProcessor.applyEvent(gameState, event);
         }
 
+        // Step 5 & 6: Check end-game conditions, then advance the turn counter
         conditionEvaluator.evaluate(gameState);
         if (!gameState.getEndingState().isGameOver()) {
             gameState.getProgressState().nextTurn();
