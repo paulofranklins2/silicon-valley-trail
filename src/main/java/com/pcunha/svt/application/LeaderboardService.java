@@ -73,6 +73,11 @@ public class LeaderboardService {
         leaderboardEntry.setCash(gameState.getResourceState().getCash());
         leaderboardEntry.setFood(gameState.getResourceState().getFood());
         leaderboardEntry.setComputeCredits(gameState.getResourceState().getComputeCredits());
+        long start = gameState.getProgressState().getStartTimeMs();
+        long end = gameState.getProgressState().getEndTimeMs();
+        if (start > 0 && end > start) {
+            leaderboardEntry.setElapsedMs(end - start);
+        }
         int rawScore = scoreCalculator.calculate(gameState);
         var mode = gameState.getConfigState().getGameMode();
         leaderboardEntry.setScore(rawScore);

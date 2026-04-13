@@ -30,6 +30,7 @@
                     <th>Outcome</th>
                     <th>Location</th>
                     <th>Turns</th>
+                    <th>Time</th>
                     <th>Raw</th>
                     <th>Mult</th>
                     <th>Score</th>
@@ -53,6 +54,7 @@
                 </td>
                 <td th:text="${score.lastLocation}">City</td>
                 <td th:text="${score.turns}">0</td>
+                <td th:text="${score.formattedTime}">-</td>
                 <td class="leaderboard-score-raw" th:text="${score.score}">0</td>
                 <td class="leaderboard-score-mult"
                     th:text="'×' + ${#numbers.formatDecimal(score.gameMode.scoreMultiplier, 1, 1)}">×1.0</td>
@@ -64,6 +66,7 @@
                 th:if="${leaderboard.size() < 10}"
                 class="leaderboard-row--empty">
                 <td th:text="${leaderboard.size() + i}">—</td>
+                <td>—</td>
                 <td>—</td>
                 <td>—</td>
                 <td>—</td>

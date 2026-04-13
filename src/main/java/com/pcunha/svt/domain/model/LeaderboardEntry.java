@@ -38,10 +38,16 @@ public class LeaderboardEntry {
     private int computeCredits;
     private int score;
     private int weightedScore;
+    private long elapsedMs;
     private boolean dailyRun;
     @Enumerated(EnumType.STRING)
     private GameMode gameMode;
     private LocalDateTime createdAt;
+
+    public String getFormattedTime() {
+        if (elapsedMs <= 0) return "-";
+        return TimeFormatter.format(elapsedMs);
+    }
 
     /**
      * Converts this entry into ScoreInputs for score recalculation.
