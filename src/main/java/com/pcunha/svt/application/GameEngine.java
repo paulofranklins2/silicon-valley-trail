@@ -63,6 +63,10 @@ public class GameEngine {
      * If the cached result used a fallback, downgrade to Fast mode.
      */
     public GameState createNewGame(String teamName, GameMode gameMode) {
+        return createNewGame(teamName, gameMode, 0);
+    }
+
+    public GameState createNewGame(String teamName, GameMode gameMode, long seed) {
         TeamState teamState = new TeamState(100, 100, 100);
         // Starting food 8 gives ~8 turns of breathing room before food hunting
         // becomes urgent. Starting compute 8 keeps the first 4 travels at full
@@ -79,6 +83,7 @@ public class GameEngine {
         JourneyState journeyState = new JourneyState(locations, result.distances());
 
         GameState gameState = new GameState(teamState, resourceState, journeyState, teamName);
+        gameState.setSeed(seed);
         ConfigState configState = gameState.getConfigState();
         configState.setGameMode(effectiveMode);
         configState.setRequestedGameMode(gameMode);
