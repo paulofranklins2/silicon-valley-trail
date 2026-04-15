@@ -86,12 +86,13 @@ public class TurnProcessor {
         boolean arrivedAtIntermediateCity = locationAfter > locationBefore
                 && !gameState.getJourneyState().hasReachedDestination();
         if (arrivedAtIntermediateCity) {
+            int cityIndex = gameState.getJourneyState().getCurrentLocationIndex();
             // Seeded Random (salt 2) so events are independent of which action was taken
             GameEvent event;
             if (isSeeded(gameState)) {
-                event = eventProcessor.generateEvent(weatherSignal, seededRandom(seed, turn, 2));
+                event = eventProcessor.generateEvent(weatherSignal, cityIndex, seededRandom(seed, turn, 2));
             } else {
-                event = eventProcessor.generateEvent(weatherSignal);
+                event = eventProcessor.generateEvent(weatherSignal, cityIndex);
             }
             turnResult.setGameEvent(event);
 

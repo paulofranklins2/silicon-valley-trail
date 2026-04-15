@@ -16,13 +16,14 @@ class GameDataLoaderTest {
         // call loader
         Map<EventCategory, List<GameEvent>> eventCategoryListMap = GameDataLoader.loadEvents();
 
-        // verify all 5 categories are present
-        assertEquals(5, eventCategoryListMap.size());
+        // verify all 6 categories are present
+        assertEquals(6, eventCategoryListMap.size());
         assertTrue(eventCategoryListMap.containsKey(EventCategory.LOCATION));
         assertTrue(eventCategoryListMap.containsKey(EventCategory.WEATHER));
         assertTrue(eventCategoryListMap.containsKey(EventCategory.TECH));
         assertTrue(eventCategoryListMap.containsKey(EventCategory.TEAM));
         assertTrue(eventCategoryListMap.containsKey(EventCategory.MARKET));
+        assertTrue(eventCategoryListMap.containsKey(EventCategory.BOSS));
 
         // verify each category has event
         eventCategoryListMap.forEach((category, events) -> {
@@ -37,6 +38,12 @@ class GameDataLoaderTest {
 
         assertEquals(-10, gameEvent.getEnergyChange());
         assertEquals(-5, gameEvent.getMoraleChange());
+
+        GameEvent bossEvent = eventCategoryListMap.get(EventCategory.BOSS).stream()
+                .filter(e -> e.getTitle().equals("Enterprise Procurement Gauntlet"))
+                .findFirst()
+                .orElseThrow();
+        assertEquals(5, bossEvent.getCityIndex());
     }
 
     @Test

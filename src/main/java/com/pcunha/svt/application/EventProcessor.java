@@ -56,12 +56,19 @@ public class EventProcessor {
      * Picks an event when arriving at a city.
      * Weather can influence the type of event picked.
      */
-    public GameEvent generateEvent(WeatherSignal weatherSignal) {
-        return generateEvent(weatherSignal, random);
+    public GameEvent generateEvent(WeatherSignal weatherSignal, int cityIndex) {
+        return generateEvent(weatherSignal, cityIndex, random);
     }
 
     // Overload that accepts a seeded Random for Daily mode determinism
-    public GameEvent generateEvent(WeatherSignal weatherSignal, Random rng) {
+    public GameEvent generateEvent(WeatherSignal weatherSignal, int cityIndex, Random rng) {
+        List<GameEvent> eligibleBossEvents = eventPool.getOrDefault(EventCategory.BOSS, List.of()).stream()
+                .filter(event -> event.getCityIndex() != null && event.getCityIndex() == cityIndex)
+                .toList();
+        if (!eligibleBossEvents.isEmpty()) {
+            return eligibleBossEvents.get(rng.nextInt(eligibleBossEvents.size()));
+        }
+
         double bias = weatherBias(weatherSignal);
         List<GameEvent> weatherEvents = eventPool.get(EventCategory.WEATHER);
 
@@ -69,8 +76,9 @@ public class EventProcessor {
             return weatherEvents.get(rng.nextInt(weatherEvents.size()));
         }
 
-        List<GameEvent> allEvents = eventPool.values().stream()
-                .flatMap(List::stream)
+        List<GameEvent> allEvents = eventPool.entrySet().stream()
+                .filter(entry -> entry.getKey() != EventCategory.BOSS)
+                .flatMap(entry -> entry.getValue().stream())
                 .toList();
         return allEvents.get(rng.nextInt(allEvents.size()));
     }

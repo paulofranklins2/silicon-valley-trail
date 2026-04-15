@@ -11,6 +11,7 @@ import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 class EventProcessorTest {
     private final Random mockRandom = Mockito.mock(Random.class);
@@ -60,7 +61,7 @@ class EventProcessorTest {
     public void generateEventReturnsValidEvent() {
         WeatherSignal weatherSignal = new WeatherSignal(WeatherCategory.CLEAR, 20.0);
         Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(0);
-        GameEvent gameEvent = EventProcessor.create(mockRandom).generateEvent(weatherSignal);
+        GameEvent gameEvent = EventProcessor.create(mockRandom).generateEvent(weatherSignal, 1);
 
         assertNotNull(gameEvent);
         assertNotNull(gameEvent.getTitle());
@@ -76,7 +77,7 @@ class EventProcessorTest {
 
         // generate event with rainy weather
         WeatherSignal rainy = new WeatherSignal(WeatherCategory.RAINY, 12.0);
-        GameEvent event = EventProcessor.create(mockRandom).generateEvent(rainy);
+        GameEvent event = EventProcessor.create(mockRandom).generateEvent(rainy, 1);
 
         // verify result
         assertNotNull(event);
@@ -93,9 +94,35 @@ class EventProcessorTest {
 
         // generate event with clear weather
         WeatherSignal clear = new WeatherSignal(WeatherCategory.CLEAR, 22.0);
-        GameEvent event = EventProcessor.create(mockRandom).generateEvent(clear);
+        GameEvent event = EventProcessor.create(mockRandom).generateEvent(clear, 1);
 
         // verify result exists, full pull
         assertNotNull(event);
+    }
+
+    @Test
+    public void bossCityIndexAlwaysPullsBossCategory() {
+        Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(0);
+
+        WeatherSignal clear = new WeatherSignal(WeatherCategory.CLEAR, 22.0);
+        GameEvent event = EventProcessor.create(mockRandom).generateEvent(clear, 5);
+
+        assertNotNull(event);
+        assertEquals(EventCategory.BOSS, event.getEventCategory());
+        assertNotNull(event.getOutcomes());
+        assertEquals(5, event.getCityIndex());
+        assertEquals(2, event.getOutcomes().size());
+    }
+
+    @Test
+    public void nonBossCityNeverPullsBossCategoryFromFullPool() {
+        Mockito.when(mockRandom.nextDouble()).thenReturn(0.99);
+        Mockito.when(mockRandom.nextInt(Mockito.anyInt())).thenReturn(0);
+
+        WeatherSignal clear = new WeatherSignal(WeatherCategory.CLEAR, 22.0);
+        GameEvent event = EventProcessor.create(mockRandom).generateEvent(clear, 1);
+
+        assertNotNull(event);
+        assertNotEquals(EventCategory.BOSS, event.getEventCategory());
     }
 }

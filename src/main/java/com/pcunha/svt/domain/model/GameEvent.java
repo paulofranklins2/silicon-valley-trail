@@ -13,6 +13,7 @@ import java.util.List;
 public class GameEvent implements Serializable {
     private String title;
     private String description;
+    private Integer cityIndex;
     @Setter
     private EventCategory eventCategory;
     private int healthChange;
