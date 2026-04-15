@@ -8,6 +8,8 @@ import com.pcunha.svt.infrastructure.data.GameDataLoader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -99,5 +101,16 @@ public class GameConfig {
     @Bean
     public RoomService roomService(RoomPort roomPort, GameSessionPort gameSessionPort, GameEngine gameEngine) {
         return new RoomService(roomPort, gameSessionPort, gameEngine);
+    }
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthService authService(UserPort userPort, AuthSessionPort authSessionPort,
+                                   PasswordEncoder passwordEncoder, RoomService roomService) {
+        return new AuthService(userPort, authSessionPort, passwordEncoder, roomService);
     }
 }

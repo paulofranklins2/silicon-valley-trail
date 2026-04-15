@@ -5,35 +5,33 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
-
-/**
- * Reads or issues the player identity cookie used for resume.
- */
 @NoArgsConstructor
-public final class PlayerCookies {
-    public static final String COOKIE_NAME = "svt_player";
+public final class AuthCookies {
+    public static final String COOKIE_NAME = "svt_auth";
     private static final int MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
-    public static String getOrCreate(HttpServletRequest request, HttpServletResponse response) {
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if (COOKIE_NAME.equals(cookie.getName())) return cookie.getValue();
-            }
+    public static String read(HttpServletRequest request) {
+        if (request.getCookies() == null) return null;
+        for (Cookie cookie : request.getCookies()) {
+            if (COOKIE_NAME.equals(cookie.getName())) return cookie.getValue();
         }
-        String token = UUID.randomUUID().toString();
-        write(request, response, token);
-        return token;
-    }
-
-    public static void write(HttpServletResponse response, String token) {
-        write(null, response, token);
+        return null;
     }
 
     public static void write(HttpServletRequest request, HttpServletResponse response, String token) {
         Cookie cookie = new Cookie(COOKIE_NAME, token);
         cookie.setPath("/");
         cookie.setMaxAge(MAX_AGE_SECONDS);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(isSecureRequest(request));
+        cookie.setAttribute("SameSite", "Lax");
+        response.addCookie(cookie);
+    }
+
+    public static void clear(HttpServletRequest request, HttpServletResponse response) {
+        Cookie cookie = new Cookie(COOKIE_NAME, "");
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
         cookie.setHttpOnly(true);
         cookie.setSecure(isSecureRequest(request));
         cookie.setAttribute("SameSite", "Lax");
