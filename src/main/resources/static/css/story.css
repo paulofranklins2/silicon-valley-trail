@@ -6,13 +6,13 @@
 
 /*  STORY BEAT (event/last turn - always visible above the grid)  */
 .story-beat {
-    padding: var(--space-md) var(--space-xl);
-    background: linear-gradient(145deg, rgba(0, 212, 255, 0.04) 0%, rgba(0, 212, 255, 0.01) 100%);
-    border: 1px solid var(--border);
+    padding: var(--space-md) var(--space-lg);
+    background: linear-gradient(145deg, rgba(0, 212, 255, 0.04) 0%, rgba(0, 212, 255, 0.015) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-left: 3px solid var(--accent);
-    border-radius: var(--radius);
+    border-radius: 16px;
     transition: opacity var(--duration-slow) ease, transform var(--duration-slow) var(--ease-out);
-    box-shadow: var(--shadow-sm);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
     position: relative;
     overflow: hidden;
     min-height: 44px;
@@ -97,9 +97,30 @@
     margin-bottom: var(--space-sm);
 }
 
+.story-beat__summary {
+    display: grid;
+    grid-template-columns: minmax(88px, auto) minmax(110px, auto) minmax(0, 1fr) minmax(160px, auto);
+    align-items: start;
+    gap: 12px;
+}
+
+.story-beat__segment {
+    min-width: 0;
+}
+
+.story-beat__segment-label {
+    display: block;
+    margin-bottom: 4px;
+    font-family: var(--font-arcade);
+    font-size: 0.58rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+}
+
 .story-beat__action-label {
     font-family: var(--font-arcade);
-    font-size: 1.05rem;
+    font-size: 0.95rem;
     color: var(--accent);
     letter-spacing: 1.5px;
     text-shadow: 0 0 8px var(--accent-glow);
@@ -110,32 +131,35 @@
 }
 
 .story-beat__title {
+    display: block;
     font-weight: 700;
-    color: var(--accent);
+    color: var(--text-bright);
     font-size: 0.92rem;
-    margin-bottom: var(--space-xs);
+    line-height: 1.35;
 }
 
 .story-beat__desc {
+    display: block;
     color: var(--text-muted);
-    font-size: 0.88rem;
-    margin-bottom: var(--space-md);
-    font-style: italic;
-    line-height: 1.6;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .story-beat__impacts {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-sm);
+    gap: 6px;
 }
 
 .story-beat__impacts span {
     display: inline-block;
-    padding: 2px var(--space-sm);
+    padding: 2px 6px;
     border-radius: var(--radius-sm);
     font-family: var(--font-arcade);
-    font-size: 0.82rem;
+    font-size: 0.68rem;
     letter-spacing: 0.5px;
     transition: transform var(--duration-normal) ease;
 }
@@ -158,8 +182,51 @@
     text-shadow: 0 0 4px rgba(239, 68, 68, 0.3);
 }
 
+.stage-feed .story-beat__action-label {
+    font-size: 0.76rem;
+    letter-spacing: 1.1px;
+}
+
+.stage-feed .story-beat__summary {
+    grid-template-columns: minmax(78px, auto) minmax(96px, auto) minmax(0, 1fr) minmax(144px, auto);
+    gap: 10px;
+}
+
+.stage-feed .story-beat__segment-label {
+    font-size: 0.54rem;
+    margin-bottom: 3px;
+}
+
+.stage-feed .story-beat__title {
+    font-size: 0.8rem;
+    margin-bottom: 0;
+}
+
+.stage-feed .story-beat__desc {
+    font-size: 0.74rem;
+}
+
+.stage-feed .story-beat__impacts {
+    gap: 6px;
+}
+
+.stage-feed .story-beat__impacts span {
+    padding: 1px 6px;
+    font-size: 0.68rem;
+}
+
+.stage-feed .story-beat__empty .story-beat__action-label {
+    font-size: 0.8rem;
+}
+
 /*  RESPONSIVE: story  */
 @media (max-width: 600px) {
+    .story-beat__summary,
+    .stage-feed .story-beat__summary {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
     .story-beat {
         padding: var(--space-sm) var(--space-md);
         min-height: 36px;
@@ -182,5 +249,14 @@
     .story-beat__impacts span {
         font-size: 0.72rem;
         padding: 1px var(--space-xs);
+    }
+
+    .stage-feed .story-beat__desc {
+        font-size: 0.74rem;
+        white-space: normal;
+    }
+
+    .stage-feed .story-beat__impacts span {
+        font-size: 0.62rem;
     }
 }

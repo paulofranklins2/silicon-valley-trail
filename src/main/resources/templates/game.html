@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/head :: head('Silicon Valley Trail', 'game.css')}"></head>
 <body>
-<div class="container">
+<div class="container game-screen">
 
     <!-- Top bar: title, weather, turn -->
     <div class="top-bar">
@@ -28,83 +28,139 @@
         <div class="weather-particles" id="weather-particles"></div>
     </div>
 
-    <!-- Journey progress visual -->
-    <div class="journey-progress"
-         th:data-current-index="${gameState.journeyState.currentLocationIndex}"
-         th:data-distance-remaining="${gameState.journeyState.distanceToNextLocation}"
-         th:data-locations="${gameState.journeyState.locations}"
-         th:data-distances="${gameState.journeyState.distances}">
-        <div class="journey-progress__cities">
-            <span class="journey-progress__city journey-progress__city--current"
-                  th:text="${gameState.journeyState.currentLocation.name}">San Jose</span>
-            <span class="journey-progress__city journey-progress__city--dest">San Francisco</span>
-        </div>
-        <div class="journey-progress__track">
-            <div class="journey-progress__rail"></div>
-            <!-- City dots rendered by JS -->
-            <div class="journey-progress__dots" id="journey-dots"></div>
-            <div class="journey-progress__train" id="journey-train">
-                <img src="/img/train.png" alt="Train" class="journey-progress__train-img">
-            </div>
-        </div>
-        <div class="journey-progress__info">
-            <span class="journey-progress__dist"
-                  th:text="'Next stop: ' + ${#numbers.formatDecimal(gameState.journeyState.distanceToNextLocation, 1, 1)} + ' km'">
-                10 km
-            </span>
-            <span class="journey-progress__total"
-                  th:text="'Total: ' + ${#numbers.formatDecimal(gameState.journeyState.totalDistance, 1, 1)} + ' km (' + ${gameState.configState.gameMode.displayName} + ')'">
-                Total: 65 km
-            </span>
-        </div>
-    </div>
-
-    <!-- Action scene stage (dynamically populated by animations.js) -->
-    <div class="action-stage" id="action-stage">
-        <div class="action-stage__scene" id="action-scene"></div>
-    </div>
-
-    <!-- Story beat (always present, above the two-column grid) -->
-    <div class="story-beat" id="story-beat-container">
-        <div th:if="${turnResult.gameAction != null and gameState.progressState.pendingEvent == null}">
-            <div class="story-beat__action">
-                <span class="story-beat__action-label" th:text="${turnResult.gameAction}">TRAVEL</span>
-            </div>
-            <div class="story-beat__event" th:if="${turnResult.gameEvent != null}">
-                <p class="story-beat__title" th:text="${turnResult.gameEvent.title}">Event Title</p>
-                <p class="story-beat__desc" th:text="${turnResult.gameEvent.description}">Event description</p>
-                <div class="story-beat__impacts">
-                    <span th:classappend="${turnResult.gameEvent.healthChange > 0 ? 'positive' : 'negative'}"
-                          th:if="${turnResult.gameEvent.healthChange != 0}"
-                          th:text="'Health ' + (${turnResult.gameEvent.healthChange > 0} ? '+' : '') + ${turnResult.gameEvent.healthChange}">Health</span>
-                    <span th:classappend="${turnResult.gameEvent.energyChange > 0 ? 'positive' : 'negative'}"
-                          th:if="${turnResult.gameEvent.energyChange != 0}"
-                          th:text="'Energy ' + (${turnResult.gameEvent.energyChange > 0} ? '+' : '') + ${turnResult.gameEvent.energyChange}">Energy</span>
-                    <span th:classappend="${turnResult.gameEvent.moraleChange > 0 ? 'positive' : 'negative'}"
-                          th:if="${turnResult.gameEvent.moraleChange != 0}"
-                          th:text="'Morale ' + (${turnResult.gameEvent.moraleChange > 0} ? '+' : '') + ${turnResult.gameEvent.moraleChange}">Morale</span>
-                    <span th:classappend="${turnResult.gameEvent.cashChange > 0 ? 'positive' : 'negative'}"
-                          th:if="${turnResult.gameEvent.cashChange != 0}"
-                          th:text="'Cash ' + (${turnResult.gameEvent.cashChange > 0} ? '+' : '') + ${turnResult.gameEvent.cashChange}">Cash</span>
-                    <span th:classappend="${turnResult.gameEvent.foodChange > 0 ? 'positive' : 'negative'}"
-                          th:if="${turnResult.gameEvent.foodChange != 0}"
-                          th:text="'Food ' + (${turnResult.gameEvent.foodChange > 0} ? '+' : '') + ${turnResult.gameEvent.foodChange}">Food</span>
-                    <span th:classappend="${turnResult.gameEvent.computeCreditsChange > 0 ? 'positive' : 'negative'}"
-                          th:if="${turnResult.gameEvent.computeCreditsChange != 0}"
-                          th:text="'Compute ' + (${turnResult.gameEvent.computeCreditsChange > 0} ? '+' : '') + ${turnResult.gameEvent.computeCreditsChange}">Compute</span>
+    <div class="game-shell">
+        <div class="game-top-row">
+            <section class="mission-panel">
+                <div class="mission-panel__header">
+                    <div>
+                        <p class="mission-panel__eyebrow">Live Run</p>
+                        <h2 class="mission-panel__title"
+                            th:text="${gameState.journeyState.currentLocation.name} + ' to San Francisco'">San Jose to San Francisco</h2>
+                    </div>
+                    <div class="mission-panel__meta">
+                        <span class="mission-panel__meta-chip"
+                              th:text="${gameState.configState.gameMode.displayName}">Easy</span>
+                        <span class="mission-panel__meta-chip"
+                              th:text="${#numbers.formatDecimal(gameState.journeyState.distanceToNextLocation, 1, 1)} + ' km to next stop'">10.0 km to next stop</span>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <div th:if="${turnResult.gameAction == null}" class="story-beat__empty">
-            <span class="story-beat__action-label">Waiting for orders...</span>
-        </div>
-    </div>
 
-    <!-- Desktop two-column layout wrapper -->
-    <div class="game-body">
+                <div class="mission-panel__snapshot">
+                    <div class="mission-panel__snapshot-item">
+                        <span class="mission-panel__snapshot-label">Current city</span>
+                        <strong th:text="${gameState.journeyState.currentLocation.name}">San Jose</strong>
+                    </div>
+                    <div class="mission-panel__snapshot-item">
+                        <span class="mission-panel__snapshot-label">Destination</span>
+                        <strong>San Francisco</strong>
+                    </div>
+                    <div class="mission-panel__snapshot-item">
+                        <span class="mission-panel__snapshot-label">Weather</span>
+                        <strong th:text="${#strings.capitalize(#strings.toLowerCase(gameState.progressState.currentWeather.name()))}">Clear</strong>
+                    </div>
+                    <div class="mission-panel__snapshot-item">
+                        <span class="mission-panel__snapshot-label">Run state</span>
+                        <strong th:text="${gameState.progressState.pendingEvent != null ? 'Decision pending' : 'In motion'}">In motion</strong>
+                    </div>
+                </div>
 
-        <!-- Left column: stats -->
-        <div class="game-body__stats">
+                <!-- Journey progress visual -->
+                <div class="journey-progress"
+                     th:data-current-index="${gameState.journeyState.currentLocationIndex}"
+                     th:data-distance-remaining="${gameState.journeyState.distanceToNextLocation}"
+                     th:data-locations="${gameState.journeyState.locations}"
+                     th:data-distances="${gameState.journeyState.distances}">
+                    <div class="journey-progress__cities">
+                        <span class="journey-progress__city journey-progress__city--current"
+                              th:text="${gameState.journeyState.currentLocation.name}">San Jose</span>
+                        <span class="journey-progress__city journey-progress__city--dest">San Francisco</span>
+                    </div>
+                    <div class="journey-progress__track">
+                        <div class="journey-progress__rail"></div>
+                        <div class="journey-progress__dots" id="journey-dots"></div>
+                        <div class="journey-progress__train" id="journey-train">
+                            <img src="/img/train.png" alt="Train" class="journey-progress__train-img">
+                        </div>
+                    </div>
+                    <div class="journey-progress__info">
+                        <span class="journey-progress__dist"
+                              th:text="'Next stop: ' + ${#numbers.formatDecimal(gameState.journeyState.distanceToNextLocation, 1, 1)} + ' km'">
+                            10 km
+                        </span>
+                        <span class="journey-progress__total"
+                              th:text="'Total: ' + ${#numbers.formatDecimal(gameState.journeyState.totalDistance, 1, 1)} + ' km (' + ${gameState.configState.gameMode.displayName} + ')'">
+                            Total: 65 km
+                        </span>
+                    </div>
+                </div>
+
+                <div class="action-stage-frame">
+                    <div class="action-stage-frame__header">
+                        <span class="action-stage-frame__label">Street View</span>
+                        <span class="action-stage-frame__hint">Your team, the road, and whatever the turn throws at you.</span>
+                    </div>
+                    <div class="action-stage" id="action-stage">
+                        <div class="action-stage__scene" id="action-scene"></div>
+                    </div>
+                </div>
+                <div class="stage-feed">
+                    <div class="stage-feed__header">
+                        <span class="stage-feed__label">Turn Result</span>
+                        <span class="stage-feed__state"
+                              th:text="${gameState.progressState.pendingEvent != null ? 'Decision pending' : 'Run advancing'}">Run advancing</span>
+                    </div>
+                    <div class="story-beat" id="story-beat-container">
+                        <div th:if="${turnResult.gameAction != null and gameState.progressState.pendingEvent == null}">
+                            <div class="story-beat__summary">
+                                <div class="story-beat__segment">
+                                    <span class="story-beat__segment-label">Travel</span>
+                                    <span class="story-beat__action-label" th:text="${turnResult.gameAction}">TRAVEL</span>
+                                </div>
+                                <div class="story-beat__segment" th:if="${turnResult.gameEvent != null}">
+                                    <span class="story-beat__segment-label">Event</span>
+                                    <span class="story-beat__title" th:text="${turnResult.gameEvent.title}">Event Title</span>
+                                </div>
+                                <div class="story-beat__segment story-beat__segment--story" th:if="${turnResult.gameEvent != null}">
+                                    <span class="story-beat__segment-label">Story</span>
+                                    <span class="story-beat__desc" th:text="${turnResult.gameEvent.description}">Event description</span>
+                                </div>
+                                <div class="story-beat__segment story-beat__segment--impact" th:if="${turnResult.gameEvent != null}">
+                                    <span class="story-beat__segment-label">Impact</span>
+                                    <div class="story-beat__impacts">
+                                        <span th:classappend="${turnResult.gameEvent.healthChange > 0 ? 'positive' : 'negative'}"
+                                              th:if="${turnResult.gameEvent.healthChange != 0}"
+                                              th:text="'HP ' + (${turnResult.gameEvent.healthChange > 0} ? '+' : '') + ${turnResult.gameEvent.healthChange}">HP</span>
+                                        <span th:classappend="${turnResult.gameEvent.energyChange > 0 ? 'positive' : 'negative'}"
+                                              th:if="${turnResult.gameEvent.energyChange != 0}"
+                                              th:text="'EN ' + (${turnResult.gameEvent.energyChange > 0} ? '+' : '') + ${turnResult.gameEvent.energyChange}">EN</span>
+                                        <span th:classappend="${turnResult.gameEvent.moraleChange > 0 ? 'positive' : 'negative'}"
+                                              th:if="${turnResult.gameEvent.moraleChange != 0}"
+                                              th:text="'MO ' + (${turnResult.gameEvent.moraleChange > 0} ? '+' : '') + ${turnResult.gameEvent.moraleChange}">MO</span>
+                                        <span th:classappend="${turnResult.gameEvent.cashChange > 0 ? 'positive' : 'negative'}"
+                                              th:if="${turnResult.gameEvent.cashChange != 0}"
+                                              th:text="'$ ' + (${turnResult.gameEvent.cashChange > 0} ? '+' : '') + ${turnResult.gameEvent.cashChange}">$</span>
+                                        <span th:classappend="${turnResult.gameEvent.foodChange > 0 ? 'positive' : 'negative'}"
+                                              th:if="${turnResult.gameEvent.foodChange != 0}"
+                                              th:text="'FD ' + (${turnResult.gameEvent.foodChange > 0} ? '+' : '') + ${turnResult.gameEvent.foodChange}">FD</span>
+                                        <span th:classappend="${turnResult.gameEvent.computeCreditsChange > 0 ? 'positive' : 'negative'}"
+                                              th:if="${turnResult.gameEvent.computeCreditsChange != 0}"
+                                              th:text="'CPU ' + (${turnResult.gameEvent.computeCreditsChange > 0} ? '+' : '') + ${turnResult.gameEvent.computeCreditsChange}">CPU</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div th:if="${turnResult.gameAction == null}" class="story-beat__empty">
+                            <span class="story-beat__action-label">Waiting for orders...</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="ops-panel">
+                <div class="ops-panel__header">
+                    <span class="ops-panel__label">Team HUD</span>
+                    <span class="ops-panel__hint">Vitals, supplies, and runway.</span>
+                </div>
             <!-- Combined stats panel (team + stats unified) -->
             <div class="stats-panel">
                 <!-- Team header inside the stats panel -->
@@ -198,6 +254,7 @@
                     </div>
                 </div>
             </div>
+            </section>
 
             <!-- Event choice fallback (no-JS form submission, hidden when JS takes over via modal) -->
             <noscript>
@@ -247,41 +304,69 @@
             </noscript>
         </div>
 
-        <!-- Right column: actions -->
-        <div class="game-body__actions">
-            <div class="actions" th:classappend="${gameState.progressState.pendingEvent != null ? 'actions--choice-pending' : ''}">
-                <div class="actions__grid">
-                    <form th:each="info : ${actions}" action="/action" class="action-card" method="post"
-                          th:data-action-type="${info.action}">
-                        <input name="action" type="hidden" th:value="${info.action}">
-                        <button type="submit" th:data-energy-cost="${info.energyCost}">
-                            <span class="action-card__name" th:text="${info.displayName}">Action</span>
-                            <span class="action-card__fx">
-                                <span class="action-card__costs">
-                                    <span th:each="fx : ${info.effects}"
-                                          th:classappend="${fx.positive} ? 'gain' : 'cost'"
-                                          th:text="${(fx.value > 0 ? '+' : '') + fx.value + ' ' + fx.stat.displayName}">effect</span>
-                                </span>
-                                <span class="action-card__rolls" th:if="${not #lists.isEmpty(info.outcomes)}">
-                                    <span class="action-card__roll" th:each="oc : ${info.outcomes}">
-                                        <span th:each="fx : ${oc.effects}"
+        <section class="command-panel">
+                <div class="command-panel__header">
+                    <div>
+                        <span class="command-panel__label">Command Deck</span>
+                        <h2 class="command-panel__title">Choose the next move</h2>
+                    </div>
+                    <span class="command-panel__status"
+                          th:text="${gameState.progressState.pendingEvent != null ? 'Resolve the decision first' : 'Actions available'}">Actions available</span>
+                </div>
+                <p class="command-panel__brief">
+                    Every turn is a tradeoff between speed, survival, morale, and runway. Pick the move that fits the run you want to survive.
+                </p>
+                <div class="actions" th:classappend="${gameState.progressState.pendingEvent != null ? 'actions--choice-pending' : ''}">
+                    <div class="actions__grid">
+                        <form th:each="info : ${actions}" action="/action" class="action-card" method="post"
+                              th:data-action-type="${info.action}">
+                            <input name="action" type="hidden" th:value="${info.action}">
+                            <button type="submit" th:data-energy-cost="${info.energyCost}">
+                                <span class="action-card__type" th:text="${info.action}">TRAVEL</span>
+                                <span class="action-card__name" th:text="${info.displayName}">Action</span>
+                                <span class="action-card__cue action-card__cue--recommended"
+                                      th:if="${info.action.name() == 'REST' and (gameState.teamState.health <= 40 or gameState.teamState.energy <= 40 or gameState.teamState.morale <= 40)}">Recommended</span>
+                                <span class="action-card__cue action-card__cue--recommended"
+                                      th:if="${info.action.name() == 'TRAVEL' and gameState.teamState.health > 45 and gameState.teamState.energy > 45 and gameState.teamState.morale > 45 and gameState.progressState.pendingEvent == null}">Recommended</span>
+                                <span class="action-card__cue action-card__cue--warning"
+                                      th:if="${info.action.name() == 'SCAVENGE' and (gameState.resourceState.food <= 2 or gameState.resourceState.cash <= 40)}">Needs gamble</span>
+                                <span class="action-card__cue action-card__cue--opportunity"
+                                      th:if="${info.action.name() == 'HACKATHON' and gameState.teamState.energy > 45 and gameState.resourceState.computeCredits <= 3}">Build upside</span>
+                                <span class="action-card__cue action-card__cue--opportunity"
+                                      th:if="${info.action.name() == 'PITCH_VCS' and gameState.teamState.morale >= 55 and gameState.resourceState.cash <= 120}">Take shot</span>
+                                <span class="action-card__flavor"
+                                      th:text="${info.action.name() == 'TRAVEL' ? 'Push forward and spend team energy to cover ground.' :
+                                                (info.action.name() == 'REST' ? 'Stabilize the team before the road takes more from you.' :
+                                                (info.action.name() == 'SCAVENGE' ? 'Gamble for extra supplies and cash between stops.' :
+                                                (info.action.name() == 'HACKATHON' ? 'Burn energy to chase compute, momentum, and upside.' :
+                                                'Pitch for cash and morale, with real downside if it misses.')))}">Flavor</span>
+                                <span class="action-card__fx">
+                                    <span class="action-card__costs">
+                                        <span th:each="fx : ${info.effects}"
                                               th:classappend="${fx.positive} ? 'gain' : 'cost'"
                                               th:text="${(fx.value > 0 ? '+' : '') + fx.value + ' ' + fx.stat.displayName}">effect</span>
                                     </span>
+                                    <span class="action-card__rolls" th:if="${not #lists.isEmpty(info.outcomes)}">
+                                        <span class="action-card__roll" th:each="oc : ${info.outcomes}">
+                                            <span th:each="fx : ${oc.effects}"
+                                                  th:classappend="${fx.positive} ? 'gain' : 'cost'"
+                                                  th:text="${(fx.value > 0 ? '+' : '') + fx.value + ' ' + fx.stat.displayName}">effect</span>
+                                        </span>
+                                    </span>
                                 </span>
-                            </span>
-                        </button>
-                    </form>
-                    <div class="action-card action-card--market">
-                        <button class="market-btn" id="market-btn" type="button">
-                            <span class="action-card__name">Market</span>
-                            <span class="action-card__fx"><span class="gain">Buy &amp; Sell</span></span>
-                        </button>
+                            </button>
+                        </form>
+                        <div class="action-card action-card--market">
+                            <button class="market-btn" id="market-btn" type="button">
+                                <span class="action-card__type">MARKET</span>
+                                <span class="action-card__name">Market</span>
+                                <span class="action-card__flavor">Rebalance the run: buy breathing room or sell for one more push.</span>
+                                <span class="action-card__fx"><span class="gain">Buy &amp; Sell</span></span>
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
+        </section>
     </div>
 
 </div>

@@ -257,22 +257,34 @@
             return;
         }
 
-        var html = '<div class="story-beat__action"><span class="story-beat__action-label">' +
-            tr.gameAction.replace(/_/g, ' ') + '</span></div>';
-
         var evt = tr.gameEvent;
+        var html = '<div class="story-beat__summary">';
+        html += '<div class="story-beat__segment">';
+        html += '<span class="story-beat__segment-label">Travel</span>';
+        html += '<span class="story-beat__action-label">' + escapeHtml(tr.gameAction.replace(/_/g, ' ')) + '</span>';
+        html += '</div>';
+
         if (evt) {
-            html += '<div class="story-beat__event">';
-            html += '<p class="story-beat__title">' + escapeHtml(evt.title) + '</p>';
-            html += '<p class="story-beat__desc">' + escapeHtml(evt.description) + '</p>';
+            html += '<div class="story-beat__segment">';
+            html += '<span class="story-beat__segment-label">Event</span>';
+            html += '<span class="story-beat__title">' + escapeHtml(evt.title) + '</span>';
+            html += '</div>';
+
+            html += '<div class="story-beat__segment story-beat__segment--story">';
+            html += '<span class="story-beat__segment-label">Story</span>';
+            html += '<span class="story-beat__desc">' + escapeHtml(evt.description) + '</span>';
+            html += '</div>';
+
+            html += '<div class="story-beat__segment story-beat__segment--impact">';
+            html += '<span class="story-beat__segment-label">Impact</span>';
             html += '<div class="story-beat__impacts">';
             var impacts = [
-                ['Health', evt.healthChange],
-                ['Energy', evt.energyChange],
-                ['Morale', evt.moraleChange],
-                ['Cash', evt.cashChange],
-                ['Food', evt.foodChange],
-                ['Compute', evt.computeCreditsChange]
+                ['HP', evt.healthChange],
+                ['EN', evt.energyChange],
+                ['MO', evt.moraleChange],
+                ['$', evt.cashChange],
+                ['FD', evt.foodChange],
+                ['CPU', evt.computeCreditsChange]
             ];
             impacts.forEach(function (pair) {
                 if (pair[1] === 0) return;
@@ -282,6 +294,8 @@
             });
             html += '</div></div>';
         }
+
+        html += '</div>';
 
         container.innerHTML = html;
     }

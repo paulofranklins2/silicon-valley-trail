@@ -168,7 +168,11 @@
 
 /* Darken panels when rainy */
 .weather-overlay--rainy ~ .game-body .stats-panel,
-.weather-overlay--rainy ~ .game-body .story-beat {
+.weather-overlay--rainy ~ .game-body .story-beat,
+.weather-overlay--rainy ~ .game-shell .stats-panel,
+.weather-overlay--rainy ~ .game-shell .stage-feed,
+.weather-overlay--rainy ~ .game-shell .mission-panel,
+.weather-overlay--rainy ~ .game-shell .command-panel {
     filter: brightness(0.92);
 }
 
@@ -254,7 +258,11 @@
 
 /* Darken panels when stormy */
 .weather-overlay--stormy ~ .game-body .stats-panel,
-.weather-overlay--stormy ~ .game-body .story-beat {
+.weather-overlay--stormy ~ .game-body .story-beat,
+.weather-overlay--stormy ~ .game-shell .stats-panel,
+.weather-overlay--stormy ~ .game-shell .stage-feed,
+.weather-overlay--stormy ~ .game-shell .mission-panel,
+.weather-overlay--stormy ~ .game-shell .command-panel {
     filter: brightness(0.82);
 }
 
