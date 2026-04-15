@@ -13,7 +13,9 @@ import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -32,6 +34,10 @@ public class RoomService {
     }
 
     public LoadedSession createSoloGame(String playerToken, String teamName, GameMode mode) {
+        return createSoloGame(playerToken, null, teamName, mode);
+    }
+
+    public LoadedSession createSoloGame(String playerToken, String userId, String teamName, GameMode mode) {
         Room room = new Room();
         room.setId(UUID.randomUUID().toString());
         room.setType(RoomType.SOLO);
@@ -42,11 +48,15 @@ public class RoomService {
         roomPort.save(room);
 
         GameState gameState = gameEngine.createNewGame(teamName, mode);
-        GameSession session = newSession(room.getId(), playerToken, teamName, gameState);
+        GameSession session = newSession(room.getId(), playerToken, userId, teamName, gameState);
         return new LoadedSession(session, gameState);
     }
 
     public LoadedSession createOrJoinDailyGame(String playerToken, String playerName, GameMode mode) {
+        return createOrJoinDailyGame(playerToken, null, playerName, mode);
+    }
+
+    public LoadedSession createOrJoinDailyGame(String playerToken, String userId, String playerName, GameMode mode) {
         LocalDate today = LocalDate.now();
         purgeExpiredDailyData(today);
         Room room = roomPort.findDailyRoom(mode, today).orElseGet(() -> {
@@ -61,7 +71,9 @@ public class RoomService {
             return roomPort.save(fresh);
         });
 
-        Optional<GameSession> existing = gameSessionPort.findByRoomAndPlayer(room.getId(), playerToken);
+        Optional<GameSession> existing = userId != null
+                ? gameSessionPort.findByRoomAndUser(room.getId(), userId)
+                : gameSessionPort.findByRoomAndPlayer(room.getId(), playerToken);
         if (existing.isPresent()) {
             try {
                 GameState gameState = deserialize(existing.get().getGameStateData());
@@ -81,7 +93,7 @@ public class RoomService {
 
         // Pass the room seed so all Daily players get the same random sequence
         GameState fresh = gameEngine.createNewGame(playerName, mode, room.getSeed());
-        GameSession session = newSession(room.getId(), playerToken, playerName, fresh);
+        GameSession session = newSession(room.getId(), playerToken, userId, playerName, fresh);
         return new LoadedSession(session, fresh);
     }
 
@@ -96,19 +108,53 @@ public class RoomService {
     }
 
     public Optional<LoadedSession> loadActiveSession(String playerToken) {
-        return gameSessionPort.findActiveByPlayerToken(playerToken)
-                .flatMap(session -> {
-                    try {
-                        GameState gameState = deserialize(session.getGameStateData());
-                        repairMissingStartTime(session, gameState);
-                        return Optional.of(new LoadedSession(session, gameState));
-                    } catch (IllegalStateException e) {
-                        session.setCompleted(true);
-                        session.setLastActionAt(LocalDateTime.now());
-                        gameSessionPort.save(session);
-                        return Optional.empty();
-                    }
-                });
+        return loadActiveSession(playerToken, null);
+    }
+
+    public Optional<LoadedSession> loadActiveSession(String playerToken, String userId) {
+        for (GameSession session : findActiveSessions(playerToken, userId)) {
+            Optional<LoadedSession> loaded = loadSession(session);
+            if (loaded.isPresent()) {
+                return loaded;
+            }
+        }
+        return Optional.empty();
+    }
+
+    public Optional<LoadedSession> loadActiveSessionForSlot(String playerToken, String userId, String slotKey) {
+        return loadActiveSessionsBySlot(playerToken, userId).entrySet().stream()
+                .filter(entry -> entry.getKey().equals(slotKey))
+                .map(Map.Entry::getValue)
+                .findFirst();
+    }
+
+    public Map<String, LoadedSession> loadActiveSessionsBySlot(String playerToken, String userId) {
+        Map<String, LoadedSession> sessionsBySlot = new LinkedHashMap<>();
+        for (GameSession session : findActiveSessions(playerToken, userId)) {
+            Room room = roomPort.findById(session.getRoomId()).orElse(null);
+            if (room == null) {
+                continue;
+            }
+            String slotKey = slotKey(room);
+            if (sessionsBySlot.containsKey(slotKey)) {
+                continue;
+            }
+            loadSession(session).ifPresent(loaded -> sessionsBySlot.put(slotKey, loaded));
+        }
+        return sessionsBySlot;
+    }
+
+    public void attachGuestSessionToUser(String playerToken, String userId) {
+        if (playerToken == null || playerToken.isBlank() || userId == null || userId.isBlank()) return;
+        Map<String, LoadedSession> userSessionsBySlot = loadActiveSessionsBySlot(playerToken, userId);
+        for (GameSession session : gameSessionPort.findActiveSessionsByPlayerToken(playerToken)) {
+            Room room = roomPort.findById(session.getRoomId()).orElse(null);
+            if (room == null) continue;
+            if (userSessionsBySlot.containsKey(slotKey(room))) continue;
+            session.setUserId(userId);
+            session.setLastActionAt(LocalDateTime.now());
+            gameSessionPort.save(session);
+        }
     }
 
     public GameSession persist(LoadedSession loaded) {
@@ -126,11 +172,17 @@ public class RoomService {
         gameSessionPort.save(session);
     }
 
-    private GameSession newSession(String roomId, String playerToken, String playerName, GameState gameState) {
+    public void touch(LoadedSession loaded) {
+        loaded.session().setLastActionAt(LocalDateTime.now());
+        gameSessionPort.save(loaded.session());
+    }
+
+    private GameSession newSession(String roomId, String playerToken, String userId, String playerName, GameState gameState) {
         GameSession session = new GameSession();
         session.setId(UUID.randomUUID().toString());
         session.setRoomId(roomId);
         session.setPlayerToken(playerToken);
+        session.setUserId(userId);
         session.setPlayerName(playerName);
         session.setGameStateData(serialize(gameState));
         session.setCreatedAt(LocalDateTime.now());
@@ -148,6 +200,29 @@ public class RoomService {
         List<String> roomIds = expiredRooms.stream().map(Room::getId).toList();
         gameSessionPort.deleteByRoomIds(roomIds);
         roomPort.deleteByIds(roomIds);
+    }
+
+    private List<GameSession> findActiveSessions(String playerToken, String userId) {
+        return userId != null
+                ? gameSessionPort.findActiveSessionsByUserId(userId)
+                : gameSessionPort.findActiveSessionsByPlayerToken(playerToken);
+    }
+
+    private Optional<LoadedSession> loadSession(GameSession session) {
+        try {
+            GameState gameState = deserialize(session.getGameStateData());
+            repairMissingStartTime(session, gameState);
+            return Optional.of(new LoadedSession(session, gameState));
+        } catch (IllegalStateException e) {
+            session.setCompleted(true);
+            session.setLastActionAt(LocalDateTime.now());
+            gameSessionPort.save(session);
+            return Optional.empty();
+        }
+    }
+
+    private static String slotKey(Room room) {
+        return room.getType() == RoomType.DAILY ? "DAILY" : room.getMode().name();
     }
 
     private void repairMissingStartTime(GameSession session, GameState gameState) {

@@ -3,71 +3,166 @@
 <head th:replace="~{fragments/head :: head('Silicon Valley Trail', 'start.css')}"></head>
 <body>
 <div class="container start-page">
-    <h1>Silicon Valley Trail</h1>
-    <div class="pixel-border"></div>
-    <p class="subtitle">From Garage to IPO</p>
+    <div class="start-layout">
+        <section class="start-hero">
+            <h1>Silicon Valley Trail</h1>
+            <div class="pixel-border"></div>
+            <p class="subtitle">From Garage to IPO</p>
 
-    <!-- Team characters at starting line -->
-    <div class="start-characters">
-        <div class="start-characters__road">
-            <div class="start-characters__line"></div>
-            <div class="start-characters__group">
-                <img class="start-characters__sprite start-characters__sprite--1" src="/img/team-member-1.png" alt="Team member">
-                <img class="start-characters__sprite start-characters__sprite--2" src="/img/team-member-2.png" alt="Team member">
-                <img class="start-characters__sprite start-characters__sprite--3" src="/img/team-member-3.png" alt="Team member">
-                <img class="start-characters__sprite start-characters__sprite--4" src="/img/team-member-4.png" alt="Team member">
+            <div class="start-characters">
+                <div class="start-characters__road">
+                    <div class="start-characters__line"></div>
+                    <div class="start-characters__group">
+                        <img class="start-characters__sprite start-characters__sprite--1" src="/img/team-member-1.png" alt="Team member">
+                        <img class="start-characters__sprite start-characters__sprite--2" src="/img/team-member-2.png" alt="Team member">
+                        <img class="start-characters__sprite start-characters__sprite--3" src="/img/team-member-3.png" alt="Team member">
+                        <img class="start-characters__sprite start-characters__sprite--4" src="/img/team-member-4.png" alt="Team member">
+                    </div>
+                    <div class="start-characters__dest">
+                        <img class="start-characters__train" src="/img/train.png" alt="Train">
+                        <span class="start-characters__dest-label">SF</span>
+                    </div>
+                </div>
             </div>
-            <div class="start-characters__dest">
-                <img class="start-characters__train" src="/img/train.png" alt="Train">
-                <span class="start-characters__dest-label">SF</span>
+
+            <p class="description">
+                Name your startup team and begin the treacherous journey
+                from San Jose to San Francisco. Will your team survive the
+                grind, or burn out before Demo Day?
+            </p>
+
+            <a href="/leaderboard" class="start-leaderboard-link">View Leaderboard</a>
+        </section>
+
+        <section class="start-panel">
+            <form action="/start" class="start-form" method="post">
+                <div class="start-form__header">
+                    <span class="start-form__label">Launch Panel</span>
+                    <h2 class="start-form__title">Pick a mode and move</h2>
+                    <input name="teamName" placeholder="Enter team name..." required type="text">
+                </div>
+                <div class="mode-selector">
+                    <div th:each="modeOption : ${modeOptions}"
+                         class="mode-option"
+                         th:classappend="${modeOption.code == 'DAILY'} ? ' mode-option--daily'">
+                        <div class="mode-option__meta">
+                            <span class="mode-option__name" th:text="${modeOption.displayName}">Mode</span>
+                            <span class="mode-option__status" th:if="${modeOption.statusLabel}" th:text="${modeOption.statusLabel}">Run in progress</span>
+                        </div>
+                        <div class="mode-option__actions">
+                            <a th:if="${modeOption.resumeAvailable}"
+                               th:href="@{/resume-mode/{mode}(mode=${modeOption.code})}"
+                               class="mode-option__button mode-option__button--resume"
+                               th:text="${modeOption.resumeLabel}">Resume</a>
+                            <button th:if="${modeOption.newAvailable}"
+                                    type="submit"
+                                    name="gameMode"
+                                    th:value="${modeOption.code}"
+                                    class="mode-option__button mode-option__button--new"
+                                    th:text="${modeOption.newLabel}">New</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <div class="account-entry">
+                <div th:if="${signedIn}" class="account-entry__signed-in">
+                    <span class="account-entry__status">Signed in as <strong th:text="${authLogin}">player</strong></span>
+                    <form action="/logout" method="post">
+                        <button type="submit" class="account-entry__button account-entry__button--secondary">Logout</button>
+                    </form>
+                </div>
+                <button th:unless="${signedIn}" type="button" id="auth-open" class="account-entry__button">Sign In</button>
+            </div>
+
+            <details th:if="${!signedIn and !resumeLinks.isEmpty()}" class="start-resume">
+                <summary>Resume on another device</summary>
+                <p class="start-resume__hint">Open one of these links on another device to resume that specific run.</p>
+                <div class="start-resume__item" th:each="resumeLink : ${resumeLinks}">
+                    <span class="start-resume__label" th:text="${resumeLink.label}">Easy</span>
+                    <input class="start-resume__url"
+                           th:value="${resumeLink.url}"
+                           readonly
+                           onclick="this.select(); navigator.clipboard &amp;&amp; navigator.clipboard.writeText(this.value);">
+                </div>
+            </details>
+        </section>
+    </div>
+
+    <div class="auth-modal" id="auth-modal" th:if="${!signedIn}">
+        <div class="auth-modal__backdrop" id="auth-backdrop"></div>
+        <div class="auth-modal__content">
+            <button type="button" class="auth-modal__close" id="auth-close">&times;</button>
+            <div class="auth-modal__panel" id="login-panel">
+                <h3 class="auth-modal__title">Sign In</h3>
+                <p class="auth-modal__message auth-modal__message--error" th:if="${authError}" th:text="${authError}">Auth error</p>
+                <p class="auth-modal__message auth-modal__message--info" th:if="${authInfo}" th:text="${authInfo}">Auth info</p>
+                <form action="/login" class="auth-form auth-form--modal" method="post">
+                    <input name="login" placeholder="login" required type="text" autocomplete="username">
+                    <input name="password" placeholder="password" required type="password" autocomplete="current-password">
+                    <button type="submit">Sign In</button>
+                </form>
+                <button type="button" class="auth-modal__switch" id="show-signup">Not yet a user?</button>
+            </div>
+
+            <div class="auth-modal__panel auth-modal__panel--hidden" id="signup-panel">
+                <h3 class="auth-modal__title">Sign Up</h3>
+                <form action="/signup" class="auth-form auth-form--modal" method="post">
+                    <input name="login" placeholder="login" required type="text" autocomplete="username">
+                    <input name="password" placeholder="password" required type="password" autocomplete="new-password">
+                    <button type="submit">Create Account</button>
+                </form>
+                <button type="button" class="auth-modal__switch" id="show-login">Already have an account?</button>
             </div>
         </div>
     </div>
-
-    <p class="description">
-        Name your startup team and begin the treacherous journey
-        from San Jose to San Francisco. Will your team survive the
-        grind, or burn out before Demo Day?
-    </p>
-    <form action="/start" class="start-form" method="post">
-        <input name="teamName" placeholder="Enter team name..." required type="text">
-        <div class="mode-selector">
-            <label th:each="mode, iter : ${gameModes}"
-                   class="mode-option"
-                   th:classappend="${iter.first} ? 'mode-option--active'">
-                <input type="radio" name="gameMode" th:value="${mode}" th:checked="${iter.first}">
-                <span class="mode-option__name" th:text="${mode.displayName}">Mode</span>
-            </label>
-            <label class="mode-option mode-option--daily">
-                <input type="radio" name="gameMode" value="DAILY">
-                <span class="mode-option__name">Daily</span>
-            </label>
-        </div>
-        <div class="start-actions">
-            <button type="submit">Launch</button>
-            <a th:if="${canResume}" href="/game" class="start-actions__continue">Continue run</a>
-            <a th:if="${hasUnfinishedEnd}" href="/end" class="start-actions__continue">View result</a>
-        </div>
-    </form>
-    <details th:if="${canResume or hasUnfinishedEnd}" class="start-resume">
-        <summary>Resume on another device</summary>
-        <p class="start-resume__hint">Open this link on another device. It drops you straight into the game.</p>
-        <input class="start-resume__url"
-               th:value="${resumeUrl}"
-               readonly
-               onclick="this.select(); navigator.clipboard &amp;&amp; navigator.clipboard.writeText(this.value);">
-    </details>
     <script>
-        document.querySelectorAll('.mode-option input').forEach(function(radio) {
-            radio.addEventListener('change', function() {
-                document.querySelectorAll('.mode-option').forEach(function(el) {
-                    el.classList.remove('mode-option--active');
-                });
-                this.closest('.mode-option').classList.add('mode-option--active');
+        (function() {
+            var modal = document.getElementById('auth-modal');
+            if (!modal) return;
+
+            var openBtn = document.getElementById('auth-open');
+            var closeBtn = document.getElementById('auth-close');
+            var backdrop = document.getElementById('auth-backdrop');
+            var loginPanel = document.getElementById('login-panel');
+            var signupPanel = document.getElementById('signup-panel');
+            var showSignup = document.getElementById('show-signup');
+            var showLogin = document.getElementById('show-login');
+            var hasAuthMessage = !!document.querySelector('.auth-modal__message');
+
+            function openModal() {
+                modal.classList.add('auth-modal--open');
+            }
+
+            function closeModal() {
+                modal.classList.remove('auth-modal--open');
+            }
+
+            function showLoginPanel() {
+                loginPanel.classList.remove('auth-modal__panel--hidden');
+                signupPanel.classList.add('auth-modal__panel--hidden');
+            }
+
+            function showSignupPanel() {
+                signupPanel.classList.remove('auth-modal__panel--hidden');
+                loginPanel.classList.add('auth-modal__panel--hidden');
+            }
+
+            if (openBtn) openBtn.addEventListener('click', openModal);
+            if (closeBtn) closeBtn.addEventListener('click', closeModal);
+            if (backdrop) backdrop.addEventListener('click', closeModal);
+            if (showSignup) showSignup.addEventListener('click', function() {
+                showSignupPanel();
             });
-        });
+            if (showLogin) showLogin.addEventListener('click', function() {
+                showLoginPanel();
+            });
+
+            if (hasAuthMessage) {
+                openModal();
+            }
+        })();
     </script>
-    <a href="/leaderboard" class="start-leaderboard-link">View Leaderboard</a>
 </div>
 </body>
 </html>

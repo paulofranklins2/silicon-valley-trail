@@ -27,6 +27,8 @@ public class GameSession {
     @Column(nullable = false)
     private String playerToken;
 
+    private String userId;
+
     private String playerName;
 
     @Column(columnDefinition = "TEXT")

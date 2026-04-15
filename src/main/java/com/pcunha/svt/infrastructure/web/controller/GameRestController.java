@@ -4,6 +4,7 @@ import com.pcunha.svt.application.GameEngine;
 import com.pcunha.svt.application.LeaderboardService;
 import com.pcunha.svt.application.RoomService;
 import com.pcunha.svt.application.RoomService.LoadedSession;
+import com.pcunha.svt.application.AuthService;
 import com.pcunha.svt.domain.GameAction;
 import com.pcunha.svt.domain.GameMode;
 import com.pcunha.svt.domain.model.*;
@@ -22,17 +23,21 @@ public class GameRestController {
     private final GameEngine gameEngine;
     private final RoomService roomService;
     private final LeaderboardService leaderboardService;
+    private final AuthService authService;
 
-    public GameRestController(GameEngine gameEngine, RoomService roomService, LeaderboardService leaderboardService) {
+    public GameRestController(GameEngine gameEngine, RoomService roomService,
+                              LeaderboardService leaderboardService, AuthService authService) {
         this.gameEngine = gameEngine;
         this.roomService = roomService;
         this.leaderboardService = leaderboardService;
+        this.authService = authService;
     }
 
     @PostMapping("/retry-distances")
     public ResponseEntity<?> retryDistances(@RequestParam String gameMode, HttpServletRequest request, HttpServletResponse response) {
         String token = PlayerCookies.getOrCreate(request, response);
-        LoadedSession existing = requireGame(token);
+        String userId = authService.resolveUser(request, response).map(UserAccount::getId).orElse(null);
+        LoadedSession existing = requireGame(token, userId);
 
         GameMode mode = GameMode.valueOf(gameMode);
         boolean success = gameEngine.retryDistances(mode);
@@ -41,7 +46,7 @@ public class GameRestController {
             // recreate the game with the now-cached real distances.
             // mark the old session done so the player doesn't end up with two actives.
             roomService.markCompleted(existing);
-            roomService.createSoloGame(token, existing.gameState().getTeamName(), mode);
+            roomService.createSoloGame(token, userId, existing.gameState().getTeamName(), mode);
             return ResponseEntity.ok(Map.of("success", true));
         }
 
@@ -51,7 +56,8 @@ public class GameRestController {
     @PostMapping("/action")
     public ResponseEntity<?> processActionApi(@RequestParam String action, HttpServletRequest request, HttpServletResponse response) {
         String token = PlayerCookies.getOrCreate(request, response);
-        LoadedSession loaded = requireGame(token);
+        String userId = authService.resolveUser(request, response).map(UserAccount::getId).orElse(null);
+        LoadedSession loaded = requireGame(token, userId);
         GameState gameState = loaded.gameState();
 
         TurnResult result;
@@ -67,7 +73,8 @@ public class GameRestController {
     @PostMapping("/choice")
     public ResponseEntity<ActionResponse> processChoice(@RequestParam int choiceIndex, HttpServletRequest request, HttpServletResponse response) {
         String token = PlayerCookies.getOrCreate(request, response);
-        LoadedSession loaded = requireGame(token);
+        String userId = authService.resolveUser(request, response).map(UserAccount::getId).orElse(null);
+        LoadedSession loaded = requireGame(token, userId);
         TurnResult result = gameEngine.resolveChoice(loaded.gameState(), choiceIndex);
         roomService.persist(loaded);
         return ResponseEntity.ok(new ActionResponse(loaded.gameState(), result));
@@ -76,7 +83,8 @@ public class GameRestController {
     @GetMapping("/market")
     public Map<String, Object> getMarket(HttpServletRequest request, HttpServletResponse response) {
         String token = PlayerCookies.getOrCreate(request, response);
-        LoadedSession loaded = requireGame(token);
+        String userId = authService.resolveUser(request, response).map(UserAccount::getId).orElse(null);
+        LoadedSession loaded = requireGame(token, userId);
         GameEvent market = gameEngine.getMarket(loaded.gameState());
         roomService.persist(loaded);
         return Map.of("event", market, "purchased", loaded.gameState().getMarketState().getMarketPurchased());
@@ -85,7 +93,8 @@ public class GameRestController {
     @PostMapping("/market")
     public ResponseEntity<?> processMarketPurchase(@RequestParam int choiceIndex, HttpServletRequest request, HttpServletResponse response) {
         String token = PlayerCookies.getOrCreate(request, response);
-        LoadedSession loaded = requireGame(token);
+        String userId = authService.resolveUser(request, response).map(UserAccount::getId).orElse(null);
+        LoadedSession loaded = requireGame(token, userId);
 
         MarketResult marketResult = gameEngine.buyFromMarket(loaded.gameState(), choiceIndex);
         if (!marketResult.ok()) {
@@ -98,7 +107,8 @@ public class GameRestController {
     @PostMapping("/leaderboard")
     public ResponseEntity<?> submitScore(@RequestParam String playerName, HttpServletRequest request, HttpServletResponse response) {
         String token = PlayerCookies.getOrCreate(request, response);
-        LoadedSession loaded = requireGame(token);
+        String userId = authService.resolveUser(request, response).map(UserAccount::getId).orElse(null);
+        LoadedSession loaded = requireGame(token, userId);
 
         boolean daily = roomService.isDailySession(loaded);
         SubmissionResult result = leaderboardService.submitResult(loaded.gameState(), playerName, daily);
@@ -111,6 +121,10 @@ public class GameRestController {
     }
 
     private LoadedSession requireGame(String playerToken) {
-        return roomService.loadActiveSession(playerToken).orElseThrow(NoGameInSessionException::new);
+        return requireGame(playerToken, null);
+    }
+
+    private LoadedSession requireGame(String playerToken, String userId) {
+        return roomService.loadActiveSession(playerToken, userId).orElseThrow(NoGameInSessionException::new);
     }
 }
