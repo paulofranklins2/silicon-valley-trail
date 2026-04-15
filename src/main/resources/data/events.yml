@@ -180,13 +180,13 @@ boss:
     cityIndex: 5
     outcomes:
       - description: Commit the team to win the contract
-        cashChange: 120
-        energyChange: -18
-        moraleChange: -8
+        cashChange: 150
+        healthChange: -30
+        moraleChange: -20
         computeCreditsChange: -6
       - description: Walk away and stay focused
         moraleChange: 6
-        cashChange: -20
+        cashChange: -100
 
   - title: Incumbent Retaliation
     description: A larger competitor noticed your traction and started undercutting your pricing in this city.
@@ -195,22 +195,22 @@ boss:
       - description: Slash prices and fight for market share
         cashChange: -60
         moraleChange: 8
-        energyChange: -10
+        healthChange: -40
       - description: Hold position and sell the premium vision
-        moraleChange: -6
+        moraleChange: -40
         computeCreditsChange: 5
-        cashChange: 20
+        cashChange: 100
 
   - title: Boardroom Ultimatum
     description: Advisors want a hard pivot before they keep backing the company. The team has to choose now.
     cityIndex: 9
     outcomes:
       - description: Pivot aggressively
-        moraleChange: -12
-        energyChange: -8
-        cashChange: 90
+        moraleChange: -30
+        healthChange: -20
+        cashChange: 100
         computeCreditsChange: 6
       - description: Defend the current roadmap
         moraleChange: 10
-        cashChange: -25
-        healthChange: -5
+        cashChange: -75
+        healthChange: -15
