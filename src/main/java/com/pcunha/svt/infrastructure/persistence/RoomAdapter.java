@@ -7,6 +7,7 @@ import com.pcunha.svt.domain.port.RoomPort;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -30,5 +31,16 @@ public class RoomAdapter implements RoomPort {
     @Override
     public Optional<Room> findDailyRoom(GameMode mode, LocalDate dateBucket) {
         return repository.findByTypeAndModeAndDateBucket(RoomType.DAILY, mode, dateBucket);
+    }
+
+    @Override
+    public List<Room> findRoomsByTypeBeforeDate(RoomType type, LocalDate dateBucket) {
+        return repository.findAllByTypeAndDateBucketBefore(type, dateBucket);
+    }
+
+    @Override
+    public void deleteByIds(List<String> ids) {
+        if (ids == null || ids.isEmpty()) return;
+        repository.deleteByIdIn(ids);
     }
 }

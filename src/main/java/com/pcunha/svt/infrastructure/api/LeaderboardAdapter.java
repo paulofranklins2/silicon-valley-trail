@@ -30,4 +30,9 @@ public class LeaderboardAdapter implements LeaderboardPort {
     public List<LeaderboardEntry> getDailyTopScores(LocalDateTime start, LocalDateTime end) {
         return leaderboardRepository.findTop10ByDailyRunTrueAndCreatedAtBetweenOrderByWeightedScoreDesc(start, end);
     }
+
+    @Override
+    public void deleteExpiredDailyScores(LocalDateTime cutoff) {
+        leaderboardRepository.deleteByDailyRunTrueAndCreatedAtBefore(cutoff);
+    }
 }

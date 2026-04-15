@@ -11,4 +11,6 @@ public interface LeaderboardPort {
     List<LeaderboardEntry> getTopScores();
 
     List<LeaderboardEntry> getDailyTopScores(LocalDateTime start, LocalDateTime end);
+
+    void deleteExpiredDailyScores(LocalDateTime cutoff);
 }

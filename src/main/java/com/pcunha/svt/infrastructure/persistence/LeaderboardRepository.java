@@ -11,4 +11,6 @@ public interface LeaderboardRepository extends JpaRepository<LeaderboardEntry, L
 
     List<LeaderboardEntry> findTop10ByDailyRunTrueAndCreatedAtBetweenOrderByWeightedScoreDesc(
             LocalDateTime start, LocalDateTime end);
+
+    void deleteByDailyRunTrueAndCreatedAtBefore(LocalDateTime cutoff);
 }

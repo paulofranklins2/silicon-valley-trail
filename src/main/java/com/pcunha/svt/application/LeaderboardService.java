@@ -44,6 +44,7 @@ public class LeaderboardService {
     public List<LeaderboardEntry> getDailyTopScores() {
         LocalDateTime start = LocalDate.now().atStartOfDay();
         LocalDateTime end = start.plusDays(1);
+        leaderboardPort.deleteExpiredDailyScores(start);
         return leaderboardPort.getDailyTopScores(start, end);
     }
 

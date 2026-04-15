@@ -13,6 +13,7 @@ import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -47,6 +48,7 @@ public class RoomService {
 
     public LoadedSession createOrJoinDailyGame(String playerToken, String playerName, GameMode mode) {
         LocalDate today = LocalDate.now();
+        purgeExpiredDailyData(today);
         Room room = roomPort.findDailyRoom(mode, today).orElseGet(() -> {
             Room fresh = new Room();
             fresh.setId(UUID.randomUUID().toString());
@@ -61,13 +63,30 @@ public class RoomService {
 
         Optional<GameSession> existing = gameSessionPort.findByRoomAndPlayer(room.getId(), playerToken);
         if (existing.isPresent()) {
-            return new LoadedSession(existing.get(), deserialize(existing.get().getGameStateData()));
+            try {
+                GameState gameState = deserialize(existing.get().getGameStateData());
+                repairMissingStartTime(existing.get(), gameState);
+                return new LoadedSession(existing.get(), gameState);
+            } catch (IllegalStateException e) {
+                GameState fresh = gameEngine.createNewGame(playerName, mode, room.getSeed());
+                GameSession repaired = existing.get();
+                repaired.setPlayerName(playerName);
+                repaired.setGameStateData(serialize(fresh));
+                repaired.setCompleted(false);
+                repaired.setLastActionAt(LocalDateTime.now());
+                gameSessionPort.save(repaired);
+                return new LoadedSession(repaired, fresh);
+            }
         }
 
         // Pass the room seed so all Daily players get the same random sequence
         GameState fresh = gameEngine.createNewGame(playerName, mode, room.getSeed());
         GameSession session = newSession(room.getId(), playerToken, playerName, fresh);
         return new LoadedSession(session, fresh);
+    }
+
+    public void purgeExpiredDailyData() {
+        purgeExpiredDailyData(LocalDate.now());
     }
 
     public boolean isDailySession(LoadedSession loaded) {
@@ -78,7 +97,18 @@ public class RoomService {
 
     public Optional<LoadedSession> loadActiveSession(String playerToken) {
         return gameSessionPort.findActiveByPlayerToken(playerToken)
-                .map(session -> new LoadedSession(session, deserialize(session.getGameStateData())));
+                .flatMap(session -> {
+                    try {
+                        GameState gameState = deserialize(session.getGameStateData());
+                        repairMissingStartTime(session, gameState);
+                        return Optional.of(new LoadedSession(session, gameState));
+                    } catch (IllegalStateException e) {
+                        session.setCompleted(true);
+                        session.setLastActionAt(LocalDateTime.now());
+                        gameSessionPort.save(session);
+                        return Optional.empty();
+                    }
+                });
     }
 
     public GameSession persist(LoadedSession loaded) {
@@ -110,6 +140,22 @@ public class RoomService {
 
     private static long seedFor(GameMode mode, LocalDate date) {
         return ((long) date.toString().hashCode() << 32) ^ mode.name().hashCode();
+    }
+
+    private void purgeExpiredDailyData(LocalDate today) {
+        List<Room> expiredRooms = roomPort.findRoomsByTypeBeforeDate(RoomType.DAILY, today);
+        if (expiredRooms.isEmpty()) return;
+        List<String> roomIds = expiredRooms.stream().map(Room::getId).toList();
+        gameSessionPort.deleteByRoomIds(roomIds);
+        roomPort.deleteByIds(roomIds);
+    }
+
+    private void repairMissingStartTime(GameSession session, GameState gameState) {
+        if (gameState.getProgressState().getStartTimeMs() != 0) return;
+        gameState.getProgressState().setStartTimeMs(System.currentTimeMillis());
+        session.setGameStateData(serialize(gameState));
+        session.setLastActionAt(LocalDateTime.now());
+        gameSessionPort.save(session);
     }
 
     private static String serialize(GameState state) {

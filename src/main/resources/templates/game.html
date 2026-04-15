@@ -15,6 +15,12 @@
         <span class="top-bar__turn" th:text="'Turn ' + ${gameState.progressState.turn}">Turn 1</span>
         <span class="top-bar__timer" id="game-timer"
               th:data-start="${gameState.progressState.startTimeMs}">0:00</span>
+        <div class="top-bar__nav">
+            <a class="top-bar__nav-btn top-bar__nav-btn--back" href="/">Back</a>
+            <form action="/quit" method="post" class="top-bar__nav-form">
+                <button class="top-bar__nav-btn top-bar__nav-btn--quit" type="submit">Quit</button>
+            </form>
+        </div>
     </div>
 
     <!-- Weather overlay (CSS animations + DOM particles) -->

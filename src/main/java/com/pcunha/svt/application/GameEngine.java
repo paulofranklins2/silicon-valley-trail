@@ -84,6 +84,7 @@ public class GameEngine {
 
         GameState gameState = new GameState(teamState, resourceState, journeyState, teamName);
         gameState.setSeed(seed);
+        gameState.getProgressState().setStartTimeMs(System.currentTimeMillis());
         ConfigState configState = gameState.getConfigState();
         configState.setGameMode(effectiveMode);
         configState.setRequestedGameMode(gameMode);

@@ -125,6 +125,13 @@ public class GameMvcController {
         return "redirect:/game";
     }
 
+    @PostMapping("/quit")
+    public String quitGame(HttpServletRequest request, HttpServletResponse response) {
+        String token = PlayerCookies.getOrCreate(request, response);
+        roomService.loadActiveSession(token).ifPresent(roomService::markCompleted);
+        return "redirect:/";
+    }
+
     @GetMapping("/end")
     public String endGame(HttpServletRequest request, HttpServletResponse response, Model model) {
         String token = PlayerCookies.getOrCreate(request, response);
@@ -146,6 +153,7 @@ public class GameMvcController {
 
     @GetMapping("/leaderboard/daily")
     public String dailyLeaderboard(Model model) {
+        roomService.purgeExpiredDailyData();
         model.addAttribute("leaderboard", leaderboardService.getDailyTopScores());
         model.addAttribute("view", "daily");
         return "leaderboard";

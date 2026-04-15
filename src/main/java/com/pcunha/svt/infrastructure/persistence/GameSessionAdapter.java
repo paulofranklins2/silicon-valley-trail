@@ -4,6 +4,7 @@ import com.pcunha.svt.domain.model.GameSession;
 import com.pcunha.svt.domain.port.GameSessionPort;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.Optional;
 
 @Component
@@ -27,5 +28,11 @@ public class GameSessionAdapter implements GameSessionPort {
     @Override
     public Optional<GameSession> findByRoomAndPlayer(String roomId, String playerToken) {
         return repository.findByRoomIdAndPlayerToken(roomId, playerToken);
+    }
+
+    @Override
+    public void deleteByRoomIds(Collection<String> roomIds) {
+        if (roomIds == null || roomIds.isEmpty()) return;
+        repository.deleteByRoomIdIn(roomIds);
     }
 }
