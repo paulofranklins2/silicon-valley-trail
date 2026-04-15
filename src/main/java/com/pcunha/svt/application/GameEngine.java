@@ -9,6 +9,7 @@ import com.pcunha.svt.infrastructure.data.GameDataLoader;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 /**
  * Main game class. Sets up new games and runs turns.
@@ -82,7 +83,6 @@ public class GameEngine {
         configState.setGameMode(effectiveMode);
         configState.setRequestedGameMode(gameMode);
         configState.setUsedFallbackDistances(result.usedFallback());
-        gameState.getProgressState().setStartTimeMs(System.currentTimeMillis());
         turnProcessor.loadInitialWeather(gameState);
         return gameState;
     }

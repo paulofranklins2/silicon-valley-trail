@@ -64,7 +64,8 @@ public class RoomService {
             return new LoadedSession(existing.get(), deserialize(existing.get().getGameStateData()));
         }
 
-        GameState fresh = gameEngine.createNewGame(playerName, mode);
+        // Pass the room seed so all Daily players get the same random sequence
+        GameState fresh = gameEngine.createNewGame(playerName, mode, room.getSeed());
         GameSession session = newSession(room.getId(), playerToken, playerName, fresh);
         return new LoadedSession(session, fresh);
     }

@@ -199,6 +199,36 @@ class TurnProcessorTest {
     }
 
     @Test
+    public void sameSeedProducesSameResultsForDailyMode() {
+        // Two independent games with the same Daily seed must see identical outcomes
+        long seed = 777L;
+        Random rng1 = new Random();
+        Random rng2 = new Random();
+        WeatherPort fixedWeather = loc -> new WeatherSignal(WeatherCategory.CLEAR, 20.0);
+
+        TurnProcessor tp1 = new TurnProcessor(ActionHandler.create(rng1), new ConditionEvaluator(TUNABLES), EventProcessor.create(rng1), fixedWeather, TUNABLES);
+        TurnProcessor tp2 = new TurnProcessor(ActionHandler.create(rng2), new ConditionEvaluator(TUNABLES), EventProcessor.create(rng2), fixedWeather, TUNABLES);
+
+        GameState s1 = createThreeCityGameState();
+        GameState s2 = createThreeCityGameState();
+        s1.setSeed(seed);
+        s2.setSeed(seed);
+
+        // Play two identical turns on both
+        tp1.processTurn(s1, GameAction.TRAVEL);
+        tp2.processTurn(s2, GameAction.TRAVEL);
+        tp1.processTurn(s1, GameAction.TRAVEL);
+        tp2.processTurn(s2, GameAction.TRAVEL);
+
+        // Same seed + same actions = identical stats
+        assertEquals(s1.getTeamState().getHealth(), s2.getTeamState().getHealth());
+        assertEquals(s1.getTeamState().getEnergy(), s2.getTeamState().getEnergy());
+        assertEquals(s1.getTeamState().getMorale(), s2.getTeamState().getMorale());
+        assertEquals(s1.getResourceState().getCash(), s2.getResourceState().getCash());
+        assertEquals(s1.getResourceState().getFood(), s2.getResourceState().getFood());
+    }
+
+    @Test
     public void weatherIsFetchedEveryTurn() {
         WeatherPort mockedWeatherPort = Mockito.mock(WeatherPort.class);
         Mockito.when(mockedWeatherPort.getWeather(Mockito.any()))

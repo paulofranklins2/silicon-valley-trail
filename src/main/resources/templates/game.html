@@ -203,7 +203,7 @@
                 </div>
                 <p class="event-choice__desc" th:text="${gameState.progressState.pendingEvent.description}">A decision must be made...</p>
                 <div class="event-choice__options">
-                    <form th:each="outcome, iter : ${gameState.progressState.pendingEvent.choices}"
+                    <form th:each="outcome, iter : ${gameState.progressState.pendingEvent.outcomes}"
                           action="/choice" method="post" style="display:contents">
                         <input type="hidden" name="choiceIndex" th:value="${iter.index}">
                         <button class="event-choice__btn" type="submit">
