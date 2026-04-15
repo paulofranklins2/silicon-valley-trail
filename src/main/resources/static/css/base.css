@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=VT323&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
 /*  RESET & BASE  */
 *, *::before, *::after {
@@ -67,7 +67,7 @@
     --bg-gradient-dark: #1a1a3e;
 
     --font-arcade: 'VT323', monospace;
-    --font-body: 'Inter', -apple-system, sans-serif;
+    --font-body: 'VT323', monospace;
 }
 
 body {
@@ -198,7 +198,8 @@ p {
 }
 
 /*  SHARED BUTTON & INPUT STYLES  */
-form input[type="text"] {
+form input[type="text"],
+form input[type="password"] {
     width: 100%;
     background: var(--bg-panel);
     border: 2px solid var(--border);
@@ -211,11 +212,13 @@ form input[type="text"] {
     transition: all var(--duration-normal) ease;
 }
 
-form input[type="text"]::placeholder {
+form input[type="text"]::placeholder,
+form input[type="password"]::placeholder {
     color: var(--text-dim);
 }
 
-form input[type="text"]:focus {
+form input[type="text"]:focus,
+form input[type="password"]:focus {
     outline: none;
     border-color: var(--accent);
     box-shadow: var(--shadow-glow), 0 0 32px rgba(0, 212, 255, 0.06);
