@@ -137,5 +137,9 @@ class LeaderboardServiceTest {
         public List<LeaderboardEntry> getDailyTopScores(java.time.LocalDateTime start, java.time.LocalDateTime end) {
             return List.of();
         }
+
+        @Override
+        public void deleteExpiredDailyScores(java.time.LocalDateTime cutoff) {
+        }
     }
 }
