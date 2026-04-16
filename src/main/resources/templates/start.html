@@ -45,6 +45,13 @@
                     <div th:each="modeOption : ${modeOptions}"
                          class="mode-option"
                          th:classappend="${modeOption.code == 'DAILY'} ? ' mode-option--daily'">
+                        <input th:if="${modeOption.newAvailable}"
+                               class="mode-option__select"
+                               type="radio"
+                               th:value="${modeOption.code}"
+                               th:data-game-mode="${modeOption.code}"
+                               th:checked="${modeOption.code == 'EASY'}"
+                               th:aria-label="${modeOption.displayName}">
                         <div class="mode-option__meta">
                             <span class="mode-option__name" th:text="${modeOption.displayName}">Mode</span>
                             <span class="mode-option__status" th:if="${modeOption.statusLabel}" th:text="${modeOption.statusLabel}">Run in progress</span>
@@ -63,6 +70,7 @@
                         </div>
                     </div>
                 </div>
+                <button type="submit" class="start-form__submit" name="gameMode" value="EASY">Start Run</button>
             </form>
 
             <div class="account-entry">
@@ -160,6 +168,18 @@
 
             if (hasAuthMessage) {
                 openModal();
+            }
+
+            var modeInputs = document.querySelectorAll('.mode-option__select[data-game-mode]');
+            var startSubmit = document.querySelector('.start-form__submit[name="gameMode"]');
+            if (startSubmit && modeInputs.length) {
+                modeInputs.forEach(function(input) {
+                    input.addEventListener('change', function() {
+                        if (input.checked) {
+                            startSubmit.value = input.getAttribute('data-game-mode');
+                        }
+                    });
+                });
             }
         })();
     </script>
