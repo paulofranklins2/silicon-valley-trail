@@ -442,11 +442,13 @@ form input[type="password"]:focus {
 
 @media (max-width: 600px) {
     body {
-        padding: var(--space-sm) var(--space-sm);
+        padding: 6px;
     }
 
     .container {
-        gap: var(--space-sm);
+        gap: 8px;
+        max-width: 100%;
+        min-width: 0;
     }
 
     h1 {

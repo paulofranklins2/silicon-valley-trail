@@ -607,12 +607,21 @@
 }
 
 @media (max-width: 600px) {
+    .game-screen {
+        gap: 4px;
+    }
+
+    .game-shell {
+        gap: 6px;
+    }
+
     .top-bar {
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+        align-items: center;
         justify-content: flex-start;
-        gap: var(--space-sm);
-        padding: var(--space-sm) var(--space-md);
-        font-size: 0.8rem;
+        gap: 4px;
+        padding: 4px 6px;
+        font-size: 0.68rem;
     }
 
     .top-bar::before {
@@ -620,13 +629,34 @@
     }
 
     .top-bar__title {
-        font-size: 0.9rem;
-        letter-spacing: 1px;
-        width: 100%;
+        display: none;
+    }
+
+    .top-bar__weather {
+        flex: 0 0 auto;
+        justify-content: flex-start;
+        min-width: 0;
+    }
+
+    .top-bar .weather-display__label,
+    .top-bar .weather-display__effects {
+        display: none !important;
     }
 
     .top-bar__turn {
-        font-size: 1rem;
+        font-size: 0.82rem;
+        letter-spacing: 0.3px;
+    }
+
+    .top-bar__timer {
+        font-size: 0.8rem;
+        letter-spacing: 0.3px;
+    }
+
+    .top-bar__nav {
+        width: auto;
+        margin-left: auto;
+        flex-shrink: 0;
     }
 
     .team-avatar {
@@ -637,19 +667,15 @@
     .game-top-row,
     .game-body {
         grid-template-columns: 1fr;
-        gap: var(--space-sm);
+        gap: 4px;
     }
 
     .mission-panel,
     .ops-panel,
     .command-panel,
     .stage-feed {
-        padding: var(--space-md);
-        border-radius: 16px;
-    }
-
-    .stage-feed {
-        padding: 8px 10px 10px;
+        padding: 6px;
+        border-radius: 12px;
     }
 
     .mission-panel__header,
@@ -659,14 +685,63 @@
     .action-stage-frame__header {
         flex-direction: column;
         align-items: flex-start;
+        gap: 3px;
+        margin-bottom: 4px;
     }
 
-    .mission-panel__snapshot {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+    .mission-panel__snapshot,
+    .stage-feed,
+    .ops-panel__header,
+    .mission-panel__meta-chip:last-child,
+    .command-panel__brief,
+    .action-stage-frame__hint {
+        display: none;
+    }
+
+    .mission-panel {
+        padding: 6px;
+        gap: 4px;
+    }
+
+    .mission-panel__meta {
+        justify-content: flex-start;
+        gap: 3px;
     }
 
     .game-body__stats {
-        gap: var(--space-sm);
+        gap: 4px;
+    }
+
+    .mission-panel__title,
+    .command-panel__title {
+        font-size: 0.84rem;
+        line-height: 1.05;
+    }
+
+    .mission-panel__eyebrow,
+    .ops-panel__label,
+    .command-panel__label,
+    .stage-feed__label,
+    .action-stage-frame__label {
+        font-size: 0.54rem;
+        letter-spacing: 0.6px;
+    }
+
+    .mission-panel__meta-chip,
+    .command-panel__status,
+    .stage-feed__state {
+        padding: 2px 6px;
+        font-size: 0.54rem;
+        letter-spacing: 0.6px;
+    }
+
+    .command-panel__status,
+    .action-stage-frame__header {
+        display: none;
+    }
+
+    .mission-panel .journey-progress {
+        margin-bottom: 0;
     }
 
     .game-title {
@@ -674,16 +749,19 @@
     }
 
     .stats-panel__team {
-        padding: var(--space-sm) var(--space-md);
-        gap: var(--space-sm);
+        padding: 4px 8px;
+        gap: 6px;
+        min-height: 0;
     }
 
     .team-display__name {
-        font-size: 0.8rem;
+        font-size: 0.72rem;
+        letter-spacing: 0.5px;
+        line-height: 1;
     }
 
     .team-display__members {
-        gap: var(--space-xs);
+        display: none;
     }
 
     .team-display__sprite {
@@ -702,5 +780,62 @@
         left: var(--space-sm);
         max-width: 100%;
         width: auto;
+    }
+}
+
+@media (max-width: 600px) and (min-height: 900px) {
+    .game-screen {
+        gap: 8px;
+        min-height: calc(100dvh - 20px);
+    }
+
+    .game-shell,
+    .game-top-row,
+    .game-body,
+    .game-body__stats {
+        gap: 8px;
+    }
+
+    .top-bar {
+        padding: 6px 8px;
+        gap: 6px;
+    }
+
+    .top-bar__turn {
+        font-size: 0.9rem;
+    }
+
+    .top-bar__timer {
+        font-size: 0.88rem;
+    }
+
+    .mission-panel,
+    .ops-panel,
+    .command-panel {
+        padding: 8px;
+        border-radius: 14px;
+    }
+
+    .mission-panel {
+        gap: 6px;
+    }
+
+    .mission-panel__title,
+    .command-panel__title {
+        font-size: 0.94rem;
+    }
+
+    .mission-panel__meta {
+        gap: 4px;
+    }
+
+    .mission-panel__meta-chip,
+    .command-panel__status {
+        padding: 3px 7px;
+        font-size: 0.58rem;
+    }
+
+    .stats-panel__team {
+        padding: 6px 8px;
     }
 }

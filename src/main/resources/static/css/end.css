@@ -527,43 +527,45 @@
 
 @media (max-width: 600px) {
     .end-page {
-        padding: 1.25rem var(--space-md) 2rem;
+        padding: 0.75rem 10px 1rem;
     }
 
     .end-hero,
     .end-panel {
-        padding: var(--space-lg);
-        border-radius: 22px;
+        padding: 12px 10px;
+        border-radius: 18px;
     }
 
     .end-page h1 {
-        font-size: 2rem;
+        font-size: 1.55rem;
     }
 
     .end-characters {
-        gap: var(--space-xs);
-        margin-bottom: var(--space-md);
+        gap: 4px;
+        margin-bottom: 8px;
     }
 
     .end-score__value {
-        font-size: 1.8rem;
+        font-size: 1.45rem;
     }
 
     .result-message {
-        font-size: 0.88rem;
+        font-size: 0.76rem;
+        margin-bottom: 8px;
     }
 
     .end-hero__topline {
-        gap: var(--space-xs);
+        gap: 4px;
+        margin-bottom: 6px;
     }
 
     .end-characters__sprite {
-        width: 36px;
-        height: 36px;
+        width: 26px;
+        height: 26px;
     }
 
     .end-hero__meta {
-        grid-template-columns: 1fr;
+        display: none;
     }
 
     .final-stats__grid {
@@ -572,30 +574,172 @@
     }
 
     .stat-line {
-        padding: var(--space-xs) 0;
+        padding: 4px 0;
     }
 
     .stat-line .label {
-        font-size: 0.75rem;
+        font-size: 0.68rem;
     }
 
     .stat-line .value {
-        font-size: 0.88rem;
+        font-size: 0.8rem;
     }
 
     .leaderboard-input {
         width: 100%;
-        font-size: 0.8rem;
+        font-size: 0.72rem;
+        padding: 8px 10px;
     }
 
     .end-actions {
-        gap: var(--space-md);
+        gap: 8px;
         width: 100%;
     }
 
     .end-page a {
-        font-size: 1rem;
-        padding: var(--space-sm) var(--space-xl);
+        font-size: 0.82rem;
+        padding: 8px 12px;
+        letter-spacing: 1px;
+    }
+
+    .end-hero__kicker,
+    .end-panel__eyebrow,
+    .end-panel__header h2 {
+        display: none;
+    }
+
+    .end-score {
+        margin-bottom: 8px;
+        padding: 8px 0 6px;
+    }
+
+    .end-bottom {
+        gap: 10px;
+        padding-top: 0;
+    }
+
+    .leaderboard-form {
+        gap: 6px;
+    }
+}
+
+@media (max-width: 600px) {
+    .leaderboard-page {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .leaderboard-hero,
+    .leaderboard-board {
+        border-radius: 14px;
+    }
+
+    .leaderboard-hero {
+        padding: 10px 8px;
+    }
+
+    .leaderboard-kicker,
+    .leaderboard-subtitle,
+    .leaderboard-board__eyebrow,
+    .leaderboard-board__note {
+        display: none;
+    }
+
+    .leaderboard-title,
+    .leaderboard-board__title {
+        font-size: 1.3rem;
+    }
+
+    .leaderboard-tabs {
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+
+    .leaderboard-tab {
+        font-size: 0.62rem;
+        padding: 7px 10px;
+        letter-spacing: 0.8px;
+    }
+
+    .leaderboard-board {
+        padding: 8px;
+    }
+
+    .leaderboard-board__header {
+        margin-bottom: 8px;
+        gap: 6px;
+    }
+
+    .leaderboard-table-wrap {
+        border-radius: 12px;
+    }
+
+    .leaderboard-table {
+        min-width: 760px;
+        font-size: 0.74rem;
+    }
+
+    .leaderboard-table thead th,
+    .leaderboard-table tbody td {
+        padding: 8px 6px;
+    }
+
+    .leaderboard-mode {
+        min-width: 4.4rem;
+        padding: 3px 6px;
+        font-size: 0.56rem;
+        letter-spacing: 0.6px;
+    }
+
+    .leaderboard-outcome {
+        font-size: 0.6rem;
+        letter-spacing: 0.6px;
+    }
+}
+
+@media (max-width: 600px) and (min-height: 780px) {
+    .end-page {
+        padding-top: 1rem;
+        padding-bottom: 1.25rem;
+    }
+
+    .end-hero,
+    .end-panel,
+    .leaderboard-hero,
+    .leaderboard-board {
+        padding: 12px;
+    }
+
+    .end-page h1,
+    .leaderboard-title,
+    .leaderboard-board__title {
+        font-size: 1.55rem;
+    }
+
+    .end-characters {
+        margin-bottom: 12px;
+    }
+
+    .end-characters__sprite {
+        width: 30px;
+        height: 30px;
+    }
+
+    .end-score__value {
+        font-size: 1.6rem;
+    }
+
+    .result-message {
+        font-size: 0.82rem;
+        margin-bottom: 12px;
+    }
+
+    .leaderboard-table tbody {
+        gap: 10px;
+    }
+
+    .leaderboard-table tbody tr {
+        padding: 10px;
     }
 }
 
@@ -967,5 +1111,156 @@
     .leaderboard-table thead th,
     .leaderboard-table tbody td {
         padding: 12px 8px;
+    }
+}
+
+@media (max-width: 600px) {
+    .leaderboard-page {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    .leaderboard-hero,
+    .leaderboard-board {
+        border-radius: 14px;
+    }
+
+    .leaderboard-hero {
+        padding: 10px 8px;
+    }
+
+    .leaderboard-board {
+        padding: 8px;
+    }
+
+    .leaderboard-kicker,
+    .leaderboard-subtitle,
+    .leaderboard-board__eyebrow,
+    .leaderboard-board__note {
+        display: none;
+    }
+
+    .leaderboard-title,
+    .leaderboard-board__title {
+        font-size: 1.3rem;
+    }
+
+    .leaderboard-tabs {
+        gap: 6px;
+        margin: 0 0 10px;
+    }
+
+    .leaderboard-tab {
+        font-size: 0.62rem;
+        padding: 7px 10px;
+        letter-spacing: 0.8px;
+    }
+
+    .leaderboard-board__header {
+        margin-bottom: 8px;
+        gap: 6px;
+    }
+
+    .leaderboard-table-wrap {
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        overflow: visible;
+    }
+
+    .leaderboard-table {
+        min-width: 0;
+        width: 100%;
+        display: block;
+        font-size: 0.72rem;
+    }
+
+    .leaderboard-table thead {
+        display: none;
+    }
+
+    .leaderboard-table tbody {
+        display: grid;
+        gap: 8px;
+    }
+
+    .leaderboard-table tbody tr {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px 10px;
+        padding: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 12px;
+        background:
+            linear-gradient(180deg, rgba(20, 20, 40, 0.96), rgba(12, 12, 24, 0.98)),
+            radial-gradient(circle at top left, rgba(0, 212, 255, 0.05), transparent 40%);
+    }
+
+    .leaderboard-table tbody td {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 0;
+        border: 0;
+        text-align: left;
+    }
+
+    .leaderboard-table tbody td::before {
+        color: var(--text-dim);
+        font-family: var(--font-arcade);
+        font-size: 0.54rem;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        flex-shrink: 0;
+    }
+
+    .leaderboard-table tbody td:nth-child(1),
+    .leaderboard-table tbody td:nth-child(2),
+    .leaderboard-table tbody td:nth-child(10) {
+        grid-column: 1 / -1;
+    }
+
+    .leaderboard-table tbody td:nth-child(1)::before { content: 'Rank'; }
+    .leaderboard-table tbody td:nth-child(2)::before { content: 'Player'; }
+    .leaderboard-table tbody td:nth-child(3)::before { content: 'Mode'; }
+    .leaderboard-table tbody td:nth-child(4)::before { content: 'Outcome'; }
+    .leaderboard-table tbody td:nth-child(5)::before { content: 'Place'; }
+    .leaderboard-table tbody td:nth-child(6)::before { content: 'Turns'; }
+    .leaderboard-table tbody td:nth-child(7)::before { content: 'Time'; }
+    .leaderboard-table tbody td:nth-child(8)::before { content: 'Raw'; }
+    .leaderboard-table tbody td:nth-child(9)::before { content: 'Mult'; }
+    .leaderboard-table tbody td:nth-child(10)::before { content: 'Score'; }
+
+    .leaderboard-table tbody td:nth-child(1) {
+        color: var(--accent);
+        font-family: var(--font-arcade);
+    }
+
+    .leaderboard-table tbody td:nth-child(2) {
+        font-family: var(--font-arcade);
+        font-size: 0.88rem;
+        color: var(--text-bright);
+    }
+
+    .leaderboard-table tbody td:nth-child(10) {
+        padding-top: 4px;
+        margin-top: 2px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        font-family: var(--font-arcade);
+        font-size: 0.88rem;
+    }
+
+    .leaderboard-mode {
+        min-width: 0;
+        padding: 2px 6px;
+        font-size: 0.56rem;
+        letter-spacing: 0.6px;
+    }
+
+    .leaderboard-outcome {
+        font-size: 0.6rem;
+        letter-spacing: 0.6px;
     }
 }

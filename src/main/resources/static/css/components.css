@@ -61,13 +61,14 @@
 
 @media (max-width: 600px) {
     .top-bar__nav {
-        gap: var(--space-xs);
+        gap: 4px;
     }
 
     .top-bar__nav-btn {
-        min-height: 32px;
-        padding: 0 var(--space-sm);
-        font-size: 0.65rem;
+        min-height: 28px;
+        padding: 0 8px;
+        font-size: 0.58rem;
+        letter-spacing: 0.6px;
     }
 }
 
@@ -409,57 +410,61 @@
 }
 
 @media (max-width: 600px) {
+    .stats-panel__divider {
+        display: none;
+    }
+
     .stats-panel::before {
         height: 1px;
     }
 
     .stats-panel__section {
-        padding: var(--space-sm) var(--space-md);
+        padding: 6px 8px;
     }
 
     .stats-panel__section-label {
-        font-size: 0.68rem;
-        margin-bottom: var(--space-xs);
+        font-size: 0.62rem;
+        margin-bottom: 3px;
     }
 
     .stats-panel__bars {
-        gap: var(--space-xs);
+        gap: 6px;
     }
 
     .stat-row {
-        gap: var(--space-sm);
+        gap: 6px;
     }
 
     .stat-row__label {
-        font-size: 0.8rem;
-        width: 32px;
-    }
-
-    .stat-row__bar {
-        height: 10px;
-    }
-
-    .stat-row__val {
-        font-size: 0.95rem;
+        font-size: 0.72rem;
         width: 28px;
     }
 
+    .stat-row__bar {
+        height: 8px;
+    }
+
+    .stat-row__val {
+        font-size: 0.85rem;
+        width: 24px;
+    }
+
     .stats-panel__resources {
-        gap: var(--space-xs);
+        gap: 6px;
     }
 
     .res-item__bar {
-        height: 6px;
+        height: 5px;
     }
 
     .res-item__val {
-        font-size: 0.95rem;
-        min-width: 30px;
+        font-size: 0.85rem;
+        min-width: 24px;
     }
 
     .res-item__name {
-        width: 44px;
-        font-size: 0.68rem;
+        width: 34px;
+        font-size: 0.62rem;
     }
 }
 

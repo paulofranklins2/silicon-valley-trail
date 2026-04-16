@@ -392,16 +392,16 @@
 /*  WEATHER RESPONSIVE  */
 @media (max-width: 600px) {
     .weather-display {
-        gap: var(--space-xs);
-        font-size: 0.7rem;
+        gap: 2px;
+        font-size: 0.62rem;
     }
 
     .weather-display__icon {
-        font-size: 0.85rem;
+        font-size: 0.72rem;
     }
 
     .weather-display__label {
-        font-size: 0.75rem;
+        font-size: 0.68rem;
     }
 
     .weather-display__effects {

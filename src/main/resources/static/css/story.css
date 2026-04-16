@@ -223,40 +223,69 @@
 @media (max-width: 600px) {
     .story-beat__summary,
     .stage-feed .story-beat__summary {
-        grid-template-columns: 1fr;
-        gap: 8px;
+        grid-template-columns: repeat(3, minmax(0, auto));
+        align-items: center;
+        gap: 6px;
     }
 
     .story-beat {
-        padding: var(--space-sm) var(--space-md);
-        min-height: 36px;
+        padding: 8px 10px;
+        min-height: 32px;
     }
 
     .story-beat__action-label {
-        font-size: 0.9rem;
+        font-size: 0.82rem;
+        letter-spacing: 1px;
     }
 
     .story-beat__title {
-        font-size: 0.85rem;
+        font-size: 0.72rem;
     }
 
     .story-beat__desc {
-        font-size: 0.8rem;
-        margin-bottom: var(--space-sm);
-        line-height: 1.4;
+        font-size: 0.72rem;
+        margin-bottom: 0;
+        line-height: 1.3;
     }
 
     .story-beat__impacts span {
-        font-size: 0.72rem;
-        padding: 1px var(--space-xs);
+        font-size: 0.62rem;
+        padding: 1px 4px;
     }
 
     .stage-feed .story-beat__desc {
-        font-size: 0.74rem;
+        font-size: 0.68rem;
         white-space: normal;
     }
 
     .stage-feed .story-beat__impacts span {
         font-size: 0.62rem;
+    }
+
+    .story-beat__segment--story,
+    .story-beat__segment--impact {
+        display: none;
+    }
+
+    .story-beat__segment-label {
+        display: none;
+    }
+
+    .story-beat__segment {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .story-beat__action-label,
+    .story-beat__title,
+    .story-beat__desc {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .story-beat__empty .story-beat__action-label {
+        font-size: 0.76rem;
     }
 }

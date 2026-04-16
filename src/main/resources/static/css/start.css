@@ -7,6 +7,7 @@
     justify-content: center;
     padding-top: clamp(1.25rem, 3vh, 2.25rem);
     padding-bottom: clamp(1.25rem, 3vh, 2.25rem);
+    overflow: hidden;
 }
 
 .start-page::before,
@@ -779,38 +780,106 @@
 }
 
 @media (max-width: 600px) {
+    .start-page {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: clip;
+    }
+
+    .start-layout {
+        width: 100%;
+        max-width: 100%;
+        gap: 8px;
+    }
+
+    .start-hero,
+    .start-panel,
+    .mode-option,
+    .mode-option__meta,
+    .mode-option__actions,
+    .start-resume,
+    .start-resume__item,
+    .start-resume__url {
+        min-width: 0;
+        max-width: 100%;
+    }
+
     .start-page h1 {
-        font-size: 2.05rem;
+        font-size: 1.55rem;
     }
 
     .start-page {
-        min-height: auto;
-        display: block;
-        padding-top: 1.5rem;
-        padding-bottom: 1.5rem;
+        min-height: calc(100svh - 12px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding-top: 0.6rem;
+        padding-bottom: 0.6rem;
+    }
+
+    .start-hero {
+        padding: 12px 12px 10px;
     }
 
     .start-panel {
-        padding: 14px;
+        padding: 10px;
     }
 
     .start-form {
-        gap: 12px;
+        gap: 8px;
+    }
+
+    .start-page .description,
+    .start-resume__hint,
+    .start-characters__dest-label,
+    .mode-option__status,
+    .start-form__label,
+    .start-form__title,
+    .start-page .subtitle,
+    .start-leaderboard-link {
+        display: none;
+    }
+
+    .start-characters {
+        margin-bottom: 8px;
+    }
+
+    .start-characters__road {
+        height: 42px;
+    }
+
+    .start-characters__sprite {
+        width: 24px;
+        height: 24px;
+    }
+
+    .start-characters__train {
+        width: 18px;
+        height: 18px;
     }
 
     .mode-option {
         min-height: 0;
         flex-direction: column;
         align-items: stretch;
-        padding: 12px;
+        padding: 8px;
+        gap: 6px;
     }
 
     .mode-option__actions {
         justify-content: stretch;
+        width: 100%;
     }
 
     .mode-option__button {
         width: 100%;
+        padding: 6px 8px;
+        font-size: 0.5rem;
+    }
+
+    .start-resume__url {
+        font-size: 0.62rem;
+        padding: 8px 10px;
     }
 
     .account-entry__signed-in {
@@ -820,23 +889,63 @@
 
     .account-entry__button {
         width: 100%;
+        padding: 7px 10px;
+        font-size: 0.64rem;
     }
 
-    .start-characters__sprite {
-        width: 34px;
-        height: 34px;
-    }
-
-    .start-characters__train {
-        width: 30px;
-        height: 30px;
-    }
-
-    .start-characters__road {
-        height: 66px;
+    .start-resume {
+        padding: 8px;
+        margin-top: 8px;
     }
 
     .auth-modal__content {
-        padding: 22px 18px;
+        padding: 18px 16px;
+    }
+}
+
+@media (max-width: 600px) and (min-height: 760px) {
+    .start-page {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    .start-hero {
+        padding: 16px 14px;
+    }
+
+    .start-panel {
+        padding: 12px;
+    }
+
+    .start-page h1 {
+        font-size: 1.75rem;
+    }
+
+    .start-characters {
+        margin-bottom: 12px;
+    }
+
+    .start-characters__road {
+        height: 54px;
+    }
+
+    .start-characters__sprite {
+        width: 28px;
+        height: 28px;
+    }
+
+    .start-characters__train {
+        width: 22px;
+        height: 22px;
+    }
+
+    .mode-option {
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .mode-option__button {
+        padding: 8px 10px;
+        font-size: 0.56rem;
     }
 }

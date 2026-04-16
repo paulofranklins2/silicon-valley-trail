@@ -228,7 +228,7 @@
 
 @media (max-width: 600px) {
     .journey-progress {
-        padding: var(--space-sm) var(--space-md) var(--space-sm);
+        padding: 6px 8px;
     }
 
     .journey-progress::before {
@@ -236,25 +236,21 @@
     }
 
     .journey-progress__cities {
-        margin-bottom: var(--space-xs);
-    }
-
-    .journey-progress__city {
-        font-size: 0.7rem;
+        display: none;
     }
 
     .journey-progress__track {
-        height: 24px;
+        height: 16px;
     }
 
     .journey-progress__train-img {
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
     }
 
     .journey-dot {
-        width: 5px;
-        height: 5px;
+        width: 4px;
+        height: 4px;
     }
 
     .journey-dot__label {
@@ -262,7 +258,11 @@
     }
 
     .journey-progress__dist {
-        margin-top: var(--space-xs);
-        font-size: 0.75rem;
+        margin-top: 2px;
+        font-size: 0.62rem;
+    }
+
+    .journey-progress__total {
+        display: none;
     }
 }
