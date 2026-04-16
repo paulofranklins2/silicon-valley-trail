@@ -306,17 +306,6 @@
 }
 
 
-.mode-option__select,
-.start-form__submit {
-    display: none;
-}
-
-@media (min-width: 601px) {
-    .start-form__submit {
-        display: none !important;
-    }
-}
-
 .start-form button[type="submit"] {
     font-family: var(--font-arcade);
     font-size: 0.9rem;
@@ -480,11 +469,6 @@
 
 .mode-option__button--resume {
     background: rgba(0, 212, 255, 0.04);
-}
-
-.start-form__submit {
-    width: 100%;
-    margin-top: 8px;
 }
 
 .mode-option--daily {
@@ -853,7 +837,6 @@
     .start-page .description,
     .start-resume__hint,
     .start-characters__dest-label,
-    .mode-option__status,
     .start-form__label,
     .start-form__title,
     .start-page .subtitle,
@@ -881,55 +864,47 @@
 
     .mode-option {
         min-height: 0;
-        flex-direction: row;
-        align-items: center;
+        flex-direction: column;
+        align-items: stretch;
         padding: 8px;
-        gap: 6px;
-    }
-
-    .mode-option__select {
-        display: block;
-        flex: 0 0 auto;
-        width: 16px;
-        height: 16px;
-        margin: 0;
-        accent-color: var(--accent);
-        cursor: pointer;
+        gap: 5px;
     }
 
     .mode-option__meta {
-        flex: 1;
-        gap: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: nowrap;
     }
 
     .mode-option__actions {
-        display: none;
-    }
-
-    .start-form__submit {
-        display: inline-block;
-        padding: 8px 10px;
-        font-size: 0.62rem;
-        letter-spacing: 1px;
-        margin-top: 2px;
+        display: flex;
+        width: 100%;
+        gap: 6px;
+        justify-content: stretch;
+        align-items: stretch;
     }
 
     .mode-option__button {
-        min-width: 70px;
-        min-height: 30px;
-        padding: 0 9px;
-        font-size: 0.52rem;
+        flex: 1 1 0;
+        min-width: 0;
+        min-height: 28px;
+        padding: 0 8px;
+        font-size: 0.5rem;
     }
 
-    .mode-option:has(.mode-option__select:checked) {
-        border-color: rgba(0, 212, 255, 0.32);
-        background: linear-gradient(180deg, rgba(0, 212, 255, 0.08), rgba(255, 255, 255, 0.03));
-        box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.18), 0 10px 18px rgba(0, 0, 0, 0.16);
+    .mode-option__status {
+        display: inline-flex;
+        flex: 0 0 auto;
+        max-width: none;
+        padding: 2px 6px;
+        font-size: 0.5rem;
+        letter-spacing: 0.6px;
     }
 
-    .mode-option--daily:has(.mode-option__select:checked) {
-        border-color: rgba(168, 85, 247, 0.4);
-        box-shadow: 0 0 0 1px rgba(168, 85, 247, 0.2), 0 10px 18px rgba(0, 0, 0, 0.16);
+    .mode-option__name {
+        font-size: 0.7rem;
     }
 
     .start-resume__url {
@@ -996,18 +971,14 @@
 
     .mode-option {
         padding: 10px;
-        gap: 8px;
+        gap: 6px;
     }
 
-    .mode-option__button--resume {
-        min-width: 74px;
-        min-height: 32px;
+    .mode-option__button {
+        flex: 1 1 0;
+        min-width: 0;
+        min-height: 30px;
         padding: 0 10px;
         font-size: 0.56rem;
-    }
-
-    .start-form__submit {
-        padding: 10px 12px;
-        font-size: 0.68rem;
     }
 }
